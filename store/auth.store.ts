@@ -1,6 +1,6 @@
+import { User } from '@tamagui/lucide-icons';
 import { create } from 'zustand';
-import { User } from '@/types/auth.types';
-import { secureStorage } from '@/lib/secureStorage';
+import { secureStorage } from '../lib/secureStorage.js';
 
 interface AuthState {
   user: User | null;

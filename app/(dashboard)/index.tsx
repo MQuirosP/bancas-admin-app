@@ -1,7 +1,7 @@
 import React from 'react';
 import { YStack, XStack, Text, Card, ScrollView } from 'tamagui';
-import { useAuthStore } from '../../store/auth.store.js';
-import { UserRole } from '../../types/auth.types.js';
+import { useAuthStore } from '../../store/auth.store';
+import { UserRole } from '../../types/auth.types';
 
 export default function DashboardScreen() {
   const { user } = useAuthStore();

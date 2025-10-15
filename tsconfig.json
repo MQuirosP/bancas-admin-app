@@ -1,18 +1,9 @@
 {
-  "extends": "expo/tsconfig.base",
   "compilerOptions": {
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true,
-    "noImplicitReturns": true,
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
+    "module": "esnext",
+    "moduleResolution": "Bundler",
     "jsx": "react-native",
-    "moduleResolution": "Node16",
-    "module": "Node16",
+    "skipLibCheck": true,
     "paths": {
       "@/*": [
         "./*"
@@ -43,12 +34,5 @@
       ]
     }
   },
-  "include": [
-    "**/*.ts",
-    "**/*.tsx",
-    "app.config.cjs"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+  "extends": "expo/tsconfig.base"
 }

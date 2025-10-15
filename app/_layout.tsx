@@ -2,9 +2,9 @@ import React, { useEffect } from 'react';
 import { Slot } from 'expo-router';
 import { TamaguiProvider } from 'tamagui';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { queryClient } from '../lib/queryClient.js';
-import { useAuthStore } from '../store/auth.store.js';
-import config from '../tamagui.config.js';
+import { queryClient } from '../lib/queryClient';
+import { useAuthStore } from '../store/auth.store';
+import config from '../tamagui.config';
 
 export default function RootLayout() {
   const rehydrate = useAuthStore((state) => state.rehydrate);
