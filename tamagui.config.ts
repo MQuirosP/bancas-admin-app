@@ -1,142 +1,93 @@
 // tamagui.config.ts
-import { createTamagui, createTokens } from 'tamagui'
-import { shorthands } from '@tamagui/shorthands'
+import { config } from '@tamagui/config/v3';
+import { createTamagui } from 'tamagui';
 
-// ⬅️ IMPORTA tokens y themes base
-import { tokens as baseTokens, themes as baseThemes } from '@tamagui/themes'
-
-import { createAnimations } from '@tamagui/animations-react-native'
-
-const BASE = 16
-
-const colors = {
-  dark: {
-    50: '#0a0a0b',
-    100: '#121214',
-    200: '#1a1a1d',
-    300: '#25252a',
-    400: '#35353d',
-    500: '#4a4a56',
-    600: '#6b6b7a',
-    700: '#8a8a9a',
-    800: '#b4b4c5',
-    900: '#e8e8f0',
-  },
-  primary: { DEFAULT: '#6366f1', light: '#818cf8', dark: '#4f46e5' },
-  success: { DEFAULT: '#10b981', light: '#34d399', dark: '#059669' },
-  error:   { DEFAULT: '#ef4444', light: '#f87171', dark: '#dc2626' },
-  warning: { DEFAULT: '#f59e0b', light: '#fbbf24', dark: '#d97706' },
-}
-
-// ⬅️ define SOLO tus tokens custom (no reemplaces los base)
-const customTokens = createTokens({
-  color: {
-    backgroundDark: colors.dark[100],
-    backgroundElevated: colors.dark[200],
-    backgroundHover: colors.dark[300],
-    borderSubtle: colors.dark[400],
-    textPrimary: colors.dark[900],
-    textSecondary: colors.dark[800],
-    textTertiary: colors.dark[600],
-
-    primary: colors.primary.DEFAULT,
-    primaryLight: colors.primary.light,
-    primaryDark: colors.primary.dark,
-    success: colors.success.DEFAULT,
-    error: colors.error.DEFAULT,
-    warning: colors.warning.DEFAULT,
-
-    outlineColor: colors.primary.DEFAULT, // para focus/outline
-  },
-  space: { 0:0, 1:4, 2:8, 3:12, 4:BASE, 5:20, 6:24, 8:32, 10:40, 12:48, 16:64, true: BASE },
-  size:  { 0:0, 1:4, 2:8, 3:12, 4:BASE, 5:20, 6:24, 8:32, true: BASE },
-  radius:{ 0:0, 1:4, 2:8, 3:12, 4:16, true: 8 },
-  zIndex:{ 0:0, 1:10, 2:20, header:100, drawer:200, modal:300 },
-})
-
-const animations = createAnimations({
-  quick: { type: 'spring', damping: 20, mass: 1.1, stiffness: 250 },
-  smooth:{ type: 'spring', damping: 25, mass: 1, stiffness: 200 },
-})
-
-// overrides para dark/light
-const darkOverrides = {
-  background: colors.dark[100],
-  backgroundHover: colors.dark[300],
-  backgroundPress: colors.dark[400],
-  backgroundFocus: colors.dark[300],
-  backgroundStrong: colors.dark[200],
-  backgroundTransparent: 'rgba(0,0,0,0.5)',
-
-  color: colors.dark[900],
-  colorHover: colors.dark[900],
-  colorPress: colors.dark[800],
-  colorFocus: colors.dark[900],
-  colorTransparent: 'rgba(255,255,255,0.1)',
-
-  borderColor: colors.dark[400],
-  borderColorHover: colors.dark[500],
-  borderColorFocus: colors.primary.DEFAULT,
-  borderColorPress: colors.dark[500],
-
-  placeholderColor: colors.dark[600],
-
-  primary: colors.primary.DEFAULT,
-  primaryHover: colors.primary.light,
-
-  secondary: colors.dark[600],
-  secondaryHover: colors.dark[700],
-
-  success: colors.success.DEFAULT,
-  successHover: colors.success.light,
-
-  error: colors.error.DEFAULT,
-  errorHover: colors.error.light,
-
-  warning: colors.warning.DEFAULT,
-  warningHover: colors.warning.light,
-
-  headerBg: colors.dark[200],
-  footerBg: colors.dark[200],
-  drawerBg: colors.dark[200],
-  cardBg: colors.dark[200],
-  shadowColor: 'rgba(0,0,0,0.5)',
-
-  outlineColor: '$outlineColor',
-}
-
-export const config = createTamagui({
-  // ⬅️ MEZCLA tokens base + tus tokens
-  tokens: {
-    ...baseTokens,
-    color: {
-      ...baseTokens.color,       // ← trae $blue1..$blue12, $green*, $purple*, $orange*...
-      ...customTokens.color,     // ← tus overrides se aplican después
-    },
-    space:  { ...baseTokens.space,  ...customTokens.space },
-    size:   { ...baseTokens.size,   ...customTokens.size },
-    radius: { ...baseTokens.radius, ...customTokens.radius },
-    zIndex: { ...baseTokens.zIndex, ...customTokens.zIndex },
-  },
-
-  // ⬅️ MEZCLA themes base + tus overrides
+const appConfig = createTamagui({
+  ...config,
   themes: {
-    ...baseThemes,                     // conserva blue/green/purple/orange, etc.
-    dark:  { ...baseThemes.dark,  ...darkOverrides },
-    light: { ...baseThemes.light, ...darkOverrides }, // mismo look por ahora
+    light: {
+      background: '#ffffff',
+      backgroundHover: '#f8f9fa',
+      backgroundPress: '#e9ecef',
+      backgroundFocus: '#dee2e6',
+      backgroundStrong: '#f1f3f5',
+      backgroundTransparent: 'rgba(0,0,0,0.05)',
+      color: '#000000',
+      colorHover: '#262626',
+      colorPress: '#000000',
+      colorFocus: '#000000',
+      colorTransparent: 'rgba(0,0,0,0)',
+      borderColor: '#e5e7eb',
+      borderColorHover: '#d1d5db',
+      borderColorFocus: '#9ca3af',
+      borderColorPress: '#6b7280',
+      placeholderColor: '#9ca3af',
+      
+      // Colores de texto específicos
+      textPrimary: '#1a1a1a',      // Texto principal - NEGRO en light
+      textSecondary: '#4b5563',    // Texto secundario - gris oscuro
+      textTertiary: '#9ca3af',     // Texto terciario - gris medio
+      
+      // Colores de marca
+      primary: '#4f46e5',          // Índigo
+      primaryHover: '#4338ca',
+      primaryPress: '#3730a3',
+      
+      // Estados
+      success: '#10b981',
+      warning: '#f59e0b',
+      error: '#ef4444',
+      info: '#3b82f6',
+      
+      // Rojos para errores
+      red10: '#ef4444',
+      red11: '#dc2626',
+    },
+    dark: {
+      background: '#121214',           // Casi negro
+      backgroundHover: '#1a1a1d',      // Gris muy oscuro
+      backgroundPress: '#25252a',      // Gris oscuro hover
+      backgroundFocus: '#2a2a2f',      // Gris oscuro focus
+      backgroundStrong: '#1a1a1d',     // Para cards/footer/header
+      backgroundTransparent: 'rgba(255,255,255,0.05)',
+      color: '#ffffff',
+      colorHover: '#f5f5f5',
+      colorPress: '#ffffff',
+      colorFocus: '#ffffff',
+      colorTransparent: 'rgba(255,255,255,0)',
+      borderColor: '#2a2a2f',
+      borderColorHover: '#35353a',
+      borderColorFocus: '#404045',
+      borderColorPress: '#4a4a4f',
+      placeholderColor: '#71717a',
+      
+      // Colores de texto específicos para tema oscuro
+      textPrimary: '#f5f5f5',      // Texto principal - BLANCO en dark
+      textSecondary: '#d4d4d8',    // Texto secundario - gris muy claro
+      textTertiary: '#a1a1aa',     // Texto terciario - gris claro
+      
+      // Colores de marca
+      primary: '#6366f1',          // Índigo más claro
+      primaryHover: '#818cf8',
+      primaryPress: '#4f46e5',
+      
+      // Estados
+      success: '#34d399',
+      warning: '#fbbf24',
+      error: '#f87171',
+      info: '#60a5fa',
+      
+      // Rojos para errores
+      red10: '#f87171',
+      red11: '#ef4444',
+    },
   },
+});
 
-  shorthands,
-  animations,
-  media: {
-    xs:{ maxWidth:660 }, sm:{ maxWidth:860 }, md:{ maxWidth:980 },
-    lg:{ maxWidth:1280 }, xl:{ maxWidth:1420 },
-    gtXs:{ minWidth:661 }, gtSm:{ minWidth:861 }, gtMd:{ minWidth:981 }, gtLg:{ minWidth:1281 },
-    short:{ maxHeight:820 }, tall:{ minHeight:820 },
-    hoverNone:{ hover:'none' }, pointerCoarse:{ pointer:'coarse' },
-  },
-})
+type Conf = typeof appConfig;
 
-export type AppConfig = typeof config
-declare module 'tamagui' { interface TamaguiCustomConfig extends AppConfig {} }
-export default config
+declare module 'tamagui' {
+  interface TamaguiCustomConfig extends Conf {}
+}
+
+export default appConfig;

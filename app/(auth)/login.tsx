@@ -2,56 +2,49 @@
 import React, { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { YStack, XStack, Text, Input, Button, Spinner } from 'tamagui';
-import { User, Lock, LogIn } from '@tamagui/lucide-icons';
+import { User, Lock, ArrowRight } from '@tamagui/lucide-icons';
 import { useAuthStore } from '@/store/auth.store';
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
-// Schema de validación con username
 const loginSchema = z.object({
-  username: z
-    .string()
-    .min(3, 'El usuario debe tener al menos 3 caracteres')
-    .max(50, 'El usuario no puede exceder 50 caracteres'),
-  password: z
-    .string()
-    .min(6, 'La contraseña debe tener al menos 6 caracteres'),
+  username: z.string().min(3, 'El usuario debe tener al menos 3 caracteres'),
+  password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
 });
-
-type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { login } = useAuthStore();
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const login = useAuthStore((state) => state.login);
+  
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<{ username?: string; password?: string }>({});
 
-  const {
-    control,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: {
-      username: '',
-      password: '',
-    },
-  });
-
-  const onSubmit = async (data: LoginFormData) => {
-    setIsLoading(true);
-    setError(null);
-
+  const handleLogin = async () => {
     try {
-      await login(data.username, data.password);
+      // Validar campos
+      const validated = loginSchema.parse({ username, password });
+      setErrors({});
+      
+      setLoading(true);
+      
+      // Llamar a login del store
+      await login(validated.username, validated.password);
+      
+      // Navegar al dashboard
       router.replace('/(dashboard)');
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Usuario o contraseña incorrectos'
-      );
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const fieldErrors: { username?: string; password?: string } = {};
+        error.errors.forEach((err) => {
+          if (err.path[0]) {
+            fieldErrors[err.path[0] as 'username' | 'password'] = err.message;
+          }
+        });
+        setErrors(fieldErrors);
+      }
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
@@ -61,177 +54,172 @@ export default function LoginScreen() {
       backgroundColor="$background"
       justifyContent="center"
       alignItems="center"
-      padding="$4"
+      padding="$6"
     >
+      {/* Logo / Icono */}
       <YStack
-        width="100%"
-        maxWidth={400}
-        gap="$4"
-        backgroundColor="$backgroundStrong"
-        padding="$6"
+        width={80}
+        height={80}
+        backgroundColor="$primary"
         borderRadius="$6"
-        borderWidth={1}
-        borderColor="$borderColor"
-        shadowColor="$shadowColor"
-        shadowOffset={{ width: 0, height: 4 }}
-        shadowOpacity={0.1}
-        shadowRadius={12}
+        alignItems="center"
+        justifyContent="center"
+        marginBottom="$6"
       >
-        {/* Header */}
-        <YStack gap="$2" alignItems="center" marginBottom="$4">
-          <YStack
-            width={64}
-            height={64}
-            backgroundColor="$blue10"
-            borderRadius="$4"
-            alignItems="center"
-            justifyContent="center"
-          >
-            <LogIn size={32} color="white" />
-          </YStack>
-          <Text fontSize="$8" fontWeight="700" color="$color">
-            Bienvenido
-          </Text>
-          <Text fontSize="$4" color="$colorTranslucent" textAlign="center">
-            Ingresa tus credenciales para continuar
-          </Text>
-        </YStack>
+        <Text fontSize={40} color="white">
+          🎰
+        </Text>
+      </YStack>
 
-        {/* Error Message */}
-        {error && (
-          <YStack
-            backgroundColor="$red2"
-            borderWidth={1}
-            borderColor="$red6"
-            padding="$3"
-            borderRadius="$3"
-          >
-            <Text fontSize="$3" color="$red11" textAlign="center">
-              {error}
-            </Text>
-          </YStack>
-        )}
+      {/* Título */}
+      <Text
+        fontSize="$9"
+        fontWeight="700"
+        color="$textPrimary"
+        marginBottom="$2"
+        textAlign="center"
+      >
+        Bienvenido
+      </Text>
 
-        {/* Username Input */}
+      {/* Subtítulo */}
+      <Text
+        fontSize="$5"
+        color="$textSecondary"
+        marginBottom="$8"
+        textAlign="center"
+      >
+        Ingresa tus credenciales para continuar
+      </Text>
+
+      {/* Formulario */}
+      <YStack width="100%" maxWidth={400} gap="$5">
+        {/* Campo Username */}
         <YStack gap="$2">
-          <Text fontSize="$3" fontWeight="600" color="$color">
+          <Text
+            fontSize="$4"
+            fontWeight="600"
+            color="$textPrimary"
+          >
             Usuario
           </Text>
-          <Controller
-            control={control}
-            name="username"
-            render={({ field: { onChange, onBlur, value } }) => (
-              <XStack
-                alignItems="center"
-                gap="$2"
-                backgroundColor="$background"
-                borderWidth={1}
-                borderColor={errors.username ? '$red8' : '$borderColor'}
-                borderRadius="$3"
-                paddingHorizontal="$3"
-                paddingVertical="$2"
-                focusStyle={{
-                  borderColor: '$blue9',
-                }}
-              >
-                <User size={20} color="$colorTranslucent" />
-                <Input
-                  flex={1}
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  placeholder="Ingresa tu usuario"
-                  placeholderTextColor="$colorTranslucent"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  borderWidth={0}
-                  backgroundColor="transparent"
-                  focusStyle={{
-                    borderWidth: 0,
-                  }}
-                />
-              </XStack>
-            )}
-          />
+          <XStack
+            backgroundColor="$backgroundHover"
+            borderRadius="$4"
+            borderWidth={1}
+            borderColor={errors.username ? '$red10' : '$borderColor'}
+            alignItems="center"
+            paddingHorizontal="$4"
+            minHeight={56}
+          >
+            <User size={20} color="$textTertiary" />
+            <Input
+              flex={1}
+              value={username}
+              onChangeText={setUsername}
+              placeholder="Ingresa tu usuario"
+              placeholderTextColor="$textTertiary"
+              backgroundColor="transparent"
+              borderWidth={0}
+              height={48}
+              fontSize="$4"
+              color="$textPrimary"
+            />
+          </XStack>
           {errors.username && (
-            <Text fontSize="$2" color="$red11">
-              {errors.username.message}
+            <Text fontSize="$3" color="$red10">
+              {errors.username}
             </Text>
           )}
         </YStack>
 
-        {/* Password Input */}
+        {/* Campo Password */}
         <YStack gap="$2">
-          <Text fontSize="$3" fontWeight="600" color="$color">
+          <Text
+            fontSize="$4"
+            fontWeight="600"
+            color="$textPrimary"
+          >
             Contraseña
           </Text>
-          <Controller
-            control={control}
-            name="password"
-            render={({ field: { onChange, onBlur, value } }) => (
-              <XStack
-                alignItems="center"
-                gap="$2"
-                backgroundColor="$background"
-                borderWidth={1}
-                borderColor={errors.password ? '$red8' : '$borderColor'}
-                borderRadius="$3"
-                paddingHorizontal="$3"
-                paddingVertical="$2"
-                focusStyle={{
-                  borderColor: '$blue9',
-                }}
-              >
-                <Lock size={20} color="$colorTranslucent" />
-                <Input
-                  flex={1}
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  placeholder="Ingresa tu contraseña"
-                  placeholderTextColor="$colorTranslucent"
-                  secureTextEntry
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  borderWidth={0}
-                  backgroundColor="transparent"
-                  focusStyle={{
-                    borderWidth: 0,
-                  }}
-                />
-              </XStack>
-            )}
-          />
+          <XStack
+            backgroundColor="$backgroundHover"
+            borderRadius="$4"
+            borderWidth={1}
+            borderColor={errors.password ? '$red10' : '$borderColor'}
+            alignItems="center"
+            paddingHorizontal="$4"
+            minHeight={56}
+          >
+            <Lock size={20} color="$textTertiary" />
+            <Input
+              flex={1}
+              value={password}
+              onChangeText={setPassword}
+              placeholder="Ingresa tu contraseña"
+              placeholderTextColor="$textTertiary"
+              secureTextEntry
+              backgroundColor="transparent"
+              borderWidth={0}
+              height={48}
+              fontSize="$4"
+              color="$textPrimary"
+            />
+          </XStack>
           {errors.password && (
-            <Text fontSize="$2" color="$red11">
-              {errors.password.message}
+            <Text fontSize="$3" color="$red10">
+              {errors.password}
             </Text>
           )}
         </YStack>
 
-        {/* Login Button */}
+        {/* Botón Login */}
         <Button
-          size="$5"
-          backgroundColor="$blue10"
+          backgroundColor="$primary"
           color="white"
-          borderRadius="$3"
-          fontWeight="700"
-          marginTop="$2"
-          disabled={isLoading}
-          onPress={handleSubmit(onSubmit)}
-          icon={isLoading ? <Spinner color="white" /> : <LogIn size={20} />}
-          hoverStyle={{
-            backgroundColor: '$blue11',
-            scale: 1.02,
-          }}
+          fontWeight="600"
+          fontSize="$5"
+          height={56}
+          borderRadius="$4"
+          onPress={handleLogin}
+          disabled={loading}
+          marginTop="$4"
           pressStyle={{
-            backgroundColor: '$blue9',
-            scale: 0.98,
+            backgroundColor: '$primary',
+            opacity: 0.8,
+          }}
+          hoverStyle={{
+            backgroundColor: '$primary',
+            opacity: 0.9,
           }}
         >
-          {isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+          <XStack gap="$2" alignItems="center">
+            {loading ? (
+              <Spinner size="small" color="white" />
+            ) : (
+              <>
+                <Text color="white" fontWeight="600" fontSize="$5">
+                  Iniciar Sesión
+                </Text>
+                <ArrowRight size={20} color="white" />
+              </>
+            )}
+          </XStack>
         </Button>
       </YStack>
+
+      {/* Link de ayuda */}
+      <Text
+        fontSize="$3"
+        color="$textTertiary"
+        marginTop="$6"
+        textAlign="center"
+      >
+        ¿Olvidaste tu contraseña?{' '}
+        <Text color="$primary" fontWeight="600">
+          Contacta al administrador
+        </Text>
+      </Text>
     </YStack>
   );
 }
