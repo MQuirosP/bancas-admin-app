@@ -6,7 +6,7 @@ import { LoginResponse } from '../../types/auth.types';
 import { apiClient, ApiErrorClass } from '../../lib/api.client';
 
 export default function LoginScreen() {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -15,27 +15,26 @@ export default function LoginScreen() {
   const router = useRouter();
 
   const handleLogin = async () => {
-    setError('');
-    setLoading(true);
-
+    setError('')
+    setLoading(true)
     try {
-      const response = await apiClient.post<LoginResponse>('/auth/login', {
-        email,
-        password,
-      });
+      const response = await apiClient.post<LoginResponse>('/auth/login', { username, password })
+      await setAuth(response.user, response.token)
 
-      await setAuth(response.user, response.token);
-      router.replace('/');
-    } catch (err) {
-      if (err instanceof ApiErrorClass) {
-        setError(err.message);
-      } else {
-        setError('Error al iniciar sesión');
+      // Por rol (recomendado):
+      const targetByRole: Record<string, string> = {
+        ADMIN: '/admin/bancas',
+        VENTANA: '/ventana/ventas',
+        VENDEDOR: '/vendedor/tickets',
       }
+      router.replace(targetByRole[response.user.role] ?? '/(dashboard)')
+    } catch (err) {
+      setError(err instanceof ApiErrorClass ? err.message : 'Error al iniciar sesión')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
+
 
   return (
     <YStack flex={1} alignItems="center" justifyContent="center" padding="$4" backgroundColor="$background">
@@ -62,8 +61,8 @@ export default function LoginScreen() {
             <Input
               size="$4"
               placeholder="correo@ejemplo.com"
-              value={email}
-              onChangeText={setEmail}
+              value={username}
+              onChangeText={setUsername}
               keyboardType="email-address"
               autoCapitalize="none"
               autoComplete="email"
@@ -86,7 +85,7 @@ export default function LoginScreen() {
             size="$5"
             theme="active"
             onPress={handleLogin}
-            disabled={loading || !email || !password}
+            disabled={loading || !username || !password}
             marginTop="$2"
           >
             {loading ? 'Iniciando...' : 'Ingresar'}

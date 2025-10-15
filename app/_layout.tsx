@@ -11,7 +11,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     rehydrate();
-  }, []);
+  }, [rehydrate]);
 
   return (
     <TamaguiProvider config={config} defaultTheme="light">

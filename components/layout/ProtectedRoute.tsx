@@ -1,48 +1,40 @@
-import React, { useEffect } from 'react';
-import { useRouter, useSegments } from 'expo-router';
-import { YStack, Text, Spinner } from 'tamagui';
-import { useAuthStore } from '../../store/auth.store';
-import { UserRole } from '../../types/auth.types';
+import { ReactNode, useEffect } from 'react'
+import { useRouter, useSegments } from 'expo-router'
+import { useAuthStore } from '@/store/auth.store'
+import { YStack, Spinner, Text } from 'tamagui'
 
-interface ProtectedRouteProps {
-  children: React.ReactNode;
-  allowedRoles?: UserRole[];
-}
-
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles }) => {
-  const { isAuthenticated, isLoading, user } = useAuthStore();
-  const router = useRouter();
-  const segments = useSegments();
+export default function ProtectedRoute({ children }: { children: ReactNode }) {
+  const { user, isLoading } = useAuthStore()
+  const router = useRouter()
+  const segments = useSegments()
 
   useEffect(() => {
-    if (isLoading) return;
+    if (isLoading) return
+    const inAuth = segments[0] === '(auth)'
 
-    const inAuthGroup = segments[0] === '(auth)';
-
-    if (!isAuthenticated && !inAuthGroup) {
-      router.replace('/login');
-    } else if (isAuthenticated && inAuthGroup) {
-      router.replace('/');
+    if (!user && !inAuth) {
+      router.replace('/(auth)/login')
+      return
     }
-
-    // Check role permissions
-    if (isAuthenticated && allowedRoles && user) {
-      if (!allowedRoles.includes(user.role)) {
-        router.replace('/');
+    if (user && inAuth) {
+      // Por rol (si quieres):
+      const targetByRole: Record<string, string> = {
+        ADMIN: '/admin/bancas',
+        VENTANA: '/ventana/ventas',
+        VENDEDOR: '/vendedor/tickets',
       }
+      router.replace(targetByRole[user.role] ?? '/(dashboard)')
     }
-  }, [isAuthenticated, isLoading, segments, user, allowedRoles]);
+  }, [isLoading, user, segments, router])
 
   if (isLoading) {
     return (
-      <YStack flex={1} alignItems="center" justifyContent="center" backgroundColor="$background">
-        <Spinner size="large" color="$primary" />
-        <Text marginTop="$4" color="$color">
-          Cargando...
-        </Text>
+      <YStack f={1} ai="center" jc="center" p="$4">
+        <Spinner size="large" />
+        <Text mt="$2" color="$secondary">Cargando…</Text>
       </YStack>
-    );
+    )
   }
 
-  return <>{children}</>;
-};
+  return <>{children}</>
+}

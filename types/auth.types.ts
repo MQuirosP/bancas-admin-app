@@ -9,6 +9,7 @@ export interface User {
   code: string;
   name: string;
   email: string;
+  username: string;
   role: UserRole;
   bancaId?: string;
   ventanaId?: string;
@@ -20,7 +21,7 @@ export interface AuthTokens {
 }
 
 export interface LoginRequest {
-  email: string;
+  username: string;
   password: string;
 }
 
