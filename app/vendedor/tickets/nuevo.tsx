@@ -17,7 +17,7 @@ import { apiClient, ApiErrorClass } from '../../../lib/api.client';
 import { useAuthStore } from '../../../store/auth.store';
 import { JugadaType, Sorteo, SorteoStatus, CreateTicketRequest, RestrictionRule } from '../../../types/models.types';
 import { getSalesCutoffMinutes, canCreateTicket } from '../../../utils/cutoff';
-import { formatCurrency } from '../../../utils/formatters.js';
+import { formatCurrency } from '../../../utils/formatters';
 import { validateReventadoReferences } from '../../../utils/validation';
 
 interface JugadaForm {
