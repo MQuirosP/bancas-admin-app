@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
 import { useRouter, useSegments } from 'expo-router';
-import { useAuthStore } from '@/store/auth.store';
-import { UserRole } from '@/types/auth.types';
 import { YStack, Text, Spinner } from 'tamagui';
+import { useAuthStore } from '../../store/auth.store.js';
+import { UserRole } from '../../types/auth.types.js';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;

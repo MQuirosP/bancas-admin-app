@@ -1,103 +1,26 @@
-import Constants from 'expo-constants';
-import { ApiError } from '@/types/api.types';
-import { useAuthStore } from '@/store/auth.store';
+// lib/api.client.ts
+import Constants from 'expo-constants'
+import { useAuthStore } from '../store/auth.store.js'
+import { ApiError } from '../types/api.types.js'
 
-const API_BASE_URL =
-  Constants.expoConfig?.extra?.apiBaseUrl ||
-  process.env.API_BASE_URL ||
-  'http://localhost:3000/api/v1';
-
-export class ApiClient {
-  private baseURL: string;
-
-  constructor(baseURL: string = API_BASE_URL) {
-    this.baseURL = baseURL;
-  }
-
-  private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    const token = useAuthStore.getState().token;
-
-    const headers: HeadersInit = {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    };
-
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-
-    const url = `${this.baseURL}${endpoint}`;
-
-    try {
-      const response = await fetch(url, {
-        ...options,
-        headers,
-      });
-
-      const data = await response.json();
-
-      // Handle 401 - force logout
-      if (response.status === 401) {
-        await useAuthStore.getState().clearAuth();
-        throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
-      }
-
-      // Handle error response
-      if (!response.ok || !data.success) {
-        const error = data as ApiError;
-        throw new ApiErrorClass(
-          error.message || 'Error en la solicitud',
-          error.code,
-          error.details,
-          error.unrecognized_keys,
-          error.traceId
-        );
-      }
-
-      return data.data as T;
-    } catch (error) {
-      if (error instanceof ApiErrorClass) {
-        throw error;
-      }
-      throw new Error('Error de conexión. Verifica tu internet.');
-    }
-  }
-
-  async get<T>(endpoint: string, params?: Record<string, any>): Promise<T> {
-    const queryString = params ? '?' + new URLSearchParams(params).toString() : '';
-    return this.request<T>(`${endpoint}${queryString}`, {
-      method: 'GET',
-    });
-  }
-
-  async post<T>(endpoint: string, body?: any): Promise<T> {
-    return this.request<T>(endpoint, {
-      method: 'POST',
-      body: JSON.stringify(body),
-    });
-  }
-
-  async patch<T>(endpoint: string, body?: any): Promise<T> {
-    return this.request<T>(endpoint, {
-      method: 'PATCH',
-      body: JSON.stringify(body),
-    });
-  }
-
-  async put<T>(endpoint: string, body?: any): Promise<T> {
-    return this.request<T>(endpoint, {
-      method: 'PUT',
-      body: JSON.stringify(body),
-    });
-  }
-
-  async delete<T>(endpoint: string): Promise<T> {
-    return this.request<T>(endpoint, {
-      method: 'DELETE',
-    });
-  }
+type Extra = {
+  EXPO_PUBLIC_API_BASE_URL?: string
+  apiBaseUrl?: string
 }
 
+const extra =
+  ((Constants as any)?.expoConfig?.extra ??
+    (Constants as any)?.manifest?.extra ??
+    {}) as Extra
+
+const API_BASE_URL =
+  process.env.EXPO_PUBLIC_API_BASE_URL ??
+  extra.EXPO_PUBLIC_API_BASE_URL ??
+  extra.apiBaseUrl ??
+  'http://localhost:3000/api/v1'
+
+// ────────────────────────────────────────────────────────────────────────────────
+// Error de API tipado
 export class ApiErrorClass extends Error {
   constructor(
     message: string,
@@ -106,9 +29,91 @@ export class ApiErrorClass extends Error {
     public unrecognizedKeys?: string[],
     public traceId?: string
   ) {
-    super(message);
-    this.name = 'ApiError';
+    super(message)
+    this.name = 'ApiError'
   }
 }
 
-export const apiClient = new ApiClient();
+// ────────────────────────────────────────────────────────────────────────────────
+// Cliente HTTP
+export class ApiClient {
+  constructor(private baseURL: string = API_BASE_URL) {}
+
+  private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+    const token = useAuthStore.getState().token
+
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      ...(options.headers as Record<string, string> | undefined),
+    }
+    if (token) headers['Authorization'] = `Bearer ${token}`
+
+    const url = `${this.baseURL}${endpoint}`
+    const res = await fetch(url, { ...options, headers })
+
+    // Cuerpo (si existe)
+    let data: any = null
+    const text = await res.text()
+    if (text) {
+      try {
+        data = JSON.parse(text)
+      } catch {
+        data = text // no-JSON
+      }
+    }
+
+    // 401 → logout
+    if (res.status === 401) {
+      await useAuthStore.getState().clearAuth()
+      throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.')
+    }
+
+    // Contrato de error
+    if (!res.ok || (data && data.success === false)) {
+      const err = (data ?? {}) as ApiError
+      throw new ApiErrorClass(
+        err.message || `Error ${res.status}`,
+        err.code,
+        err.details,
+        // mapear snake/camel por compatibilidad
+        (err as any).unrecognizedKeys ?? (err as any).unrecognized_keys,
+        (err as any).traceId ?? (err as any).trace_id
+      )
+    }
+
+    // Contrato de éxito: { data } o cuerpo plano
+    return (data && data.data !== undefined ? data.data : data) as T
+  }
+
+  get<T>(endpoint: string, params?: Record<string, any>) {
+    const qs = params ? `?${new URLSearchParams(params as any).toString()}` : ''
+    return this.request<T>(`${endpoint}${qs}`, { method: 'GET' })
+  }
+
+  post<T>(endpoint: string, body?: any) {
+    return this.request<T>(endpoint, {
+      method: 'POST',
+      body: body ? JSON.stringify(body) : undefined,
+    })
+  }
+
+  patch<T>(endpoint: string, body?: any) {
+    return this.request<T>(endpoint, {
+      method: 'PATCH',
+      body: body ? JSON.stringify(body) : undefined,
+    })
+  }
+
+  put<T>(endpoint: string, body?: any) {
+    return this.request<T>(endpoint, {
+      method: 'PUT',
+      body: body ? JSON.stringify(body) : undefined,
+    })
+  }
+
+  delete<T>(endpoint: string) {
+    return this.request<T>(endpoint, { method: 'DELETE' })
+  }
+}
+
+export const apiClient = new ApiClient()

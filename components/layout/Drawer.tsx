@@ -14,11 +14,11 @@ import {
   BarChart3,
   Shield,
 } from '@tamagui/lucide-icons';
-import { useUIStore } from '@/store/ui.store';
-import { useAuthStore } from '@/store/auth.store';
-import { UserRole } from '@/types/auth.types';
 import { useRouter } from 'expo-router';
-import { useIsMobile } from '@/hooks/useBreakpoint';
+import { useIsMobile } from '../../hooks/useBreakpoint.js';
+import { useAuthStore } from '../../store/auth.store.js';
+import { useUIStore } from '../../store/ui.store.js';
+import { UserRole } from '../../types/auth.types.js';
 
 interface MenuItem {
   label: string;

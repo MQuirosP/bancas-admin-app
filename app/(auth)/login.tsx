@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { YStack, Text, Button, Input, Card } from 'tamagui';
 import { useRouter } from 'expo-router';
-import { apiClient, ApiErrorClass } from '../../lib/api.client.js';
+import { apiClient, ApiErrorClass } from '@lib/api.client.js';
 import { useAuthStore } from '../../store/auth.store.js';
 import { LoginResponse } from '../../types/auth.types.js';
 
