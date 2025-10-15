@@ -13,8 +13,8 @@ import {
 } from 'tamagui';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Trophy, Play, Square, CheckCircle } from '@tamagui/lucide-icons';
-import { apiClient } from '../../../lib/api.client.js';
-import { Sorteo, Multiplier, MultiplierKind, SorteoStatus } from '../../../types/models.types.js';
+import { apiClient } from '../../../lib/api.client';
+import { Sorteo, Multiplier, MultiplierKind, SorteoStatus } from '../../../types/models.types';
 
 export default function SorteosListScreen() {
   const queryClient = useQueryClient();

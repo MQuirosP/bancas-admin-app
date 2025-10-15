@@ -3,9 +3,9 @@ import { YStack, XStack, Text, Button, Input, ScrollView, Card } from 'tamagui';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { Plus, Search } from '@tamagui/lucide-icons';
-import { apiClient } from '../../../lib/api.client.js';
-import { PaginatedResponse, Usuario } from '../../../types/models.types.js';
-import { getRoleLabel } from '../../../utils/role.js';
+import { apiClient } from '../../../lib/api.client';
+import { PaginatedResponse, Usuario } from '../../../types/models.types';
+import { getRoleLabel } from '../../../utils/role';
 
 export default function UsuariosListScreen() {
   const router = useRouter();

@@ -3,8 +3,8 @@ import { YStack, XStack, Text, Button, Input, ScrollView, Card, Spinner } from '
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { Plus, Search } from '@tamagui/lucide-icons';
-import { apiClient } from '../../../lib/api.client.js';
-import { PaginatedResponse, Ventana } from '../../../types/models.types.js';
+import { apiClient } from '../../../lib/api.client';
+import { PaginatedResponse, Ventana } from '../../../types/models.types';
 
 export default function VentanasListScreen() {
   const router = useRouter();
