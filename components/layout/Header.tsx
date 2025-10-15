@@ -4,20 +4,18 @@ import { useRouter } from 'expo-router';
 import { XStack, YStack, Text, Button } from 'tamagui';
 import { Menu, LogOut, User, Sun, Moon } from '@tamagui/lucide-icons';
 import { useAuthStore } from '@/store/auth.store';
-import { useThemeStore } from '../../store/theme.store';
+import { useThemeStore } from '@/store/theme.store';
+import { useUIStore } from '@/store/ui.store';
 
-interface HeaderProps {
-  onMenuToggle: () => void;
-}
-
-export function Header({ onMenuToggle }: HeaderProps) {
+export function Header() {
   const router = useRouter();
   const { user, logout } = useAuthStore();
   const { isDark, toggleTheme } = useThemeStore();
+  const { toggleDrawer } = useUIStore();
 
   const handleLogout = async () => {
     await logout();
-    router.replace('/login');
+    router.replace('/(auth)/login');
   };
 
   return (
@@ -38,7 +36,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
           size="$3"
           chromeless
           circular
-          onPress={onMenuToggle}
+          onPress={toggleDrawer}
           hoverStyle={{
             backgroundColor: '$backgroundHover',
           }}

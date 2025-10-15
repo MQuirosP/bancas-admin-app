@@ -9,6 +9,7 @@ export enum UserRole {
 export interface User {
   id: string;
   username: string; // Cambiado de email a username
+  email?: string;
   name: string;
   role: UserRole;
   bancaId?: string; // Para ADMIN y VENTANA
