@@ -8,8 +8,8 @@ export interface User {
   id: string;
   code: string;
   name: string;
-  email: string;
   username: string;
+  email?: string;
   role: UserRole;
   bancaId?: string;
   ventanaId?: string;
@@ -25,7 +25,9 @@ export interface LoginRequest {
   password: string;
 }
 
+// ✅ CAMBIO: Backend devuelve accessToken/refreshToken, NO user
 export interface LoginResponse {
-  token: string;
-  user: User;
+  accessToken: string;      // ✅ era "token"
+  refreshToken: string;      // ✅ agregado
+  user?: User;               // ✅ opcional porque no lo devuelve el backend
 }

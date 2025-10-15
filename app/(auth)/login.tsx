@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { YStack, Text, Button, Input, Card } from 'tamagui';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../store/auth.store';
-import { LoginResponse } from '../../types/auth.types';
+import { LoginResponse, User, UserRole } from '../../types/auth.types';
 import { apiClient, ApiErrorClass } from '../../lib/api.client';
+import { secureStorage } from '../../lib/secureStorage';
 
 export default function LoginScreen() {
   const [username, setUsername] = useState('');
@@ -15,26 +16,53 @@ export default function LoginScreen() {
   const router = useRouter();
 
   const handleLogin = async () => {
-    setError('')
-    setLoading(true)
+    setError('');
+    setLoading(true);
+
     try {
-      const response = await apiClient.post<LoginResponse>('/auth/login', { username, password })
-      await setAuth(response.user, response.token)
+      console.log('🔵 Login attempt:', { username });
 
-      // Por rol (recomendado):
-      const targetByRole: Record<string, string> = {
-        ADMIN: '/admin/bancas',
-        VENTANA: '/ventana/ventas',
-        VENDEDOR: '/vendedor/tickets',
+      const response = await apiClient.post<LoginResponse>('/auth/login', {
+        username,
+        password,
+      });
+
+      console.log('✅ Login response:', response);
+
+      if (!response?.accessToken) {
+        setError('Respuesta inválida del servidor');
+        return;
       }
-      router.replace(targetByRole[response.user.role] ?? '/(dashboard)')
-    } catch (err) {
-      setError(err instanceof ApiErrorClass ? err.message : 'Error al iniciar sesión')
-    } finally {
-      setLoading(false)
-    }
-  }
 
+      // Guardar el token temporalmente en el store para poder hacer requests
+      useAuthStore.setState({ token: response.accessToken });
+
+      // Obtener datos del usuario
+      console.log('🔵 Fetching user profile...');
+      const user = await apiClient.get<User>('/auth/me'); // o /users/me
+
+      console.log('✅ User profile:', user);
+
+      await setAuth(user, response.accessToken);
+
+      setTimeout(() => {
+        console.log('➡️ Redirecting to /');
+        router.replace('/');
+      }, 100);
+
+    } catch (err) {
+      console.error('❌ Login error:', err);
+      if (err instanceof ApiErrorClass) {
+        setError(err.message);
+      } else if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Error al iniciar sesión');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <YStack flex={1} alignItems="center" justifyContent="center" padding="$4" backgroundColor="$background">

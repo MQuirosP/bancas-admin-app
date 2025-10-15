@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Pressable, Platform } from 'react-native';
-import { YStack, XStack, ScrollView, Text, Button } from 'tamagui';
+import { YStack, XStack, ScrollView, Text, Button, Separator } from 'tamagui';
 import {
   Home, Building2, Store, Users, Trophy, Ticket, FileText, Settings,
   X as XIcon, BarChart3, Shield,
@@ -59,17 +59,18 @@ export const Drawer: React.FC = () => {
 
   if (!drawerOpen) return null;
 
-  const drawerWidth = isMobile ? '80%' : 320;
+  const drawerWidth = isMobile ? '80%' : 280;
 
   return (
     <>
-      {/* Overlay */}
+      {/* Overlay con blur */}
       <Pressable
         style={{
           position: 'absolute',
           top: 0, left: 0, right: 0, bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.5)',
+          backgroundColor: 'rgba(0,0,0,0.6)',
           zIndex: 200,
+          ...(Platform.OS === 'web' && { backdropFilter: 'blur(4px)' } as any),
         }}
         onPress={closeDrawer}
         aria-label="Cerrar menú"
@@ -79,58 +80,111 @@ export const Drawer: React.FC = () => {
       {/* Drawer Panel */}
       <YStack
         position="absolute"
-        top={56}
+        top={64}
         left={0}
-        bottom={48}
+        bottom={56}
         width={drawerWidth}
-        backgroundColor="$background"
+        backgroundColor="$drawerBg"
         borderRightWidth={1}
         borderRightColor="$borderColor"
+        shadowColor="$shadowColor"
+        shadowOpacity={0.3}
+        shadowRadius={16}
         elevation={8}
         zIndex={201}
       >
+        {/* Header del drawer */}
         <XStack
           paddingHorizontal="$4"
-          paddingVertical="$3"
+          paddingVertical="$4"
           justifyContent="space-between"
           alignItems="center"
           borderBottomWidth={1}
           borderBottomColor="$borderColor"
         >
-          <Text fontSize="$5" fontWeight="600">Menú</Text>
-          {/* icon como elemento */}
+          <Text fontSize="$5" fontWeight="600" color="$textPrimary">
+            Menú
+          </Text>
           <Button
             size="$2"
             chromeless
-            icon={<XIcon />}
+            icon={<XIcon size={20} />}
             onPress={closeDrawer}
             aria-label="Cerrar menú"
             role="button"
+            hoverStyle={{ backgroundColor: '$backgroundHover' }}
+            pressStyle={{ backgroundColor: '$backgroundPress' }}
+            padding="$2"
+            borderRadius="$2"
           />
         </XStack>
 
-        <ScrollView flex={1} padding="$2">
+        {/* Items del menú */}
+        <ScrollView flex={1} padding="$3" showsVerticalScrollIndicator={false}>
           <YStack gap="$1">
             {filteredItems.map((item) => (
               <Button
                 key={item.href}
                 size="$4"
                 justifyContent="flex-start"
-                // ícono dinámico como elemento
-                icon={React.createElement(item.icon)}
+                icon={React.createElement(item.icon, { size: 20 })}
                 onPress={() => {
                   router.push(item.href as any);
                   closeDrawer();
                 }}
-                theme="alt1"
+                backgroundColor="transparent"
+                color="$textSecondary"
+                borderRadius="$3"
+                hoverStyle={{ 
+                  backgroundColor: '$backgroundHover',
+                  x: 4,
+                }}
+                pressStyle={{ 
+                  backgroundColor: '$backgroundPress',
+                  scale: 0.98,
+                }}
                 aria-label={item.label}
                 role="button"
+                paddingVertical="$3"
               >
-                {item.label}
+                <Text fontSize="$4" fontWeight="500" hoverStyle={{ color: '$primary' }} pressStyle={{ color: '$primaryDark' }}>
+                  {item.label}
+                </Text>
               </Button>
             ))}
           </YStack>
         </ScrollView>
+
+        {/* Footer del drawer con info del usuario */}
+        <YStack
+          padding="$4"
+          borderTopWidth={1}
+          borderTopColor="$borderColor"
+          backgroundColor="$backgroundStrong"
+        >
+          <XStack gap="$3" alignItems="center">
+            <YStack
+              width={40}
+              height={40}
+              backgroundColor="$primary"
+              borderRadius="$4"
+              alignItems="center"
+              justifyContent="center"
+            >
+              <Text fontSize="$5" fontWeight="600" color="white">
+                {user?.name?.charAt(0).toUpperCase() || 'U'}
+              </Text>
+            </YStack>
+            <YStack flex={1}>
+              <Text fontSize="$4" fontWeight="600" color="$textPrimary">
+                {user?.name || 'Usuario'}
+              </Text>
+              <Text fontSize="$2" color="$textTertiary">
+                {user?.role || 'ROL'}
+              </Text>
+            </YStack>
+          </XStack>
+        </YStack>
       </YStack>
     </>
   );

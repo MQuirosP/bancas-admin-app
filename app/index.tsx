@@ -1,16 +1,21 @@
-import { Redirect } from 'expo-router'
-import { useAuthStore } from '@/store/auth.store'
+import { Redirect } from 'expo-router';
+import { useAuthStore } from '../store/auth.store';
 
 export default function Index() {
-  const user = useAuthStore((s) => s.user)
+  const { isAuthenticated, user, token } = useAuthStore();
 
-  if (!user) return <Redirect href="/(auth)/login" />
+  // Debug
+  console.log('📍 Index screen:', { 
+    isAuthenticated, 
+    hasUser: !!user, 
+    hasToken: !!token 
+  });
 
-  const targetByRole: Record<string, string> = {
-    ADMIN: '/admin/bancas',
-    VENTANA: '/ventana/ventas',
-    VENDEDOR: '/vendedor/tickets',
+  if (!isAuthenticated) {
+    console.log('➡️ Redirecting to login');
+    return <Redirect href="/(auth)/login" />;
   }
 
-  return <Redirect href={targetByRole[user.role] ?? '/(dashboard)'} />
+  console.log('➡️ Redirecting to dashboard');
+  return <Redirect href="/(dashboard)" />;
 }
