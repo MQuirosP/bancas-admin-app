@@ -1,5 +1,5 @@
-import { apiClient } from "../lib/api.client.js";
-import { EvaluateSorteoRequest, Sorteo } from "../types/models.types.js";
+import { apiClient } from "../lib/api.client";
+import { EvaluateSorteoRequest, Sorteo } from "../types/models.types";
 
 export const sorteosService = {
   getAll: async (params?: { status?: string }): Promise<Sorteo[]> => {

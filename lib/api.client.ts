@@ -1,7 +1,7 @@
 // lib/api.client.ts
 import Constants from 'expo-constants'
-import { useAuthStore } from '../store/auth.store.js'
-import { ApiError } from '../types/api.types.js'
+import { useAuthStore } from '../store/auth.store'
+import { ApiError } from '../types/api.types'
 
 type Extra = {
   EXPO_PUBLIC_API_BASE_URL?: string

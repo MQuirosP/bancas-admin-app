@@ -1,5 +1,5 @@
-import { apiClient } from "../lib/api.client.js";
-import { PaginatedResponse, Ticket, CreateTicketRequest } from "../types/models.types.js";
+import { apiClient } from "../lib/api.client";
+import { PaginatedResponse, Ticket, CreateTicketRequest } from "../types/models.types";
 
 export const ticketsService = {
   getAll: async (params?: {

@@ -2,20 +2,41 @@
 import { createTamagui, createTokens } from 'tamagui'
 import { shorthands } from '@tamagui/shorthands'
 import { themes as baseThemes } from '@tamagui/themes'
-import { createAnimations } from '@tamagui/animations-react-native' // 👈 añade esto
+import { createAnimations } from '@tamagui/animations-react-native'
+
+const BASE = 16 // tamaño base para size/space
 
 const tokens = createTokens({
   color: {},
-  space: { 0: 0, 1: 4, 2: 8, 3: 12, 4: 16, 5: 20 },
-  size: { 0: 0, 1: 4, 2: 8, 3: 12, 4: 16, 5: 20 },
-  radius: { 0: 0, 1: 4, 2: 8 },
+  space: {
+    0: 0,
+    1: 4,
+    2: 8,
+    3: 12,
+    4: BASE,
+    5: 20,
+    true: BASE,     // ✅ requerido por Tamagui
+  },
+  size: {
+    0: 0,
+    1: 4,
+    2: 8,
+    3: 12,
+    4: BASE,
+    5: 20,
+    true: BASE,     // ✅ requerido por Tamagui
+  },
+  radius: {
+    0: 0,
+    1: 4,
+    2: 8,
+    true: 4,        // ✅ recomendable (radio base)
+  },
   zIndex: { 0: 0, 1: 10, 2: 20 },
 })
 
-// 👇 define al menos la animación "quick"
 const animations = createAnimations({
   quick: { type: 'spring', damping: 20, mass: 1.1, stiffness: 250 },
-  // opcional:
   // bouncy: { type: 'spring', damping: 10, mass: 0.9, stiffness: 120 },
 })
 
@@ -44,14 +65,12 @@ export const config = createTamagui({
   themes,
   shorthands,
   animations,
-
   media: {
     xs: { maxWidth: 660 },
     sm: { maxWidth: 860 },
     md: { maxWidth: 980 },
     lg: { maxWidth: 1280 },
     xl: { maxWidth: 1420 },
-
     gtXs: { minWidth: 661 },
     gtSm: { minWidth: 861 },
     gtMd: { minWidth: 981 },
@@ -62,7 +81,6 @@ export const config = createTamagui({
     pointerCoarse: { pointer: 'coarse' },
   },
 })
-
 
 export type AppConfig = typeof config
 declare module 'tamagui' {
