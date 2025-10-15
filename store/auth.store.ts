@@ -1,66 +1,119 @@
-// ❌ NO importes el icono como User si lo vas a usar como tipo
-// import { User } from '@tamagui/lucide-icons'
-
-// ✅ Importa el icono con otro nombre (si lo necesitas en este archivo)
-import { User as UserIcon } from '@tamagui/lucide-icons';
-
-// ✅ Importa el tipo real de usuario de tu app
-import type { User } from '../types/auth.types'; // ajusta la ruta
-
+// store/auth.store.ts
 import { create } from 'zustand';
-import { secureStorage } from '../lib/secureStorage';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
+import { Platform } from 'react-native';
+import { authService } from '@/services/auth.service';
+import type { User, AuthState } from '@/types/auth.types';
 
-interface AuthState {
-  user: User | null;
-  token: string | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  setAuth: (user: User, token: string) => Promise<void>;
-  clearAuth: () => Promise<void>;
-  rehydrate: () => Promise<void>;
+interface AuthStore extends AuthState {
+  login: (username: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
+  setUser: (user: User | null) => void;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
-  user: null,
-  token: null,
-  isAuthenticated: false,
-  isLoading: true,
-
-  setAuth: async (user, token) => {
-    console.log('💾 setAuth called:', {
-      username: user.username,
-      tokenLength: token.length,
-    });
-
-    await secureStorage.setItem('auth_token', token);
-    await secureStorage.setItem('user', JSON.stringify(user));
-
-    console.log('💾 Setting store state...');
-    set({ user, token, isAuthenticated: true });
-
-    console.log('✅ Store updated');
-  },
-
-  clearAuth: async () => {
-    await secureStorage.removeItem('auth_token');
-    await secureStorage.removeItem('user');
-    set({ user: null, token: null, isAuthenticated: false });
-  },
-
-  rehydrate: async () => {
-    try {
-      const token = await secureStorage.getItem('auth_token');
-      const userStr = await secureStorage.getItem('user');
-
-      if (token && userStr) {
-        const user: User = JSON.parse(userStr);
-        set({ user, token, isAuthenticated: true, isLoading: false });
-      } else {
-        set({ isLoading: false });
-      }
-    } catch (error) {
-      console.error('Error rehydrating auth:', error);
-      set({ isLoading: false });
+// Helper para guardar/obtener token de forma segura
+const secureStorage = {
+  async setItem(key: string, value: string) {
+    if (Platform.OS === 'web') {
+      localStorage.setItem(key, value);
+    } else {
+      await SecureStore.setItemAsync(key, value);
     }
   },
-}));
+  async getItem(key: string): Promise<string | null> {
+    if (Platform.OS === 'web') {
+      return localStorage.getItem(key);
+    } else {
+      return await SecureStore.getItemAsync(key);
+    }
+  },
+  async removeItem(key: string) {
+    if (Platform.OS === 'web') {
+      localStorage.removeItem(key);
+    } else {
+      await SecureStore.deleteItemAsync(key);
+    }
+  },
+};
+
+export const useAuthStore = create<AuthStore>()(
+  persist(
+    (set, get) => ({
+      user: null,
+      token: null,
+      isAuthenticated: false,
+      isLoading: false,
+
+      login: async (username: string, password: string) => {
+        set({ isLoading: true });
+        try {
+          const response = await authService.login(username, password);
+          
+          // Guardar token de forma segura
+          await secureStorage.setItem('auth_token', response.token);
+          if (response.refreshToken) {
+            await secureStorage.setItem('refresh_token', response.refreshToken);
+          }
+
+          set({
+            user: response.user,
+            token: response.token,
+            isAuthenticated: true,
+            isLoading: false,
+          });
+        } catch (error) {
+          set({ isLoading: false });
+          throw error;
+        }
+      },
+
+      logout: async () => {
+        try {
+          await authService.logout();
+        } catch (error) {
+          console.error('Error during logout:', error);
+        } finally {
+          // Limpiar tokens
+          await secureStorage.removeItem('auth_token');
+          await secureStorage.removeItem('refresh_token');
+          
+          set({
+            user: null,
+            token: null,
+            isAuthenticated: false,
+          });
+        }
+      },
+
+      refreshUser: async () => {
+        const { token } = get();
+        if (!token) return;
+
+        try {
+          const user = await authService.getCurrentUser();
+          set({ user });
+        } catch (error) {
+          console.error('Error refreshing user:', error);
+          // Si falla el refresh, hacer logout
+          await get().logout();
+        }
+      },
+
+      setUser: (user: User | null) => {
+        set({ user, isAuthenticated: !!user });
+      },
+    }),
+    {
+      name: 'auth-storage',
+      storage: createJSONStorage(() => AsyncStorage),
+      // Solo persistir datos del usuario, no el token (por seguridad)
+      partialize: (state) => ({
+        user: state.user,
+        isAuthenticated: state.isAuthenticated,
+      }),
+    }
+  )
+);

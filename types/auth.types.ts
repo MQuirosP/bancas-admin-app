@@ -1,3 +1,5 @@
+// types/auth.types.ts
+
 export enum UserRole {
   ADMIN = 'ADMIN',
   VENTANA = 'VENTANA',
@@ -6,28 +8,38 @@ export enum UserRole {
 
 export interface User {
   id: string;
-  code: string;
+  username: string; // Cambiado de email a username
   name: string;
-  username: string;
-  email?: string;
   role: UserRole;
-  bancaId?: string;
-  ventanaId?: string;
+  bancaId?: string; // Para ADMIN y VENTANA
+  ventanaId?: string; // Para VENDEDOR
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-export interface AuthTokens {
+export interface LoginRequest {
+  username: string; // Cambiado de email a username
+  password: string;
+}
+
+export interface LoginResponse {
+  user: User;
   token: string;
   refreshToken?: string;
 }
 
-export interface LoginRequest {
-  username: string;
-  password: string;
+export interface AuthState {
+  user: User | null;
+  token: string | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
 }
 
-// ✅ CAMBIO: Backend devuelve accessToken/refreshToken, NO user
-export interface LoginResponse {
-  accessToken: string;      // ✅ era "token"
-  refreshToken: string;      // ✅ agregado
-  user?: User;               // ✅ opcional porque no lo devuelve el backend
+export interface RegisterRequest {
+  username: string; // Cambiado de email a username
+  name: string;
+  password: string;
+  role: UserRole;
+  bancaId?: string;
+  ventanaId?: string;
 }
