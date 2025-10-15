@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { YStack, XStack, Text, ScrollView, Card, Select } from 'tamagui';
 import { useQuery } from '@tanstack/react-query';
-import { apiClient } from '../../../lib/api.client.js';
-import { formatCurrency } from '../../../utils/formatters.js';
+import { apiClient } from '../../../lib/api.client';
+import { formatCurrency } from '../../../utils/formatters';
 
 export default function MisVentasScreen() {
   const [dateRange, setDateRange] = useState('today');
