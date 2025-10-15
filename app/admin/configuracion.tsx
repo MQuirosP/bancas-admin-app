@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { YStack, Text, Button, Input, Card, Switch, ScrollView } from 'tamagui';
+import { YStack, Text, Button, Input, Card, Switch, ScrollView, XStack } from 'tamagui';
 
 export default function ConfiguracionScreen() {
   const [defaultCutoff, setDefaultCutoff] = useState('5');

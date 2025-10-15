@@ -1,4 +1,3 @@
-// App.tsx
 import 'react-native-reanimated'; // debe ir al tope si usas Reanimated
 import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';

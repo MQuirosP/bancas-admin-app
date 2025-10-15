@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { YStack, XStack, Text, Button, Input, Card, Switch, ScrollView } from 'tamagui';
 import { useRouter } from 'expo-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiClient, ApiErrorClass } from '@/lib/api.client';
-import { Banca } from '@/types/models.types';
+import { apiClient, ApiErrorClass } from '../../../lib/api.client.js';
+import { Banca } from '../../../types/models.types.js';
 
 export default function NuevaBancaScreen() {
   const router = useRouter();

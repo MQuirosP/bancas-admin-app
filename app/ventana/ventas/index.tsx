@@ -1,20 +1,19 @@
 import React, { useState } from 'react';
-import { YStack, XStack, Text, ScrollView, Card, Select, Button } from 'tamagui';
+import { YStack, XStack, Text, ScrollView, Card, Select } from 'tamagui';
 import { useQuery } from '@tanstack/react-query';
-import { apiClient } from '@/lib/api.client';
-import { formatCurrency, formatDate } from '@/utils/formatters';
+import { apiClient } from '../../../lib/api.client.js';
+import { formatCurrency } from '../../../utils/formatters.js';
 
 export default function MisVentasScreen() {
   const [dateRange, setDateRange] = useState('today');
-  const [vendedorId, setVendedorId] = useState('all');
+  const [vendedorId] = useState('all');
 
-  const { data: ventas, isLoading } = useQuery({
+  useQuery({
     queryKey: ['ventas', dateRange, vendedorId],
-    queryFn: () =>
-      apiClient.get('/ventas', {
-        dateRange,
-        vendedorId: vendedorId === 'all' ? undefined : vendedorId,
-      }),
+    queryFn: () => apiClient.get('/ventas', {
+      dateRange,
+      vendedorId: vendedorId === 'all' ? undefined : vendedorId,
+    }),
   });
 
   return (

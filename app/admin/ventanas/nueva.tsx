@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { YStack, XStack, Text, Button, Input, Card, Switch, Select, ScrollView } from 'tamagui';
 import { useRouter } from 'expo-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { apiClient, ApiErrorClass } from '@/lib/api.client';
-import { Ventana, Banca } from '@/types/models.types';
+import { apiClient, ApiErrorClass } from '../../../lib/api.client.js';
+import { Banca, Ventana } from '../../../types/models.types.js';
 
 export default function NuevaVentanaScreen() {
   const router = useRouter();

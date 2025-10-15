@@ -1,5 +1,5 @@
-import { apiClient } from '@/lib/api.client';
-import { RestrictionRule } from '@/types/models.types';
+import { apiClient } from "../lib/api.client.js";
+import { RestrictionRule } from "../types/models.types.js";
 
 export const restrictionsService = {
   getAll: async (): Promise<RestrictionRule[]> => {

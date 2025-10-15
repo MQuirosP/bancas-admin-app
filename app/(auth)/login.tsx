@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { YStack, Text, Button, Input, Card } from 'tamagui';
 import { useRouter } from 'expo-router';
-import { useAuthStore } from '@/store/auth.store';
-import { apiClient, ApiErrorClass } from '@/lib/api.client';
-import { LoginResponse } from '@/types/auth.types';
+import { apiClient, ApiErrorClass } from '../../lib/api.client.js';
+import { useAuthStore } from '../../store/auth.store.js';
+import { LoginResponse } from '../../types/auth.types.js';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');

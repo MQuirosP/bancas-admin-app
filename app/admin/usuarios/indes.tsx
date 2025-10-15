@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { YStack, XStack, Text, Button, Input, ScrollView, Card } from 'tamagui';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { apiClient } from '@/lib/api.client';
-import { Usuario, PaginatedResponse } from '@/types/models.types';
 import { Plus, Search } from '@tamagui/lucide-icons';
-import { getRoleLabel } from '@/utils/role';
+import { apiClient } from '../../../lib/api.client.js';
+import { PaginatedResponse, Usuario } from '../../../types/models.types.js';
+import { getRoleLabel } from '../../../utils/role.js';
 
 export default function UsuariosListScreen() {
   const router = useRouter();

@@ -1,5 +1,5 @@
 import React from 'react';
-import { YStack, Text, ScrollView, Card, XStack } from 'tamagui';
+import { YStack, Text, ScrollView, Card } from 'tamagui';
 
 export default function ReportesScreen() {
   return (

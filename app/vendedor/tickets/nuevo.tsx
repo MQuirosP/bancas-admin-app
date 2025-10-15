@@ -12,13 +12,13 @@ import {
 } from 'tamagui';
 import { useRouter } from 'expo-router';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { apiClient, ApiErrorClass } from '@/lib/api.client';
-import { JugadaType, CreateTicketRequest, Sorteo, SorteoStatus } from '@/types/models.types';
 import { Plus, Trash2, AlertCircle } from '@tamagui/lucide-icons';
-import { validateReventadoReferences } from '@/utils/validation';
-import { canCreateTicket, getSalesCutoffMinutes } from '@/utils/cutoff';
-import { formatCurrency } from '@/utils/formatters';
-import { useAuthStore } from '@/store/auth.store';
+import { apiClient, ApiErrorClass } from '../../../lib/api.client.js';
+import { useAuthStore } from '../../../store/auth.store.js';
+import { JugadaType, Sorteo, SorteoStatus, CreateTicketRequest, RestrictionRule } from '../../../types/models.types.js';
+import { getSalesCutoffMinutes, canCreateTicket } from '../../../utils/cutoff.js';
+import { formatCurrency } from '../../../utils/formatters.js';
+import { validateReventadoReferences } from '../../../utils/validation.js';
 
 interface JugadaForm {
   type: JugadaType;
@@ -46,11 +46,16 @@ export default function NuevoTicketScreen() {
   });
 
   // Fetch restriction rules para calcular cutoff
-  const { data: restrictions } = useQuery({
-    queryKey: ['restrictions'],
-    queryFn: () => apiClient.get('/restrictions'),
-    enabled: !!sorteoId,
-  });
+  // 👈 importa el tipo
+
+// --- restricciones tipadas + default vacío
+const { data: restrictions = [], isLoading: loadingRestrictions } = useQuery<RestrictionRule[]>({
+  queryKey: ['restrictions'],
+  queryFn: () => apiClient.get<RestrictionRule[]>('/restrictions'),
+  enabled: !!sorteoId,
+  initialData: [],            // ✅ evita {} y unknown
+});
+
 
   // Validar cutoff cuando cambia el sorteo seleccionado
   useEffect(() => {

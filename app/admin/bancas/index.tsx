@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { YStack, XStack, Text, Button, Input, ScrollView, Card, Spinner } from 'tamagui';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { apiClient } from '@/lib/api.client';
-import { Banca, PaginatedResponse } from '@/types/models.types';
 import { Plus, Search } from '@tamagui/lucide-icons';
+import { apiClient } from '../../../lib/api.client.js';
+import { PaginatedResponse, Banca } from '../../../types/models.types.js';
 
 export default function BancasListScreen() {
   const router = useRouter();

@@ -1,10 +1,10 @@
 import React from 'react';
 import { YStack, Text, ScrollView, Card } from 'tamagui';
 import { useQuery } from '@tanstack/react-query';
-import { restrictionsService } from '@/services/restrictions.service';
+import { restrictionsService } from '../../../services/restrictions.service.js';
 
 export default function VentanaRestrictionsScreen() {
-  const { data: restrictions, isLoading } = useQuery({
+  const { data: restrictions } = useQuery({
     queryKey: ['restrictions'],
     queryFn: () => restrictionsService.getAll(),
   });

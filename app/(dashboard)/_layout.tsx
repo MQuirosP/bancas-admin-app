@@ -1,10 +1,8 @@
 import React from 'react';
-import { YStack } from 'tamagui';
+import { Footer, Header, YStack } from 'tamagui';
 import { Slot } from 'expo-router';
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
-import { Drawer } from '@/components/layout/Drawer';
-import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
+import { Drawer } from '../../components/layout/Drawer.js';
+import { ProtectedRoute } from '../../components/layout/ProtectedRoute.js';
 
 export default function DashboardLayout() {
   return (

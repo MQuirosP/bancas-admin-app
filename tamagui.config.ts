@@ -2,33 +2,33 @@
 import { createTamagui, createTokens } from 'tamagui'
 import { shorthands } from '@tamagui/shorthands'
 import { themes as baseThemes } from '@tamagui/themes'
+import { createAnimations } from '@tamagui/animations-react-native' // 👈 añade esto
 
-// (Opcional) tokens mínimos — puedes ampliarlos luego
 const tokens = createTokens({
-  color: {
-    // puedes dejar vacíos si usas los de @tamagui/themes
-  },
+  color: {},
   space: { 0: 0, 1: 4, 2: 8, 3: 12, 4: 16, 5: 20 },
   size: { 0: 0, 1: 4, 2: 8, 3: 12, 4: 16, 5: 20 },
   radius: { 0: 0, 1: 4, 2: 8 },
   zIndex: { 0: 0, 1: 10, 2: 20 },
-  // define al menos una font si usas <Text />
-  // fonts: puedes usar las de @tamagui/fonts más adelante
 })
 
-// Extiende los themes base (light/dark ya traen todas las claves obligatorias)
+// 👇 define al menos la animación "quick"
+const animations = createAnimations({
+  quick: { type: 'spring', damping: 20, mass: 1.1, stiffness: 250 },
+  // opcional:
+  // bouncy: { type: 'spring', damping: 10, mass: 0.9, stiffness: 120 },
+})
+
 const themes = {
   ...baseThemes,
-
   light: {
     ...baseThemes.light,
-    primary: '#3b82f6',   // Azul
-    secondary: '#64748b', // Gris
-    success: '#10b981',   // Verde
-    error: '#ef4444',     // Rojo
-    warning: '#f59e0b',   // Naranja
+    primary: '#3b82f6',
+    secondary: '#64748b',
+    success: '#10b981',
+    error: '#ef4444',
+    warning: '#f59e0b',
   },
-
   dark: {
     ...baseThemes.dark,
     primary: '#60a5fa',
@@ -43,15 +43,29 @@ export const config = createTamagui({
   tokens,
   themes,
   shorthands,
-  // (Opcional pero útil si quieres que siga prefers-color-scheme)
-  // shouldAddPrefersColorThemes: true,
+  animations,
+
+  media: {
+    xs: { maxWidth: 660 },
+    sm: { maxWidth: 860 },
+    md: { maxWidth: 980 },
+    lg: { maxWidth: 1280 },
+    xl: { maxWidth: 1420 },
+
+    gtXs: { minWidth: 661 },
+    gtSm: { minWidth: 861 },
+    gtMd: { minWidth: 981 },
+    gtLg: { minWidth: 1281 },
+    short: { maxHeight: 820 },
+    tall: { minHeight: 820 },
+    hoverNone: { hover: 'none' },
+    pointerCoarse: { pointer: 'coarse' },
+  },
 })
 
-export type AppConfig = typeof config
 
+export type AppConfig = typeof config
 declare module 'tamagui' {
-  // Esto hace que TypeScript conozca tus themes y tokens
   interface TamaguiCustomConfig extends AppConfig {}
 }
-
 export default config
