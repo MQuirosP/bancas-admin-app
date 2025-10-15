@@ -3,8 +3,8 @@ import { YStack, XStack, Text, Button, ScrollView, Card, Spinner } from 'tamagui
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { Plus, Ticket as TicketIcon } from '@tamagui/lucide-icons';
-import { ticketsService } from '../../../services/tickets.service.js';
-import { formatCurrency } from '../../../utils/formatters.js';
+import { ticketsService } from '../../../services/tickets.service';
+import { formatCurrency } from '../../../utils/formatters';
 
 export default function MisTicketsScreen() {
   const router = useRouter();

@@ -13,12 +13,12 @@ import {
 import { useRouter } from 'expo-router';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Plus, Trash2, AlertCircle } from '@tamagui/lucide-icons';
-import { apiClient, ApiErrorClass } from '../../../lib/api.client.js';
-import { useAuthStore } from '../../../store/auth.store.js';
-import { JugadaType, Sorteo, SorteoStatus, CreateTicketRequest, RestrictionRule } from '../../../types/models.types.js';
-import { getSalesCutoffMinutes, canCreateTicket } from '../../../utils/cutoff.js';
+import { apiClient, ApiErrorClass } from '../../../lib/api.client';
+import { useAuthStore } from '../../../store/auth.store';
+import { JugadaType, Sorteo, SorteoStatus, CreateTicketRequest, RestrictionRule } from '../../../types/models.types';
+import { getSalesCutoffMinutes, canCreateTicket } from '../../../utils/cutoff';
 import { formatCurrency } from '../../../utils/formatters.js';
-import { validateReventadoReferences } from '../../../utils/validation.js';
+import { validateReventadoReferences } from '../../../utils/validation';
 
 interface JugadaForm {
   type: JugadaType;
