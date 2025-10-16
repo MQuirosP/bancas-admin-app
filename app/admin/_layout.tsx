@@ -2,14 +2,17 @@
 import React, { useState } from 'react';
 import { Stack, useRouter } from 'expo-router';
 import { YStack, XStack, Text, Button, Theme } from 'tamagui';
-import { Menu, LogOut, Sun, Moon } from '@tamagui/lucide-icons';
+import { Menu, LogOut, Sun, Moon, ChevronDown } from '@tamagui/lucide-icons';
 import { useAuthStore } from '@/store/auth.store';
+import UserDropdown from '../../components/layout/UserDropdown';
+import Drawer from '../../components/layout/Drawer';
 
 export default function AdminLayout() {
   const router = useRouter();
   const { user, logout } = useAuthStore();
   const [isDark, setIsDark] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   const handleLogout = async () => {
     await logout();
@@ -36,13 +39,14 @@ export default function AdminLayout() {
         borderBottomColor="#2a2a2f"
         alignItems="center"
         height={64}
+        zIndex={100}
       >
         {/* Botón hamburguesa */}
         <Button
           size="$3"
           circular
           backgroundColor="rgba(255,255,255,0.1)"
-          onPress={() => setMenuOpen(!menuOpen)}
+          onPress={() => setMenuOpen(true)}
           marginRight="$3"
           pressStyle={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
           hoverStyle={{ backgroundColor: 'rgba(255,255,255,0.15)' }}
@@ -81,37 +85,58 @@ export default function AdminLayout() {
             {isDark ? <Sun size={18} color="#ffffff" /> : <Moon size={18} color="#ffffff" />}
           </Button>
 
-          {/* User badge */}
-          <XStack
-            backgroundColor="rgba(255,255,255,0.1)"
-            paddingHorizontal="$3"
-            paddingVertical="$2"
-            borderRadius="$3"
-            gap="$2"
-            alignItems="center"
-            display="none"
-            $gtXs={{ display: 'flex' }}
-          >
-            <YStack
-              width={32}
-              height={32}
-              backgroundColor="#6366f1"
-              borderRadius="$2"
-              alignItems="center"
-              justifyContent="center"
+          {/* User badge with dropdown */}
+          <XStack position="relative">
+            <Button
+              backgroundColor="rgba(255,255,255,0.1)"
+              paddingHorizontal="$3"
+              paddingVertical="$2"
+              borderRadius="$3"
+              onPress={() => setUserMenuOpen(!userMenuOpen)}
+              pressStyle={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
+              hoverStyle={{ backgroundColor: 'rgba(255,255,255,0.15)' }}
+              display="none"
+              $gtXs={{ display: 'flex' }}
             >
-              <Text fontSize="$4" fontWeight="600" color="white">
-                {user?.name?.charAt(0).toUpperCase() || 'A'}
-              </Text>
-            </YStack>
-            <YStack>
-              <Text fontSize="$3" fontWeight="600" color="#ffffff">
-                {user?.name}
-              </Text>
-              <Text fontSize="$2" color="#a1a1aa">
-                ADMIN
-              </Text>
-            </YStack>
+              <XStack gap="$2" alignItems="center">
+                <YStack
+                  width={32}
+                  height={32}
+                  backgroundColor="#6366f1"
+                  borderRadius="$2"
+                  alignItems="center"
+                  justifyContent="center"
+                >
+                  <Text fontSize="$4" fontWeight="600" color="white">
+                    {user?.name?.charAt(0).toUpperCase() || 'A'}
+                  </Text>
+                </YStack>
+                <YStack>
+                  <Text fontSize="$3" fontWeight="600" color="#ffffff">
+                    {user?.name}
+                  </Text>
+                  <Text fontSize="$2" color="#a1a1aa">
+                    ADMIN
+                  </Text>
+                </YStack>
+                <ChevronDown size={16} color="#ffffff" />
+              </XStack>
+            </Button>
+            
+            {/* User Dropdown Menu */}
+            {userMenuOpen && (
+              <UserDropdown
+                onClose={() => setUserMenuOpen(false)}
+                onChangePassword={() => {
+                  setUserMenuOpen(false);
+                  router.push('/admin/perfil/cambiar-contrasena' as any);
+                }}
+                onEditProfile={() => {
+                  setUserMenuOpen(false);
+                  router.push('/admin/perfil/editar' as any);
+                }}
+              />
+            )}
           </XStack>
 
           {/* Logout */}
@@ -127,6 +152,9 @@ export default function AdminLayout() {
           </Button>
         </XStack>
       </XStack>
+
+      {/* Drawer Component */}
+      <Drawer isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
 
       {/* Content */}
       <Theme name={isDark ? 'dark' : 'light'}>

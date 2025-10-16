@@ -116,76 +116,130 @@ export default function AdminDashboard() {
           </Text>
         </YStack>
 
-        {/* 🔥 CARDS EN 2 COLUMNAS - Grid Responsivo */}
+        {/* 🔥 CARDS EN 2 COLUMNAS - Grid Responsivo ARREGLADO */}
         <YStack gap="$3">
-          {/* Agrupar cards de 2 en 2 para crear filas */}
-          {dashboardCards.reduce((rows: DashboardCard[][], card, index) => {
-            if (index % 2 === 0) {
-              // Crear nueva fila cada 2 cards
-              rows.push([card]);
-            } else {
-              // Agregar a la fila existente
-              rows[rows.length - 1].push(card);
-            }
-            return rows;
-          }, []).map((row, rowIndex) => (
-            <XStack key={rowIndex} gap="$3" flexWrap="wrap">
-              {row.map((card) => (
-                <Card
-                  key={card.title}
-                  flex={1}
-                  minWidth={280}
-                  maxWidth="48%"
-                  $sm={{ maxWidth: '100%' }} // 1 columna en móvil
-                  padding="$4"
-                  backgroundColor="$backgroundStrong"
-                  borderRadius="$4"
-                  borderWidth={1}
-                  borderColor="$borderColor"
-                  pressStyle={{ scale: 0.98 }}
-                  hoverStyle={{
-                    borderColor: card.color,
-                    elevation: 4,
-                    shadowColor: card.color,
-                    shadowOpacity: 0.2,
-                    shadowRadius: 8,
-                  }}
-                  cursor="pointer"
-                  onPress={() => handleCardPress(card.href)}
-                  animation="quick"
-                >
-                  <YStack gap="$3">
-                    {/* Icon */}
-                    <YStack
-                      width={56}
-                      height={56}
-                      backgroundColor={`${card.color.replace('10', '3')}`}
-                      borderRadius="$3"
-                      alignItems="center"
-                      justifyContent="center"
+          {dashboardCards.map((card, index) => {
+            const Icon = card.icon;
+            const isOdd = index % 2 === 0;
+            
+            // Crear filas de 2 cards
+            if (isOdd) {
+              const nextCard = dashboardCards[index + 1];
+              
+              return (
+                <XStack key={index} gap="$3" flexWrap="wrap">
+                  {/* Primera Card */}
+                  <YStack flex={1} minWidth={280}>
+                    <Card
+                      padding="$4"
+                      backgroundColor="$backgroundStrong"
+                      borderRadius="$4"
+                      borderWidth={1}
+                      borderColor="$borderColor"
+                      pressStyle={{ scale: 0.98 }}
+                      hoverStyle={{
+                        borderColor: card.color,
+                        elevation: 4,
+                        shadowColor: card.color,
+                        shadowOpacity: 0.2,
+                        shadowRadius: 8,
+                      }}
+                      cursor="pointer"
+                      onPress={() => handleCardPress(card.href)}
+                      animation="quick"
+                      height="100%"
                     >
-                      <card.icon size={28} color={card.color} />
-                    </YStack>
+                      <YStack gap="$3">
+                        {/* Icon */}
+                        <YStack
+                          width={56}
+                          height={56}
+                          backgroundColor={`${card.color.replace('10', '3')}`}
+                          borderRadius="$3"
+                          alignItems="center"
+                          justifyContent="center"
+                        >
+                          <Icon size={28} color={card.color} />
+                        </YStack>
 
-                    {/* Content */}
-                    <YStack gap="$2">
-                      <Text fontSize="$6" fontWeight="600" color="$textPrimary">
-                        {card.title}
-                      </Text>
-                      <Text fontSize="$3" color="$textSecondary" lineHeight="$1">
-                        {card.description}
-                      </Text>
-                    </YStack>
+                        {/* Content */}
+                        <YStack gap="$2">
+                          <Text fontSize="$6" fontWeight="600" color="$textPrimary">
+                            {card.title}
+                          </Text>
+                          <Text fontSize="$3" color="$textSecondary" lineHeight="$1">
+                            {card.description}
+                          </Text>
+                        </YStack>
 
-                    {/* Action Hint */}
-                    <Text fontSize="$2" color={card.color} fontWeight="500">
-                      Ver más →
-                    </Text>
+                        {/* Action Hint */}
+                        <Text fontSize="$2" color={card.color} fontWeight="500">
+                          Ver más →
+                        </Text>
+                      </YStack>
+                    </Card>
                   </YStack>
-                </Card>
-              ))}
-            </XStack>
-          ))}
+
+                  {/* Segunda Card (si existe) */}
+                  {nextCard && (
+                    <YStack flex={1} minWidth={280}>
+                      <Card
+                        padding="$4"
+                        backgroundColor="$backgroundStrong"
+                        borderRadius="$4"
+                        borderWidth={1}
+                        borderColor="$borderColor"
+                        pressStyle={{ scale: 0.98 }}
+                        hoverStyle={{
+                          borderColor: nextCard.color,
+                          elevation: 4,
+                          shadowColor: nextCard.color,
+                          shadowOpacity: 0.2,
+                          shadowRadius: 8,
+                        }}
+                        cursor="pointer"
+                        onPress={() => handleCardPress(nextCard.href)}
+                        animation="quick"
+                        height="100%"
+                      >
+                        <YStack gap="$3">
+                          {/* Icon */}
+                          <YStack
+                            width={56}
+                            height={56}
+                            backgroundColor={`${nextCard.color.replace('10', '3')}`}
+                            borderRadius="$3"
+                            alignItems="center"
+                            justifyContent="center"
+                          >
+                            <nextCard.icon size={28} color={nextCard.color} />
+                          </YStack>
+
+                          {/* Content */}
+                          <YStack gap="$2">
+                            <Text fontSize="$6" fontWeight="600" color="$textPrimary">
+                              {nextCard.title}
+                            </Text>
+                            <Text fontSize="$3" color="$textSecondary" lineHeight="$1">
+                              {nextCard.description}
+                            </Text>
+                          </YStack>
+
+                          {/* Action Hint */}
+                          <Text fontSize="$2" color={nextCard.color} fontWeight="500">
+                            Ver más →
+                          </Text>
+                        </YStack>
+                      </Card>
+                    </YStack>
+                  )}
+                </XStack>
+              );
+            }
+            
+            // Skip odd indices since they're handled in pairs
+            return null;
+          })}
         </YStack>
 
         {/* Quick Stats (opcional) */}
