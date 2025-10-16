@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { YStack, XStack, Text, Input, Button, Spinner } from 'tamagui';
+import { Image } from 'expo-image';
 import { User, Lock, ArrowRight } from '@tamagui/lucide-icons';
 import { z } from 'zod';
 import { useAuthStore } from '../../store/auth.store';
@@ -57,19 +58,30 @@ export default function LoginScreen() {
       padding="$6"
     >
       {/* Logo / Icono */}
-      <YStack
-        width={80}
-        height={80}
-        backgroundColor="$primary"
-        borderRadius="$6"
-        alignItems="center"
-        justifyContent="center"
-        marginBottom="$6"
-      >
-        <Text fontSize={40} color="white">
-          🎰
-        </Text>
-      </YStack>
+      {/* Logo / Imagen (llenando el contenedor y más grande) */}
+<YStack
+  width={128}
+  height={128}
+  $gtSm={{ width: 320, height: 160 }}   // ↑ más grande en pantallas >= sm
+  alignItems="center"
+  justifyContent="center"
+  marginBottom="$6"
+  borderRadius={24}
+  overflow="hidden"                      // recorta las esquinas redondeadas
+  backgroundColor="$background"          // opcional
+  borderWidth={1}                        // opcional: quitar si no quieres borde
+  borderColor="$borderColor"
+>
+  <Image
+    source={require('../../assets/logo.png')}
+    style={{ width: '100%', height: '100%', borderRadius: 24 }}
+    contentFit="cover"                   // ⬅️ llena el contenedor (sin franjas)
+    contentPosition="center"             // centra el recorte
+    transition={150}
+    accessibilityLabel="Logo de la app"
+  />
+</YStack>
+
 
       {/* Título */}
       <Text
@@ -86,14 +98,14 @@ export default function LoginScreen() {
       <Text
         fontSize="$5"
         color="$textSecondary"
-        marginBottom="$8"
+        marginBottom="$2"
         textAlign="center"
       >
         Ingresa tus credenciales para continuar
       </Text>
 
       {/* Formulario */}
-      <YStack width="100%" maxWidth={400} gap="$5">
+      <YStack width="100%" maxWidth={400} gap="$2">
         {/* Campo Username */}
         <YStack gap="$2">
           <Text
