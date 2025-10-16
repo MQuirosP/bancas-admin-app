@@ -35,6 +35,8 @@ yarn-error.*
 !.env.example
 .env*.local
 
+outputs/
+
 # typescript
 *.tsbuildinfo
 
