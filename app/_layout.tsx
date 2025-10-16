@@ -1,11 +1,14 @@
 // app/_layout.tsx
 import React, { useEffect } from 'react';
+import '../lib/patch-animated'; // ✅ Primera línea después de imports de React
+import { Slot } from 'expo-router';
 import { Stack } from 'expo-router';
 import { TamaguiProvider, Theme } from 'tamagui';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import config from '@/tamagui.config';
 import { useThemeStore } from '../store/theme.store';
 import { SystemThemeSync } from '../components/theme/SystemThemeSync';
+import { LogBox } from "react-native";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -15,6 +18,11 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+LogBox.ignoreLogs([
+  'Animated: `useNativeDriver` is not supported',
+]);
+
 
 function RootLayoutContent() {
   const { theme } = useThemeStore();

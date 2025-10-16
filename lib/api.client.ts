@@ -38,26 +38,30 @@ export class ApiErrorClass extends Error {
 export class ApiClient {
   constructor(private baseURL: string = API_BASE_URL) {}
 
-  private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+    // 👇 En lugar de importar auth.store al inicio del archivo,
+    // usa importación dinámica SOLO cuando necesites el token
+    const { useAuthStore } = await import('../store/auth.store');
     const token = useAuthStore.getState().token;
 
-    const headers: Record<string, string> = {
+    const headers = {
       'Content-Type': 'application/json',
-      ...(options.headers as Record<string, string> | undefined),
+      ...(options.headers || {}),
     };
-    if (token) headers['Authorization'] = `Bearer ${token}`;
 
-    const url = `${this.baseURL}${endpoint}`;
-
-    // 👇 LOG DE DIAGNÓSTICO (quítalo luego)
-    if (endpoint.startsWith('/auth/me')) {
-      console.log(
-        '[api] GET /auth/me → Authorization:',
-        headers['Authorization']?.slice(0, 24) + '...'
-      );
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
     }
 
-    const res = await fetch(url, { ...options, headers });
+    const res = await fetch(`${this.baseURL}${endpoint}`, {
+      ...options,
+      headers,
+    });
+
+    // Si es 401, limpia la sesión
+    if (res.status === 401) {
+      await useAuthStore.getState().clearAuth();
+    }
 
     // Cuerpo (si existe)
     let data: any = null;
