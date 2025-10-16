@@ -4,11 +4,8 @@ import { createTamagui } from 'tamagui';
 
 const appConfig = createTamagui({
   ...config,
-  // Merge base themes to preserve color themes like "blue"
   themes: {
-    ...(config as any).themes,
     light: {
-      ...((config as any).themes?.light ?? {}),
       background: '#ffffff',
       backgroundHover: '#f8f9fa',
       backgroundPress: '#e9ecef',
@@ -52,7 +49,6 @@ const appConfig = createTamagui({
       green11: '#065f46',
     },
     dark: {
-      ...((config as any).themes?.dark ?? {}),
       background: '#121214',
       backgroundHover: '#1a1a1d',
       backgroundPress: '#25252a',
