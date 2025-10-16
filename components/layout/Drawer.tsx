@@ -10,8 +10,8 @@ import {
   Settings,
   X 
 } from '@tamagui/lucide-icons';
-import { useAuthStore } from '@/store/auth.store';
 import { Pressable } from 'react-native';
+import { useAuthStore } from '../../store/auth.store';
 
 interface DrawerProps {
   isOpen: boolean;

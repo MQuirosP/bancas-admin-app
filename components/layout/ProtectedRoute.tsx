@@ -1,7 +1,7 @@
 import { ReactNode, useEffect } from 'react'
 import { useRouter, useSegments } from 'expo-router'
-import { useAuthStore } from '@/store/auth.store'
 import { YStack, Spinner, Text } from 'tamagui'
+import { useAuthStore } from '../../store/auth.store'
 
 export default function ProtectedRoute({ children }: { children: ReactNode }) {
   const { user, isLoading } = useAuthStore()

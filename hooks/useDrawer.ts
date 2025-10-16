@@ -1,6 +1,5 @@
-import { useAuthStore } from '@/store/auth.store';
-import { authService } from '@/services/auth.service';
-import { LoginRequest } from '@/types/auth.types';
+import { authService } from "../services/auth.service";
+import { useAuthStore } from "../store/auth.store";
 
 export function useAuth() {
   const { user, isAuthenticated, setAuth, clearAuth } = useAuthStore();

@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Stack, useRouter } from 'expo-router';
 import { YStack, XStack, Text, Button, Theme } from 'tamagui';
 import { Menu, LogOut, Sun, Moon } from '@tamagui/lucide-icons';
-import { useAuthStore } from '@/store/auth.store';
+import { useAuthStore } from '../../store/auth.store';
 
 export default function VendedorLayout() {
   const router = useRouter();

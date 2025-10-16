@@ -4,7 +4,7 @@ import { Stack } from 'expo-router';
 import { TamaguiProvider, Theme } from 'tamagui';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import config from '@/tamagui.config';
-import { useThemeStore } from '@/store/theme.store';
+import { useThemeStore } from '../store/theme.store';
 
 const queryClient = new QueryClient({
   defaultOptions: {

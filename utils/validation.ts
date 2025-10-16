@@ -1,4 +1,4 @@
-import { Jugada, JugadaType } from '@/types/models.types';
+import { Jugada, JugadaType } from "../types/models.types";
 
 export function validateReventadoReferences(jugadas: Jugada[]): {
   valid: boolean;

@@ -3,8 +3,8 @@ import React, { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { YStack, XStack, Text, Input, Button, Spinner } from 'tamagui';
 import { User, Lock, ArrowRight } from '@tamagui/lucide-icons';
-import { useAuthStore } from '@/store/auth.store';
 import { z } from 'zod';
+import { useAuthStore } from '../../store/auth.store';
 
 const loginSchema = z.object({
   username: z.string().min(3, 'El usuario debe tener al menos 3 caracteres'),

@@ -12,7 +12,7 @@ import {
   Shield,
   BarChart3,
 } from '@tamagui/lucide-icons';
-import { useAuthStore } from '@/store/auth.store';
+import { useAuthStore } from '../../store/auth.store';
 
 interface DashboardCard {
   title: string;

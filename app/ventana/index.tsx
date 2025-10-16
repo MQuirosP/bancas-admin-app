@@ -2,7 +2,7 @@
 import React from 'react';
 import { YStack, XStack, Text, ScrollView } from 'tamagui';
 import { Package, TrendingUp, Users, Clock } from '@tamagui/lucide-icons';
-import { useAuthStore } from '@/store/auth.store';
+import { useAuthStore } from '../../store/auth.store';
 
 export default function VentanaDashboard() {
   const user = useAuthStore((state) => state.user);

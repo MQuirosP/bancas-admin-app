@@ -14,8 +14,8 @@ export interface User {
   role: UserRole;
   bancaId?: string; // Para ADMIN y VENTANA
   ventanaId?: string; // Para VENDEDOR
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface LoginRequest {

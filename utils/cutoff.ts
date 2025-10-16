@@ -1,4 +1,4 @@
-import { RestrictionRule } from '@/types/models.types';
+import { RestrictionRule } from "../types/models.types";
 
 export function isSorteoInCutoff(
   sorteoTime: Date,

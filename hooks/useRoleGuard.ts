@@ -1,6 +1,6 @@
-import { useAuthStore } from '@/store/auth.store';
-import { UserRole } from '@/types/auth.types';
-import { hasPermission } from '@/utils/role';
+import { useAuthStore } from "../store/auth.store";
+import { UserRole } from "../types/auth.types";
+import { hasPermission } from "../utils/role";
 
 export function useRoleGuard(allowedRoles: UserRole[]): boolean {
   const { user } = useAuthStore();

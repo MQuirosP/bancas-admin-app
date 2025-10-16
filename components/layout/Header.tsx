@@ -3,9 +3,8 @@ import React from 'react';
 import { useRouter } from 'expo-router';
 import { XStack, YStack, Text, Button } from 'tamagui';
 import { Menu, LogOut, Sun, Moon } from '@tamagui/lucide-icons';
-import { useAuthStore } from '@/store/auth.store';
-import { useUIStore } from '@/store/ui.store';
-import { useThemeStore } from '@/store/theme.store';
+import { useUIStore } from '../../store/ui.store';
+import { useThemeStore } from '../../store/theme.store';
 
 export const Header: React.FC = () => {
   const router = useRouter();
@@ -133,3 +132,7 @@ export const Header: React.FC = () => {
     </XStack>
   );
 };
+
+function useAuthStore(): { user: any; logout: any; } {
+  throw new Error('Function not implemented.');
+}

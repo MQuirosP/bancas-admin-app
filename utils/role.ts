@@ -1,4 +1,4 @@
-import { UserRole } from '@/types/auth.types';
+import { UserRole } from "../types/auth.types";
 
 export const ROLE_LABELS: Record<UserRole, string> = {
   [UserRole.ADMIN]: 'Administrador',
