@@ -4,18 +4,17 @@ import { useAuthStore } from '../store/auth.store';
 import { ApiError } from '../types/api.types';
 
 type Extra = {
-  EXPO_PUBLIC_API_BASE_URL?: string;
+  EXPO_PUBLIC_API_URL?: string;
   apiBaseUrl?: string;
 };
 
-const extra =
-  ((Constants as any)?.expoConfig?.extra ??
-    (Constants as any)?.manifest?.extra ??
-    {}) as Extra;
+const extra = ((Constants as any)?.expoConfig?.extra ??
+  (Constants as any)?.manifest?.extra ??
+  {}) as Extra;
 
 const API_BASE_URL =
-  process.env.EXPO_PUBLIC_API_BASE_URL ??
-  extra.EXPO_PUBLIC_API_BASE_URL ??
+  process.env.EXPO_PUBLIC_API_URL ??
+  extra.EXPO_PUBLIC_API_URL ??
   extra.apiBaseUrl ??
   'http://localhost:3000/api/v1';
 
@@ -49,6 +48,15 @@ export class ApiClient {
     if (token) headers['Authorization'] = `Bearer ${token}`;
 
     const url = `${this.baseURL}${endpoint}`;
+
+    // 👇 LOG DE DIAGNÓSTICO (quítalo luego)
+    if (endpoint.startsWith('/auth/me')) {
+      console.log(
+        '[api] GET /auth/me → Authorization:',
+        headers['Authorization']?.slice(0, 24) + '...'
+      );
+    }
+
     const res = await fetch(url, { ...options, headers });
 
     // Cuerpo (si existe)

@@ -14,8 +14,8 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
-  
-  // ✅ Métodos correctos
+
+  // ✅ Métodos
   login: (username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   setAuth: (user: User, token: string, refreshToken?: string) => Promise<void>;
@@ -34,7 +34,7 @@ export const useAuthStore = create<AuthState>()(
       isLoading: false,
       error: null,
 
-      // ✅ Método setAuth para guardar usuario y token
+      // ✅ Guarda user + tokens y marca autenticado
       setAuth: async (user: User, token: string, refreshToken?: string) => {
         set({
           user,
@@ -45,7 +45,7 @@ export const useAuthStore = create<AuthState>()(
         });
       },
 
-      // ✅ Método clearAuth para limpiar todo
+      // ✅ Limpia todo el estado de auth
       clearAuth: async () => {
         set({
           user: null,
@@ -56,27 +56,32 @@ export const useAuthStore = create<AuthState>()(
         });
       },
 
+      // ✅ Flujo de login corregido
       login: async (username: string, password: string) => {
         set({ isLoading: true, error: null });
-        
+
         try {
           console.log('🔐 Intentando login con:', username);
 
-          // 1. Llamar a /auth/login
+          // 1) /auth/login
           const loginResponse = await authService.login(username, password);
           console.log('✅ Login exitoso');
 
-          if (!loginResponse.success || !loginResponse.data.accessToken) {
+          if (!loginResponse?.success || !loginResponse.data?.accessToken) {
             throw new Error('Respuesta de login inválida');
           }
 
           const { accessToken, refreshToken } = loginResponse.data;
 
-          // 2. Llamar a /auth/me para obtener información del usuario
-          console.log('📡 Obteniendo información del usuario...');
-          const meResponse = await authService.me(accessToken);
+          // 2) Guardar SOLO el token en el store ANTES de /auth/me
+          //    para que apiClient añada Authorization automáticamente
+          useAuthStore.setState({ token: accessToken });
 
-          if (!meResponse.success || !meResponse.data) {
+          // 3) /auth/me (no pases token; lo lee el apiClient del store)
+          console.log('📡 Obteniendo información del usuario...');
+          const meResponse = await authService.me();
+
+          if (!meResponse?.success || !meResponse.data) {
             throw new Error('Error al obtener información del usuario');
           }
 
@@ -87,17 +92,18 @@ export const useAuthStore = create<AuthState>()(
             name: user.name,
           });
 
-          // 3. Guardar usando setAuth
-          await get().setAuth(user, accessToken, refreshToken);
+          // 4) Persistir todo junto y marcar autenticado
+          await get().setAuth(user, accessToken, refreshToken || undefined);
 
           set({ isLoading: false });
           console.log('✅ Login completado exitosamente');
           console.log(`🎯 Rol del usuario: ${user.role}`);
         } catch (error: any) {
           console.error('❌ Error en login:', error);
-          
-          const errorMessage = error.message || 'Error al iniciar sesión';
-          
+
+          const errorMessage = error?.message || 'Error al iniciar sesión';
+
+          // Limpia estado y propaga error
           set({
             user: null,
             token: null,
@@ -111,23 +117,15 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
+      // ✅ Logout sin pasar token (apiClient lo añade si existe)
       logout: async () => {
-        const { token } = get();
-        
         try {
           console.log('🚪 Cerrando sesión...');
-          
-          if (token) {
-            // ✅ Llamar a logout con el token
-            await authService.logout(token);
-          }
-          
+          await authService.logout();
           console.log('✅ Logout exitoso');
         } catch (error) {
           console.error('⚠️ Error en logout (continuando):', error);
-          // Continuamos con el logout local aunque falle el servidor
         } finally {
-          // ✅ Limpiar usando clearAuth
           await get().clearAuth();
         }
       },
