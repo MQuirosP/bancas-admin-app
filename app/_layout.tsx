@@ -1,48 +1,49 @@
 // app/_layout.tsx
 import React, { useEffect } from 'react';
-import { Slot, SplashScreen } from 'expo-router';
-import { TamaguiProvider, Theme } from 'tamagui';
+import { Stack, useRouter, useSegments } from 'expo-router';
+import { TamaguiProvider } from 'tamagui';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { useThemeStore } from '@/store/theme.store';
-import config from '@/tamagui.config';
+import tamaguiConfig from '../tamagui.config';
+import { useAuthStore } from '@/store/auth.store';
 
-// Prevenir que el splash screen se oculte automáticamente
-SplashScreen.preventAutoHideAsync();
+const queryClient = new QueryClient();
 
-// Query client para React Query
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      staleTime: 5 * 60 * 1000, // 5 minutos
-    },
-  },
-});
-
-export default function RootLayout() {
-  const isDark = useThemeStore((state) => state.isDark);
+function RootLayoutNav() {
+  const segments = useSegments();
+  const router = useRouter();
+  const { isAuthenticated, isLoading } = useAuthStore();
 
   useEffect(() => {
-    // Solo ocultar el splash screen
-    const hideSplash = async () => {
-      await SplashScreen.hideAsync();
-    };
-    hideSplash();
-  }, []);
+    if (isLoading) return;
+
+    const inAuthGroup = segments[0] === '(auth)';
+
+    if (!isAuthenticated && !inAuthGroup) {
+      // Usuario no autenticado, redirigir a login
+      router.replace('/(auth)/login');
+    } else if (isAuthenticated && inAuthGroup) {
+      // Usuario autenticado, redirigir a dashboard
+      router.replace('/(dashboard)');
+    }
+  }, [isAuthenticated, segments, isLoading]);
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaProvider>
-        <TamaguiProvider config={config} defaultTheme={isDark ? 'dark' : 'light'}>
-          <Theme name={isDark ? 'dark' : 'light'}>
-            <QueryClientProvider client={queryClient}>
-              <Slot />
-            </QueryClientProvider>
-          </Theme>
-        </TamaguiProvider>
-      </SafeAreaProvider>
-    </GestureHandlerRootView>
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="(auth)" />
+      <Stack.Screen name="(dashboard)" />
+      <Stack.Screen name="admin" />
+      <Stack.Screen name="ventana" />
+      <Stack.Screen name="vendedor" />
+    </Stack>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <TamaguiProvider config={tamaguiConfig}>
+      <QueryClientProvider client={queryClient}>
+        <RootLayoutNav />
+      </QueryClientProvider>
+    </TamaguiProvider>
   );
 }
