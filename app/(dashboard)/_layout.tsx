@@ -10,7 +10,7 @@ import Drawer from '../../components/layout/Drawer'; // ← ajusta si usas alias
 const getTitleByRole = (role: UserRole | undefined): string => {
   switch (role) {
     case 'ADMIN':
-      return 'Administración de Banca';
+      return 'Administración de Bancas';
     case 'VENTANA':
       return 'Administración de Ventana';
     case 'VENDEDOR':
@@ -94,7 +94,7 @@ export default function DashboardLayout() {
           </Button>
 
           {/* User badge */}
-          <XStack
+          {/* <XStack
             backgroundColor="rgba(255,255,255,0.1)"
             paddingHorizontal="$3"
             paddingVertical="$2"
@@ -124,7 +124,7 @@ export default function DashboardLayout() {
                 {user?.role}
               </Text>
             </YStack>
-          </XStack>
+          </XStack> */}
 
           {/* Logout */}
           <Button

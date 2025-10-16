@@ -62,7 +62,7 @@ export const Header: React.FC = () => {
             </Text>
           </YStack>
           <Text fontSize="$6" fontWeight="600" color="$textPrimary">
-            Administración de Bancas
+            Bancas Admin
           </Text>
         </XStack>
       </XStack>
