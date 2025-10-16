@@ -1,8 +1,36 @@
 // app/(dashboard)/index.tsx
 import React from 'react';
 import { YStack, XStack, Text, Button, ScrollView } from 'tamagui';
-import { BarChart3, Users, Package, TrendingUp } from '@tamagui/lucide-icons';
+import { Users, Package, TrendingUp } from '@tamagui/lucide-icons';
 import { useAuthStore } from '../../store/auth.store';
+
+// Item responsivo: 1 col (mobile), 2 cols (>=sm), 3 cols (>=md)
+function GridItem({ children }: { children: React.ReactNode }) {
+  return (
+    <YStack width="100%" $gtSm={{ width: '48%' }} $gtMd={{ width: '31%' }}>
+      {children}
+    </YStack>
+  );
+}
+
+// Recuadro con título arriba-izquierda
+function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <YStack
+      backgroundColor="$backgroundHover"
+      borderWidth={1}
+      borderColor="$borderColor"
+      borderRadius="$4"
+      padding="$4"
+      gap="$3"
+    >
+      <Text fontSize="$6" fontWeight="600" color="$textPrimary">
+        {title}
+      </Text>
+      {children}
+    </YStack>
+  );
+}
 
 export default function DashboardScreen() {
   const user = useAuthStore((state) => state.user);
@@ -20,131 +48,114 @@ export default function DashboardScreen() {
           </Text>
         </YStack>
 
-        {/* Stats Cards */}
-        <YStack gap="$4">
+        {/* Stats Cards (responsive grid) */}
+        <XStack gap="$3" flexWrap="wrap">
           {user?.role === 'ADMIN' && (
             <>
-              <StatCard
-                icon={Users}
-                title="Usuarios Totales"
-                value="48"
-                change="+12%"
-                positive
-              />
-              <StatCard
-                icon={Package}
-                title="Tickets Hoy"
-                value="156"
-                change="+8%"
-                positive
-              />
-              <StatCard
-                icon={TrendingUp}
-                title="Ventas del Mes"
-                value="$12,450"
-                change="+23%"
-                positive
-              />
+              <GridItem>
+                <StatCard icon={Users} title="Usuarios Totales" value="48" change="+12%" positive />
+              </GridItem>
+              <GridItem>
+                <StatCard icon={Package} title="Tickets Hoy" value="156" change="+8%" positive />
+              </GridItem>
+              <GridItem>
+                <StatCard icon={TrendingUp} title="Ventas del Mes" value="$12,450" change="+23%" positive />
+              </GridItem>
             </>
           )}
 
           {user?.role === 'VENTANA' && (
             <>
-              <StatCard
-                icon={Package}
-                title="Tickets Hoy"
-                value="42"
-                change="+5%"
-                positive
-              />
-              <StatCard
-                icon={TrendingUp}
-                title="Ventas Hoy"
-                value="$1,250"
-                change="+15%"
-                positive
-              />
+              <GridItem>
+                <StatCard icon={Package} title="Tickets Hoy" value="42" change="+5%" positive />
+              </GridItem>
+              <GridItem>
+                <StatCard icon={TrendingUp} title="Ventas Hoy" value="$1,250" change="+15%" positive />
+              </GridItem>
             </>
           )}
 
           {user?.role === 'VENDEDOR' && (
             <>
-              <StatCard
-                icon={Package}
-                title="Mis Tickets Hoy"
-                value="12"
-                change="+3"
-                positive
-              />
-              <StatCard
-                icon={TrendingUp}
-                title="Total Vendido"
-                value="$450"
-                change="+$50"
-                positive
-              />
+              <GridItem>
+                <StatCard icon={Package} title="Mis Tickets Hoy" value="12" change="+3" positive />
+              </GridItem>
+              <GridItem>
+                <StatCard icon={TrendingUp} title="Total Vendido" value="$450" change="+$50" positive />
+              </GridItem>
             </>
           )}
-        </YStack>
+        </XStack>
 
-        {/* Quick Actions */}
-        <YStack gap="$3">
-          <Text fontSize="$6" fontWeight="600" color="$textPrimary">
-            Acciones Rápidas
-          </Text>
-          
+        {/* Quick Actions dentro de un recuadro con título */}
+        <SectionCard title="Acciones Rápidas">
           {user?.role === 'ADMIN' && (
-            <>
+            <XStack gap="$3" flexWrap="wrap">
               <Button
                 size="$5"
                 backgroundColor="$primary"
                 color="white"
                 onPress={() => {}}
-                pressStyle={{
-                  backgroundColor: '$primaryPress',
-                }}
-                hoverStyle={{
-                  backgroundColor: '$primaryHover',
-                }}
+                alignSelf="flex-start"
+                width="100%"
+                $gtSm={{ width: 'auto' }}
+                pressStyle={{ backgroundColor: '$primaryPress' }}
+                hoverStyle={{ backgroundColor: '$primaryHover' }}
               >
                 Gestionar Bancas
               </Button>
+
               <Button
                 size="$5"
-                backgroundColor="$backgroundHover"
-                color="$textPrimary"
-                borderWidth={1}
-                borderColor="$borderColor"
+                backgroundColor="$primary"
+                color="white"
                 onPress={() => {}}
-                pressStyle={{
-                  backgroundColor: '$backgroundPress',
-                }}
-                hoverStyle={{
-                  backgroundColor: '$backgroundHover',
-                }}
+                alignSelf="flex-start"
+                width="100%"
+                $gtSm={{ width: 'auto' }}
+                pressStyle={{ backgroundColor: '$primaryPress' }}
+                hoverStyle={{ backgroundColor: '$primaryHover' }}
               >
                 Ver Reportes
               </Button>
-            </>
+
+              {/* Si quieres 3 botones para ADMIN, descomenta este */}
+              {
+              <Button
+                size="$5"
+                backgroundColor="$primary"
+                color="white"
+                onPress={() => {}}
+                alignSelf="flex-start"
+                width="100%"
+                $gtSm={{ width: 'auto' }}
+                pressStyle={{ backgroundColor: '$primaryPress' }}
+                hoverStyle={{ backgroundColor: '$primaryHover' }}
+              >
+                Nuevo Ticket
+              </Button>
+              }
+            </XStack>
           )}
 
           {user?.role === 'VENDEDOR' && (
-            <Button
-              size="$5"
-              backgroundColor="$primary"
-              color="white"
-              onPress={() => {}}
-              pressStyle={{
-                backgroundColor: '$primaryPress',
-              }}
-              hoverStyle={{
-                backgroundColor: '$primaryHover',
-              }}
-            >
-              Nuevo Ticket
-            </Button>
+            <XStack gap="$3" flexWrap="wrap">
+              <Button
+                size="$5"
+                backgroundColor="$primary"
+                color="white"
+                onPress={() => {}}
+                alignSelf="flex-start"
+                width="100%"
+                $gtSm={{ width: 'auto' }}
+                pressStyle={{ backgroundColor: '$primaryPress' }}
+                hoverStyle={{ backgroundColor: '$primaryHover' }}
+              >
+                Nuevo Ticket
+              </Button>
+            </XStack>
           )}
-        </YStack>
+        </SectionCard>
       </YStack>
     </ScrollView>
   );
@@ -168,12 +179,8 @@ function StatCard({ icon: Icon, title, value, change, positive }: StatCardProps)
       borderWidth={1}
       borderColor="$borderColor"
       gap="$3"
-      pressStyle={{
-        backgroundColor: '$backgroundPress',
-      }}
-      hoverStyle={{
-        backgroundColor: '$backgroundFocus',
-      }}
+      hoverStyle={{ backgroundColor: '$backgroundFocus' }}
+      pressStyle={{ backgroundColor: '$backgroundPress' }}
     >
       <XStack justifyContent="space-between" alignItems="center">
         <YStack
@@ -187,15 +194,12 @@ function StatCard({ icon: Icon, title, value, change, positive }: StatCardProps)
           <Icon size={24} color="white" />
         </YStack>
         <YStack alignItems="flex-end" gap="$1">
-          <Text
-            fontSize="$2"
-            color={positive ? '$success' : '$error'}
-            fontWeight="600"
-          >
+          <Text fontSize="$2" color={positive ? '$success' : '$error'} fontWeight="600">
             {change}
           </Text>
         </YStack>
       </XStack>
+
       <YStack gap="$1">
         <Text fontSize="$3" color="$textSecondary">
           {title}
