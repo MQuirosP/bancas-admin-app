@@ -1,162 +1,264 @@
 // app/admin/index.tsx
 import React from 'react';
-import { YStack, XStack, Text, ScrollView } from 'tamagui';
-import { BarChart3, Users, Package, TrendingUp, Building2, Ticket } from '@tamagui/lucide-icons';
+import { useRouter } from 'expo-router';
+import { YStack, XStack, Text, Card, Button, ScrollView } from 'tamagui';
+import {
+  Users,
+  Store,
+  Trophy,
+  Ticket,
+  FileText,
+  Settings,
+  Shield,
+  BarChart3,
+} from '@tamagui/lucide-icons';
 import { useAuthStore } from '@/store/auth.store';
 
-export default function AdminDashboard() {
-  const user = useAuthStore((state) => state.user);
-
-  return (
-    <ScrollView flex={1} backgroundColor="$background">
-      <YStack padding="$6" gap="$6">
-        {/* Header */}
-        <YStack gap="$2">
-          <Text fontSize="$8" fontWeight="700" color="$textPrimary">
-            ¡Bienvenido, {user?.name}!
-          </Text>
-          <Text fontSize="$5" color="$textSecondary">
-            Panel de Administración de Banca
-          </Text>
-        </YStack>
-
-        {/* Stats Cards */}
-        <YStack gap="$4">
-          <StatCard
-            icon={Building2}
-            title="Bancas Totales"
-            value="12"
-            change="+2 este mes"
-            positive
-            color="#6366f1"
-          />
-          <StatCard
-            icon={Users}
-            title="Usuarios Activos"
-            value="48"
-            change="+12%"
-            positive
-            color="#10b981"
-          />
-          <StatCard
-            icon={Ticket}
-            title="Tickets Hoy"
-            value="156"
-            change="+8%"
-            positive
-            color="#f59e0b"
-          />
-          <StatCard
-            icon={TrendingUp}
-            title="Ventas del Mes"
-            value="$12,450"
-            change="+23%"
-            positive
-            color="#8b5cf6"
-          />
-        </YStack>
-
-        {/* Quick Actions */}
-        <YStack gap="$3">
-          <Text fontSize="$6" fontWeight="600" color="$textPrimary">
-            Gestión Principal
-          </Text>
-          
-          <XStack gap="$3" flexWrap="wrap">
-            <QuickActionButton icon={Building2} label="Bancas" />
-            <QuickActionButton icon={Users} label="Usuarios" />
-            <QuickActionButton icon={Package} label="Sorteos" />
-            <QuickActionButton icon={BarChart3} label="Reportes" />
-          </XStack>
-        </YStack>
-      </YStack>
-    </ScrollView>
-  );
-}
-
-// Componente auxiliar para las cards de estadísticas
-interface StatCardProps {
-  icon: any;
+interface DashboardCard {
   title: string;
-  value: string;
-  change: string;
-  positive?: boolean;
+  description: string;
+  icon: any;
+  href: string;
   color: string;
 }
 
-function StatCard({ icon: Icon, title, value, change, positive, color }: StatCardProps) {
+const dashboardCards: DashboardCard[] = [
+  {
+    title: 'Bancas',
+    description: 'Gestionar bancas del sistema',
+    icon: Store,
+    href: '/admin/bancas',
+    color: '$blue10',
+  },
+  {
+    title: 'Ventanas',
+    description: 'Administrar puntos de venta',
+    icon: Users,
+    href: '/admin/ventanas',
+    color: '$green10',
+  },
+  {
+    title: 'Usuarios',
+    description: 'Gestionar usuarios y vendedores',
+    icon: Users,
+    href: '/admin/usuarios',
+    color: '$purple10',
+  },
+  {
+    title: 'Loterías',
+    description: 'Configurar loterías disponibles',
+    icon: Trophy,
+    href: '/admin/loterias',
+    color: '$orange10',
+  },
+  {
+    title: 'Sorteos',
+    description: 'Gestionar y evaluar sorteos',
+    icon: Trophy,
+    href: '/admin/sorteos',
+    color: '$red10',
+  },
+  {
+    title: 'Multipliers',
+    description: 'Configurar multiplicadores',
+    icon: BarChart3,
+    href: '/admin/multipliers',
+    color: '$yellow10',
+  },
+  {
+    title: 'Restricciones',
+    description: 'Reglas y límites del sistema',
+    icon: Shield,
+    href: '/admin/restrictions',
+    color: '$pink10',
+  },
+  {
+    title: 'Tickets',
+    description: 'Consultar todos los tickets',
+    icon: Ticket,
+    href: '/admin/tickets',
+    color: '$cyan10',
+  },
+  {
+    title: 'Reportes',
+    description: 'Análisis y estadísticas',
+    icon: FileText,
+    href: '/admin/reportes',
+    color: '$indigo10',
+  },
+  {
+    title: 'Configuración',
+    description: 'Variables globales del sistema',
+    icon: Settings,
+    href: '/admin/configuracion',
+    color: '$gray10',
+  },
+];
+
+export default function AdminDashboard() {
+  const router = useRouter();
+  const { user } = useAuthStore();
+
+  const handleCardPress = (href: string) => {
+    router.push(href as any);
+  };
+
   return (
-    <YStack
-      backgroundColor="$backgroundHover"
-      padding="$4"
-      borderRadius="$4"
-      borderWidth={1}
-      borderColor="$borderColor"
-      gap="$3"
-    >
-      <XStack justifyContent="space-between" alignItems="center">
-        <YStack
-          width={48}
-          height={48}
-          backgroundColor={color}
-          borderRadius="$3"
-          alignItems="center"
-          justifyContent="center"
-        >
-          <Icon size={24} color="white" />
-        </YStack>
-        <YStack alignItems="flex-end" gap="$1">
-          <Text
-            fontSize="$2"
-            color={positive ? '$success' : '$error'}
-            fontWeight="600"
-          >
-            {change}
+    <ScrollView flex={1} backgroundColor="$background">
+      <YStack padding="$4" gap="$4">
+        {/* Header */}
+        <YStack gap="$2">
+          <Text fontSize="$8" fontWeight="bold" color="$textPrimary">
+            Panel de Administración
+          </Text>
+          <Text fontSize="$4" color="$textSecondary">
+            Bienvenido, {user?.name || 'Administrador'}
           </Text>
         </YStack>
-      </XStack>
-      <YStack gap="$1">
-        <Text fontSize="$3" color="$textSecondary">
-          {title}
-        </Text>
-        <Text fontSize="$8" fontWeight="700" color="$textPrimary">
-          {value}
-        </Text>
+
+        {/* 🔥 CARDS EN 2 COLUMNAS - Grid Responsivo */}
+        <YStack gap="$3">
+          {/* Agrupar cards de 2 en 2 para crear filas */}
+          {dashboardCards.reduce((rows: DashboardCard[][], card, index) => {
+            if (index % 2 === 0) {
+              // Crear nueva fila cada 2 cards
+              rows.push([card]);
+            } else {
+              // Agregar a la fila existente
+              rows[rows.length - 1].push(card);
+            }
+            return rows;
+          }, []).map((row, rowIndex) => (
+            <XStack key={rowIndex} gap="$3" flexWrap="wrap">
+              {row.map((card) => (
+                <Card
+                  key={card.title}
+                  flex={1}
+                  minWidth={280}
+                  maxWidth="48%"
+                  $sm={{ maxWidth: '100%' }} // 1 columna en móvil
+                  padding="$4"
+                  backgroundColor="$backgroundStrong"
+                  borderRadius="$4"
+                  borderWidth={1}
+                  borderColor="$borderColor"
+                  pressStyle={{ scale: 0.98 }}
+                  hoverStyle={{
+                    borderColor: card.color,
+                    elevation: 4,
+                    shadowColor: card.color,
+                    shadowOpacity: 0.2,
+                    shadowRadius: 8,
+                  }}
+                  cursor="pointer"
+                  onPress={() => handleCardPress(card.href)}
+                  animation="quick"
+                >
+                  <YStack gap="$3">
+                    {/* Icon */}
+                    <YStack
+                      width={56}
+                      height={56}
+                      backgroundColor={`${card.color.replace('10', '3')}`}
+                      borderRadius="$3"
+                      alignItems="center"
+                      justifyContent="center"
+                    >
+                      <card.icon size={28} color={card.color} />
+                    </YStack>
+
+                    {/* Content */}
+                    <YStack gap="$2">
+                      <Text fontSize="$6" fontWeight="600" color="$textPrimary">
+                        {card.title}
+                      </Text>
+                      <Text fontSize="$3" color="$textSecondary" lineHeight="$1">
+                        {card.description}
+                      </Text>
+                    </YStack>
+
+                    {/* Action Hint */}
+                    <Text fontSize="$2" color={card.color} fontWeight="500">
+                      Ver más →
+                    </Text>
+                  </YStack>
+                </Card>
+              ))}
+            </XStack>
+          ))}
+        </YStack>
+
+        {/* Quick Stats (opcional) */}
+        <XStack gap="$3" flexWrap="wrap" marginTop="$4">
+          <Card
+            flex={1}
+            minWidth={150}
+            padding="$3"
+            backgroundColor="$blue3"
+            borderRadius="$3"
+          >
+            <YStack gap="$1">
+              <Text fontSize="$2" color="$blue11" fontWeight="500">
+                Bancas Activas
+              </Text>
+              <Text fontSize="$7" fontWeight="bold" color="$blue11">
+                12
+              </Text>
+            </YStack>
+          </Card>
+
+          <Card
+            flex={1}
+            minWidth={150}
+            padding="$3"
+            backgroundColor="$green3"
+            borderRadius="$3"
+          >
+            <YStack gap="$1">
+              <Text fontSize="$2" color="$green11" fontWeight="500">
+                Ventanas Activas
+              </Text>
+              <Text fontSize="$7" fontWeight="bold" color="$green11">
+                45
+              </Text>
+            </YStack>
+          </Card>
+
+          <Card
+            flex={1}
+            minWidth={150}
+            padding="$3"
+            backgroundColor="$purple3"
+            borderRadius="$3"
+          >
+            <YStack gap="$1">
+              <Text fontSize="$2" color="$purple11" fontWeight="500">
+                Tickets Hoy
+              </Text>
+              <Text fontSize="$7" fontWeight="bold" color="$purple11">
+                1,234
+              </Text>
+            </YStack>
+          </Card>
+
+          <Card
+            flex={1}
+            minWidth={150}
+            padding="$3"
+            backgroundColor="$orange3"
+            borderRadius="$3"
+          >
+            <YStack gap="$1">
+              <Text fontSize="$2" color="$orange11" fontWeight="500">
+                Sorteos Activos
+              </Text>
+              <Text fontSize="$7" fontWeight="bold" color="$orange11">
+                8
+              </Text>
+            </YStack>
+          </Card>
+        </XStack>
       </YStack>
-    </YStack>
-  );
-}
-
-// Componente para botones de acciones rápidas
-interface QuickActionButtonProps {
-  icon: any;
-  label: string;
-}
-
-function QuickActionButton({ icon: Icon, label }: QuickActionButtonProps) {
-  return (
-    <YStack
-      flex={1}
-      minWidth={150}
-      backgroundColor="$backgroundHover"
-      padding="$4"
-      borderRadius="$4"
-      borderWidth={1}
-      borderColor="$borderColor"
-      alignItems="center"
-      gap="$2"
-      pressStyle={{
-        backgroundColor: '$backgroundPress',
-        scale: 0.98,
-      }}
-      hoverStyle={{
-        backgroundColor: '$backgroundPress',
-      }}
-    >
-      <Icon size={32} color="$primary" />
-      <Text fontSize="$4" fontWeight="600" color="$textPrimary">
-        {label}
-      </Text>
-    </YStack>
+    </ScrollView>
   );
 }

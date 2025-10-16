@@ -1,108 +1,118 @@
-// components/layout/Header.tsx
+// components/layout/Header.tsx (Versión Completa con Theme Toggle)
 import React from 'react';
 import { useRouter } from 'expo-router';
 import { XStack, YStack, Text, Button } from 'tamagui';
-import { Menu, LogOut, User, Sun, Moon } from '@tamagui/lucide-icons';
+import { Menu, LogOut, Sun, Moon } from '@tamagui/lucide-icons';
 import { useAuthStore } from '@/store/auth.store';
-import { useThemeStore } from '@/store/theme.store';
 import { useUIStore } from '@/store/ui.store';
+import { useThemeStore } from '@/store/theme.store';
 
-export function Header() {
+export const Header: React.FC = () => {
   const router = useRouter();
   const { user, logout } = useAuthStore();
-  const { isDark, toggleTheme } = useThemeStore();
   const { toggleDrawer } = useUIStore();
+  const { theme, toggleTheme } = useThemeStore();
 
-  const handleLogout = async () => {
-    await logout();
-    router.replace('/(auth)/login');
+  const handleLogout = () => {
+    logout();
+    router.replace('/login');
   };
 
   return (
     <XStack
-      backgroundColor="$background"
-      borderBottomWidth={1}
-      borderBottomColor="$borderColor"
+      backgroundColor="$backgroundStrong"
       paddingHorizontal="$4"
       paddingVertical="$3"
       alignItems="center"
       justifyContent="space-between"
+      borderBottomWidth={1}
+      borderBottomColor="$borderColor"
       height={64}
+      elevation={2}
+      shadowColor="$shadowColor"
+      shadowOffset={{ width: 0, height: 2 }}
+      shadowOpacity={0.1}
+      shadowRadius={4}
     >
-      {/* Left: Menu + Logo */}
-      <XStack gap="$3" alignItems="center">
+      {/* Left: Menu button + Logo */}
+      <XStack alignItems="center" gap="$3">
+        {/* BOTÓN HAMBURGUESA */}
         <Button
-          icon={Menu}
           size="$3"
           chromeless
-          circular
+          icon={<Menu size={24} color="$textPrimary" />}
           onPress={toggleDrawer}
-          hoverStyle={{
-            backgroundColor: '$backgroundHover',
-          }}
-          pressStyle={{
-            backgroundColor: '$backgroundPress',
-          }}
-          aria-label="Abrir menú"
-        />
-        <Text fontSize="$6" fontWeight="700" color="$color">
-          Bancas Admin
-        </Text>
-      </XStack>
-
-      {/* Right: Theme Toggle + User Info + Logout */}
-      <XStack gap="$2" alignItems="center">
-        {/* Theme Toggle Button */}
-        <Button
-          icon={isDark ? Sun : Moon}
-          size="$3"
-          chromeless
-          circular
-          onPress={toggleTheme}
-          backgroundColor="$backgroundHover"
-          hoverStyle={{
-            backgroundColor: '$backgroundPress',
-            scale: 1.05,
-          }}
-          pressStyle={{
-            scale: 0.95,
-          }}
-          aria-label={isDark ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'}
+          hoverStyle={{ backgroundColor: '$backgroundHover' }}
+          pressStyle={{ scale: 0.95 }}
+          borderRadius="$3"
+          padding="$2"
         />
 
-        {/* User Badge */}
-        <XStack
-          gap="$2"
-          alignItems="center"
-          backgroundColor="$backgroundHover"
-          paddingHorizontal="$3"
-          paddingVertical="$2"
-          borderRadius="$4"
-          hoverStyle={{
-            backgroundColor: '$backgroundPress',
-          }}
-        >
+        <XStack alignItems="center" gap="$2">
           <YStack
-            width={32}
-            height={32}
-            backgroundColor="$blue10"
+            width={40}
+            height={40}
+            backgroundColor="$primary"
             borderRadius="$3"
             alignItems="center"
             justifyContent="center"
           >
-            {user?.name ? (
-              <Text fontSize="$4" fontWeight="700" color="white">
-                {user.name.charAt(0).toUpperCase()}
-              </Text>
+            <Text fontSize="$6" fontWeight="bold" color="white">
+              B
+            </Text>
+          </YStack>
+          <Text fontSize="$6" fontWeight="600" color="$textPrimary">
+            Bancas Admin
+          </Text>
+        </XStack>
+      </XStack>
+
+      {/* Right: Theme toggle + User badge + Logout */}
+      <XStack alignItems="center" gap="$3">
+        {/* Theme Toggle */}
+        <Button
+          size="$3"
+          chromeless
+          icon={
+            theme === 'light' ? (
+              <Moon size={20} color="$textSecondary" />
             ) : (
-              <User size={16} color="white" />
-            )}
+              <Sun size={20} color="$textSecondary" />
+            )
+          }
+          onPress={toggleTheme}
+          hoverStyle={{ backgroundColor: '$backgroundHover' }}
+          pressStyle={{ scale: 0.95 }}
+          borderRadius="$3"
+          padding="$2"
+        />
+
+        {/* User Badge */}
+        <XStack
+          alignItems="center"
+          gap="$2"
+          backgroundColor="$backgroundHover"
+          paddingHorizontal="$3"
+          paddingVertical="$2"
+          borderRadius="$3"
+        >
+          <YStack
+            width={32}
+            height={32}
+            backgroundColor="$primary"
+            borderRadius="$2"
+            alignItems="center"
+            justifyContent="center"
+          >
+            <Text fontSize="$4" fontWeight="600" color="white">
+              {user?.name?.charAt(0).toUpperCase() || 'U'}
+            </Text>
           </YStack>
           <YStack display="none" $gtSm={{ display: 'flex' }}>
-            <Text fontSize="$3" fontWeight="600" color="$color">
+            <Text fontSize="$3" fontWeight="500" color="$textPrimary">
               {user?.name || 'Usuario'}
             </Text>
-            <Text fontSize="$1" color="$colorTranslucent">
+            <Text fontSize="$1" color="$textTertiary">
               {user?.role || 'ROL'}
             </Text>
           </YStack>
@@ -111,27 +121,15 @@ export function Header() {
         {/* Logout Button */}
         <Button
           size="$3"
-          icon={LogOut}
+          chromeless
+          icon={<LogOut size={20} color="$red10" />}
           onPress={handleLogout}
-          backgroundColor="$red9"
-          color="white"
+          hoverStyle={{ backgroundColor: '$red2' }}
+          pressStyle={{ scale: 0.95 }}
           borderRadius="$3"
-          hoverStyle={{
-            backgroundColor: '$red10',
-            scale: 1.05,
-          }}
-          pressStyle={{
-            backgroundColor: '$red8',
-            scale: 0.95,
-          }}
-          fontWeight="600"
-          aria-label="Cerrar sesión"
-        >
-          <Text display="none" $gtSm={{ display: 'flex' }} color="white" fontWeight="600">
-            Salir
-          </Text>
-        </Button>
+          padding="$2"
+        />
       </XStack>
     </XStack>
   );
-}
+};
