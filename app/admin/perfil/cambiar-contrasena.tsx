@@ -1,4 +1,4 @@
-// app/admin/perfil/cambiar-contrasena.tsx
+// app/admin/perfil/cambiar-contrasena.tsx - VERSIÓN CORREGIDA
 import React, { useState } from 'react';
 import { YStack, XStack, Text, Button, Input, Card, ScrollView } from 'tamagui';
 import { useRouter } from 'expo-router';
@@ -33,7 +33,6 @@ export default function CambiarContrasenaScreen() {
       setConfirmPassword('');
       setErrors({});
       
-      // Volver después de 2 segundos
       setTimeout(() => {
         router.back();
       }, 2000);
@@ -104,11 +103,11 @@ export default function CambiarContrasenaScreen() {
           </Text>
         </YStack>
 
-        {/* Success Message */}
+        {/* ✅ Success Message - CORREGIDO */}
         {success && (
           <Card
             padding="$3"
-            backgroundColor="$green2"
+            backgroundColor="$green4"
             borderWidth={1}
             borderColor="$green8"
           >
@@ -121,11 +120,11 @@ export default function CambiarContrasenaScreen() {
           </Card>
         )}
 
-        {/* General Error */}
+        {/* ✅ General Error - CORREGIDO */}
         {errors.general && (
           <Card
             padding="$3"
-            backgroundColor="$red2"
+            backgroundColor="$red4"
             borderWidth={1}
             borderColor="$red8"
           >
@@ -285,7 +284,8 @@ export default function CambiarContrasenaScreen() {
         <XStack gap="$3">
           <Button
             flex={1}
-            theme="red"
+            backgroundColor="$red10"
+            color="white"
             onPress={() => router.back()}
             disabled={changePasswordMutation.isPending}
           >
@@ -293,7 +293,8 @@ export default function CambiarContrasenaScreen() {
           </Button>
           <Button
             flex={1}
-            theme="blue"
+            backgroundColor="$blue10"
+            color="white"
             onPress={validateAndSubmit}
             disabled={changePasswordMutation.isPending || success}
           >

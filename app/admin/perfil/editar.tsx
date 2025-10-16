@@ -1,4 +1,4 @@
-// app/admin/perfil/editar.tsx
+// app/admin/perfil/editar.tsx - VERSIÓN CORREGIDA
 import React, { useState, useEffect } from 'react';
 import { YStack, XStack, Text, Button, Input, Card, ScrollView, Spinner } from 'tamagui';
 import { useRouter } from 'expo-router';
@@ -22,23 +22,27 @@ export default function EditarPerfilScreen() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [success, setSuccess] = useState(false);
 
-  // Cargar datos actuales del usuario
+  // ✅ CORREGIDO: Sin onSuccess, usamos useEffect
   const { data: currentUser, isLoading } = useQuery({
     queryKey: ['profile'],
     queryFn: () => apiClient.get('/auth/me'),
-    onSuccess: (data: any) => {
-      setName(data.name || '');
-      setEmail(data.email || '');
-    },
   });
 
-  // Inicializar con datos del store si existen
+  // ✅ Inicializar estado cuando los datos cambian
   useEffect(() => {
-    if (user) {
+    if (currentUser) {
+      setName(currentUser.name || '');
+      setEmail(currentUser.email || '');
+    }
+  }, [currentUser]);
+
+  // También inicializar con datos del store si existen
+  useEffect(() => {
+    if (user && !currentUser) {
       setName(user.name || '');
       setEmail(user.email || '');
     }
-  }, [user]);
+  }, [user, currentUser]);
 
   const updateProfileMutation = useMutation({
     mutationFn: (data: UpdateProfileRequest) => 
@@ -47,15 +51,12 @@ export default function EditarPerfilScreen() {
       setSuccess(true);
       setErrors({});
       
-      // Actualizar el usuario en el store
       if (data) {
         setUser(data);
       }
       
-      // Invalidar query
       queryClient.invalidateQueries({ queryKey: ['profile'] });
       
-      // Volver después de 2 segundos
       setTimeout(() => {
         router.back();
       }, 2000);
@@ -124,11 +125,11 @@ export default function EditarPerfilScreen() {
           </Text>
         </YStack>
 
-        {/* Success Message */}
+        {/* ✅ Success Message - CORREGIDO */}
         {success && (
           <Card
             padding="$3"
-            backgroundColor="$green2"
+            backgroundColor="$green4"
             borderWidth={1}
             borderColor="$green8"
           >
@@ -141,11 +142,11 @@ export default function EditarPerfilScreen() {
           </Card>
         )}
 
-        {/* General Error */}
+        {/* ✅ General Error - CORREGIDO */}
         {errors.general && (
           <Card
             padding="$3"
-            backgroundColor="$red2"
+            backgroundColor="$red4"
             borderWidth={1}
             borderColor="$red8"
           >
@@ -158,8 +159,8 @@ export default function EditarPerfilScreen() {
           </Card>
         )}
 
-        {/* User Info Card */}
-        <Card padding="$4" backgroundColor="$blue2" borderWidth={1} borderColor="$blue8">
+        {/* ✅ User Info Card - CORREGIDO */}
+        <Card padding="$4" backgroundColor="$blue4" borderWidth={1} borderColor="$blue8">
           <YStack gap="$2">
             <Text fontSize="$3" fontWeight="600" color="$blue11">
               Información de la Cuenta
@@ -267,7 +268,8 @@ export default function EditarPerfilScreen() {
         <XStack gap="$3">
           <Button
             flex={1}
-            theme="red"
+            backgroundColor="$red10"
+            color="white"
             onPress={() => router.back()}
             disabled={updateProfileMutation.isPending}
           >
@@ -275,7 +277,8 @@ export default function EditarPerfilScreen() {
           </Button>
           <Button
             flex={1}
-            theme="blue"
+            backgroundColor="$blue10"
+            color="white"
             onPress={validateAndSubmit}
             disabled={updateProfileMutation.isPending || success}
           >
