@@ -22,14 +22,15 @@ const appConfig = createTamagui({
       borderColorFocus: '#9ca3af',
       borderColorPress: '#6b7280',
       placeholderColor: '#9ca3af',
+      outlineColor: '#4f46e5',
       
       // Colores de texto específicos
-      textPrimary: '#1a1a1a',      // Texto principal - NEGRO en light
-      textSecondary: '#4b5563',    // Texto secundario - gris oscuro
-      textTertiary: '#9ca3af',     // Texto terciario - gris medio
+      textPrimary: '#1a1a1a',
+      textSecondary: '#4b5563',
+      textTertiary: '#9ca3af',
       
       // Colores de marca
-      primary: '#4f46e5',          // Índigo
+      primary: '#4f46e5',
       primaryHover: '#4338ca',
       primaryPress: '#3730a3',
       
@@ -39,16 +40,20 @@ const appConfig = createTamagui({
       error: '#ef4444',
       info: '#3b82f6',
       
-      // Rojos para errores
+      // Colores adicionales
       red10: '#ef4444',
       red11: '#dc2626',
+      blue4: '#dbeafe',
+      blue11: '#1e3a8a',
+      green4: '#d1fae5',
+      green11: '#065f46',
     },
     dark: {
-      background: '#121214',           // Casi negro
-      backgroundHover: '#1a1a1d',      // Gris muy oscuro
-      backgroundPress: '#25252a',      // Gris oscuro hover
-      backgroundFocus: '#2a2a2f',      // Gris oscuro focus
-      backgroundStrong: '#1a1a1d',     // Para cards/footer/header
+      background: '#121214',
+      backgroundHover: '#1a1a1d',
+      backgroundPress: '#25252a',
+      backgroundFocus: '#2a2a2f',
+      backgroundStrong: '#1a1a1d',
       backgroundTransparent: 'rgba(255,255,255,0.05)',
       color: '#ffffff',
       colorHover: '#f5f5f5',
@@ -60,14 +65,15 @@ const appConfig = createTamagui({
       borderColorFocus: '#404045',
       borderColorPress: '#4a4a4f',
       placeholderColor: '#71717a',
+      outlineColor: '#6366f1',
       
       // Colores de texto específicos para tema oscuro
-      textPrimary: '#f5f5f5',      // Texto principal - BLANCO en dark
-      textSecondary: '#d4d4d8',    // Texto secundario - gris muy claro
-      textTertiary: '#a1a1aa',     // Texto terciario - gris claro
+      textPrimary: '#f5f5f5',
+      textSecondary: '#d4d4d8',
+      textTertiary: '#a1a1aa',
       
       // Colores de marca
-      primary: '#6366f1',          // Índigo más claro
+      primary: '#6366f1',
       primaryHover: '#818cf8',
       primaryPress: '#4f46e5',
       
@@ -77,9 +83,13 @@ const appConfig = createTamagui({
       error: '#f87171',
       info: '#60a5fa',
       
-      // Rojos para errores
+      // Colores adicionales
       red10: '#f87171',
       red11: '#ef4444',
+      blue4: '#1e3a8a',
+      blue11: '#dbeafe',
+      green4: '#065f46',
+      green11: '#d1fae5',
     },
   },
 });

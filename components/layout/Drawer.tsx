@@ -1,157 +1,131 @@
-import React, { useEffect } from 'react';
-import { Pressable, Platform } from 'react-native';
-import { YStack, XStack, ScrollView, Text, Button, Separator } from 'tamagui';
-import {
-  Home, Building2, Store, Users, Trophy, Ticket, FileText, Settings,
-  X as XIcon, BarChart3, Shield,
+// components/layout/Drawer.tsx
+import React from 'react';
+import { YStack, XStack, Text, Button, ScrollView } from 'tamagui';
+import { 
+  Home, 
+  Building2, 
+  Users, 
+  Package, 
+  TrendingUp, 
+  Settings,
+  X 
 } from '@tamagui/lucide-icons';
-import { useRouter } from 'expo-router';
-import { useIsMobile } from '../../hooks/useBreakpoint';
-import { useAuthStore } from '../../store/auth.store';
-import { useUIStore } from '../../store/ui.store';
-import { UserRole } from '../../types/auth.types';
+import { useAuthStore } from '@/store/auth.store';
+import { Pressable } from 'react-native';
 
-type IconType = React.ComponentType<{ size?: number; color?: string }>;
-
-interface MenuItem {
-  label: string;
-  icon: IconType;
-  href: string;
-  roles: UserRole[];
+interface DrawerProps {
+  isOpen: boolean;
+  onClose: () => void;
 }
 
-const menuItems: MenuItem[] = [
-  { label: 'Dashboard', icon: Home, href: '/', roles: [UserRole.ADMIN, UserRole.VENTANA, UserRole.VENDEDOR] },
-  { label: 'Bancas', icon: Building2, href: '/admin/bancas', roles: [UserRole.ADMIN] },
-  { label: 'Ventanas', icon: Store, href: '/admin/ventanas', roles: [UserRole.ADMIN] },
-  { label: 'Usuarios', icon: Users, href: '/admin/usuarios', roles: [UserRole.ADMIN] },
-  { label: 'Loterías', icon: Trophy, href: '/admin/loterias', roles: [UserRole.ADMIN] },
-  { label: 'Sorteos', icon: Trophy, href: '/admin/sorteos', roles: [UserRole.ADMIN] },
-  { label: 'Multipliers', icon: BarChart3, href: '/admin/multipliers', roles: [UserRole.ADMIN] },
-  { label: 'Restricciones', icon: Shield, href: '/admin/restrictions', roles: [UserRole.ADMIN] },
-  { label: 'Tickets', icon: Ticket, href: '/admin/tickets', roles: [UserRole.ADMIN] },
-  { label: 'Reportes', icon: FileText, href: '/admin/reportes', roles: [UserRole.ADMIN] },
-  { label: 'Configuración', icon: Settings, href: '/admin/configuracion', roles: [UserRole.ADMIN] },
-  { label: 'Mis Ventas', icon: FileText, href: '/ventana/ventas', roles: [UserRole.VENTANA] },
-  { label: 'Sorteos', icon: Trophy, href: '/ventana/sorteos', roles: [UserRole.VENTANA] },
-  { label: 'Tickets', icon: Ticket, href: '/ventana/tickets', roles: [UserRole.VENTANA] },
-  { label: 'Restricciones', icon: Shield, href: '/ventana/restrictions', roles: [UserRole.VENTANA] },
-  { label: 'Mis Tiquetes', icon: Ticket, href: '/vendedor/tickets', roles: [UserRole.VENDEDOR] },
-  { label: 'Nuevo Tiquete', icon: Ticket, href: '/vendedor/tickets/nuevo', roles: [UserRole.VENDEDOR] },
-];
+export default function Drawer({ isOpen, onClose }: DrawerProps) {
+  const user = useAuthStore((state) => state.user);
 
-export const Drawer: React.FC = () => {
-  const { drawerOpen, closeDrawer } = useUIStore();
-  const { user } = useAuthStore();
-  const router = useRouter();
-  const isMobile = useIsMobile();
+  const menuItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: Home, roles: ['ADMIN', 'VENTANA', 'VENDEDOR'] },
+    { id: 'bancas', label: 'Bancas', icon: Building2, roles: ['ADMIN'] },
+    { id: 'ventanas', label: 'Ventanas', icon: Building2, roles: ['ADMIN'] },
+    { id: 'usuarios', label: 'Usuarios', icon: Users, roles: ['ADMIN'] },
+    { id: 'tickets', label: 'Tickets', icon: Package, roles: ['ADMIN', 'VENTANA', 'VENDEDOR'] },
+    { id: 'reportes', label: 'Reportes', icon: TrendingUp, roles: ['ADMIN', 'VENTANA'] },
+    { id: 'configuracion', label: 'Configuración', icon: Settings, roles: ['ADMIN'] },
+  ];
 
-  const filteredItems = menuItems.filter((item) => !!user && item.roles.includes(user.role));
+  // Filtrar items según rol del usuario
+  const filteredItems = menuItems.filter(item => 
+    user?.role && item.roles.includes(user.role)
+  );
 
-  useEffect(() => {
-    if (Platform.OS !== 'web' || !drawerOpen) return;
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') closeDrawer();
-    };
-    window.addEventListener('keydown', handleEsc);
-    return () => window.removeEventListener('keydown', handleEsc);
-  }, [drawerOpen, closeDrawer]);
-
-  if (!drawerOpen) return null;
-
-  const drawerWidth = isMobile ? '80%' : 280;
+  if (!isOpen) return null;
 
   return (
     <>
-      {/* Overlay con blur */}
+      {/* Overlay */}
       <Pressable
+        onPress={onClose}
         style={{
           position: 'absolute',
-          top: 0, left: 0, right: 0, bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.6)',
-          zIndex: 200,
-          ...(Platform.OS === 'web' && { backdropFilter: 'blur(4px)' } as any),
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          zIndex: 40,
         }}
-        onPress={closeDrawer}
-        aria-label="Cerrar menú"
-        role="button"
       />
 
-      {/* Drawer Panel */}
+      {/* Drawer */}
       <YStack
         position="absolute"
-        top={64}
+        top={0}
         left={0}
-        bottom={56}
-        width={drawerWidth}
-        backgroundColor="$drawerBg"
+        bottom={0}
+        width={280}
+        backgroundColor="#1a1a1d"
+        zIndex={50}
         borderRightWidth={1}
-        borderRightColor="$borderColor"
-        shadowColor="$shadowColor"
-        shadowOpacity={0.3}
-        shadowRadius={16}
-        elevation={8}
-        zIndex={201}
+        borderRightColor="#2a2a2f"
       >
         {/* Header del drawer */}
         <XStack
-          paddingHorizontal="$4"
-          paddingVertical="$4"
-          justifyContent="space-between"
+          padding="$4"
           alignItems="center"
+          justifyContent="space-between"
           borderBottomWidth={1}
-          borderBottomColor="$borderColor"
+          borderBottomColor="#2a2a2f"
+          height={64}
         >
-          <Text fontSize="$5" fontWeight="600" color="$textPrimary">
+          <Text fontSize="$5" fontWeight="700" color="#ffffff">
             Menú
           </Text>
           <Button
-            size="$2"
-            chromeless
-            icon={<XIcon size={20} />}
-            onPress={closeDrawer}
-            aria-label="Cerrar menú"
-            role="button"
-            hoverStyle={{ backgroundColor: '$backgroundHover' }}
-            pressStyle={{ backgroundColor: '$backgroundPress' }}
-            padding="$2"
-            borderRadius="$2"
-          />
+            size="$3"
+            circular
+            backgroundColor="rgba(255,255,255,0.1)"
+            onPress={onClose}
+            pressStyle={{
+              backgroundColor: 'rgba(255,255,255,0.2)',
+            }}
+          >
+            <X size={18} color="#ffffff" />
+          </Button>
         </XStack>
 
-        {/* Items del menú */}
-        <ScrollView flex={1} padding="$3" showsVerticalScrollIndicator={false}>
-          <YStack gap="$1">
-            {filteredItems.map((item) => (
-              <Button
-                key={item.href}
-                size="$4"
-                justifyContent="flex-start"
-                icon={React.createElement(item.icon, { size: 20 })}
-                onPress={() => {
-                  router.push(item.href as any);
-                  closeDrawer();
-                }}
-                backgroundColor="transparent"
-                color="$textSecondary"
-                borderRadius="$3"
-                hoverStyle={{ 
-                  backgroundColor: '$backgroundHover',
-                  x: 4,
-                }}
-                pressStyle={{ 
-                  backgroundColor: '$backgroundPress',
-                  scale: 0.98,
-                }}
-                aria-label={item.label}
-                role="button"
-                paddingVertical="$3"
-              >
-                <Text fontSize="$4" fontWeight="500" hoverStyle={{ color: '$primary' }} pressStyle={{ color: '$primaryDark' }}>
-                  {item.label}
-                </Text>
-              </Button>
-            ))}
+        {/* Lista de menú */}
+        <ScrollView flex={1}>
+          <YStack padding="$3" gap="$2">
+            {filteredItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Button
+                  key={item.id}
+                  backgroundColor="transparent"
+                  color="#ffffff"
+                  justifyContent="flex-start"
+                  paddingHorizontal="$4"
+                  paddingVertical="$3"
+                  borderRadius="$3"
+                  pressStyle={{
+                    backgroundColor: 'rgba(99, 102, 241, 0.2)',
+                  }}
+                  hoverStyle={{
+                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                  }}
+                  onPress={() => {
+                    // TODO: Navegar a la ruta correspondiente
+                    console.log('Navegar a:', item.id);
+                    onClose();
+                  }}
+                >
+                  <XStack gap="$3" alignItems="center" width="100%">
+                    <Icon size={20} color="#ffffff" />
+                    <Text fontSize="$4" fontWeight="500" color="#ffffff">
+                      {item.label}
+                    </Text>
+                  </XStack>
+                </Button>
+              );
+            })}
           </YStack>
         </ScrollView>
 
@@ -159,14 +133,14 @@ export const Drawer: React.FC = () => {
         <YStack
           padding="$4"
           borderTopWidth={1}
-          borderTopColor="$borderColor"
-          backgroundColor="$backgroundStrong"
+          borderTopColor="#2a2a2f"
+          backgroundColor="rgba(0,0,0,0.2)"
         >
           <XStack gap="$3" alignItems="center">
             <YStack
               width={40}
               height={40}
-              backgroundColor="$primary"
+              backgroundColor="#6366f1"
               borderRadius="$4"
               alignItems="center"
               justifyContent="center"
@@ -176,10 +150,10 @@ export const Drawer: React.FC = () => {
               </Text>
             </YStack>
             <YStack flex={1}>
-              <Text fontSize="$4" fontWeight="600" color="$textPrimary">
+              <Text fontSize="$4" fontWeight="600" color="#ffffff">
                 {user?.name || 'Usuario'}
               </Text>
-              <Text fontSize="$2" color="$textTertiary">
+              <Text fontSize="$2" color="#a1a1aa">
                 {user?.role || 'ROL'}
               </Text>
             </YStack>
@@ -188,4 +162,4 @@ export const Drawer: React.FC = () => {
       </YStack>
     </>
   );
-};
+}
