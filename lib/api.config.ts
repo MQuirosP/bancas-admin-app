@@ -3,7 +3,7 @@
 // Configuración base de la API
 export const API_CONFIG = {
   // Cambia esta URL por la de tu backend
-  BASE_URL: process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/api/v1',
+  BASE_URL: process.env.EXPO_PUBLIC_API_URL || 'https://backend-bancas.onrender.com',
   
   // Timeout para las peticiones (en ms)
   TIMEOUT: 10000,
