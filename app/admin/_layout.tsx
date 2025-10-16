@@ -4,6 +4,7 @@ import { Stack, useRouter } from 'expo-router';
 import { YStack, XStack, Text, Button, Theme } from 'tamagui';
 import { Menu, LogOut, Sun, Moon } from '@tamagui/lucide-icons';
 import { useAuthStore } from '../../store/auth.store';
+import Drawer from '../../components/layout/Drawer'; // ← ajusta si usas alias
 
 export default function AdminLayout() {
   const router = useRouter();
@@ -16,9 +17,7 @@ export default function AdminLayout() {
     router.replace('/(auth)/login');
   };
 
-  const toggleTheme = () => {
-    setIsDark(!isDark);
-  };
+  const toggleTheme = () => setIsDark((v) => !v);
 
   // Verificar que el usuario tenga rol ADMIN
   if (user?.role !== 'ADMIN') {
@@ -42,7 +41,9 @@ export default function AdminLayout() {
           size="$3"
           circular
           backgroundColor="rgba(255,255,255,0.1)"
-          onPress={() => setMenuOpen(!menuOpen)}
+          onPress={() => setMenuOpen((v) => !v)}
+          aria-label="Abrir menú"
+          accessibilityLabel="Abrir menú"
           marginRight="$3"
           pressStyle={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
           hoverStyle={{ backgroundColor: 'rgba(255,255,255,0.15)' }}
@@ -136,6 +137,9 @@ export default function AdminLayout() {
           </Stack>
         </YStack>
       </Theme>
+
+      {/* Drawer superpuesto */}
+      <Drawer isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
 
       {/* Footer */}
       <XStack

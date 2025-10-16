@@ -4,7 +4,7 @@ import { Stack, useRouter } from 'expo-router';
 import { YStack, XStack, Text, Button, Theme } from 'tamagui';
 import { Menu, LogOut, Sun, Moon } from '@tamagui/lucide-icons';
 import { useAuthStore, UserRole } from '../../store/auth.store';
-
+import Drawer from '../../components/layout/Drawer'; // ← ajusta si usas alias
 
 // Función para obtener el título según el rol
 const getTitleByRole = (role: UserRole | undefined): string => {
@@ -31,16 +31,9 @@ export default function DashboardLayout() {
     router.replace('/(auth)/login');
   };
 
-  const toggleTheme = () => {
-    setIsDark(!isDark);
-  };
+  const toggleTheme = () => setIsDark((v) => !v);
 
-  // Obtener título dinámico
   const pageTitle = getTitleByRole(user?.role);
-
-  // Log para debugging
-  console.log('Dashboard - User role:', user?.role);
-  console.log('Dashboard - Page title:', pageTitle);
 
   return (
     <YStack flex={1} backgroundColor={isDark ? '#121214' : '#ffffff'}>
@@ -59,14 +52,12 @@ export default function DashboardLayout() {
           size="$3"
           circular
           backgroundColor="rgba(255,255,255,0.1)"
-          onPress={() => setMenuOpen(!menuOpen)}
+          onPress={() => setMenuOpen((v) => !v)}
+          aria-label="Abrir menú"
+          accessibilityLabel="Abrir menú"
           marginRight="$3"
-          pressStyle={{
-            backgroundColor: 'rgba(255,255,255,0.2)',
-          }}
-          hoverStyle={{
-            backgroundColor: 'rgba(255,255,255,0.15)',
-          }}
+          pressStyle={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
+          hoverStyle={{ backgroundColor: 'rgba(255,255,255,0.15)' }}
         >
           <Menu size={20} color="#ffffff" />
         </Button>
@@ -83,12 +74,7 @@ export default function DashboardLayout() {
           >
             <Text fontSize={24}>🎰</Text>
           </YStack>
-          <Text 
-            fontSize="$6" 
-            fontWeight="700" 
-            color="#ffffff"
-            numberOfLines={1}
-          >
+          <Text fontSize="$6" fontWeight="700" color="#ffffff" numberOfLines={1}>
             {pageTitle}
           </Text>
         </XStack>
@@ -101,18 +87,10 @@ export default function DashboardLayout() {
             circular
             backgroundColor="rgba(255,255,255,0.1)"
             onPress={toggleTheme}
-            pressStyle={{
-              backgroundColor: 'rgba(255,255,255,0.2)',
-            }}
-            hoverStyle={{
-              backgroundColor: 'rgba(255,255,255,0.15)',
-            }}
+            pressStyle={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
+            hoverStyle={{ backgroundColor: 'rgba(255,255,255,0.15)' }}
           >
-            {isDark ? (
-              <Sun size={18} color="#ffffff" />
-            ) : (
-              <Moon size={18} color="#ffffff" />
-            )}
+            {isDark ? <Sun size={18} color="#ffffff" /> : <Moon size={18} color="#ffffff" />}
           </Button>
 
           {/* User badge */}
@@ -154,12 +132,8 @@ export default function DashboardLayout() {
             circular
             backgroundColor="rgba(239, 68, 68, 0.2)"
             onPress={handleLogout}
-            pressStyle={{
-              backgroundColor: 'rgba(239, 68, 68, 0.3)',
-            }}
-            hoverStyle={{
-              backgroundColor: 'rgba(239, 68, 68, 0.25)',
-            }}
+            pressStyle={{ backgroundColor: 'rgba(239, 68, 68, 0.3)' }}
+            hoverStyle={{ backgroundColor: 'rgba(239, 68, 68, 0.25)' }}
           >
             <LogOut size={18} color="#f87171" />
           </Button>
@@ -174,6 +148,9 @@ export default function DashboardLayout() {
           </Stack>
         </YStack>
       </Theme>
+
+      {/* Drawer superpuesto */}
+      <Drawer isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
 
       {/* Footer - SIEMPRE OSCURO */}
       <XStack
