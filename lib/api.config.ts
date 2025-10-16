@@ -15,22 +15,16 @@ export const API_CONFIG = {
   },
 };
 
-// Endpoints de autenticación
-export const AUTH_ENDPOINTS = {
-  LOGIN: '/auth/login',
-  ME: '/auth/me',
-  LOGOUT: '/auth/logout',
-  REFRESH: '/auth/refresh',
-};
-
-// Helper para construir URLs completas
+// ✅ Helper para construir URLs completas
 export const buildUrl = (endpoint: string): string => {
-  return `${API_CONFIG.BASE_URL}${endpoint}`;
+  // Asegurarse de que el endpoint empiece con /
+  const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  return `${API_CONFIG.BASE_URL}${normalizedEndpoint}`;
 };
 
-// Helper para crear headers con token
+// ✅ Helper para crear headers con token
 export const getAuthHeaders = (token?: string) => {
-  const headers = { ...API_CONFIG.DEFAULT_HEADERS };
+  const headers: Record<string, string> = { ...API_CONFIG.DEFAULT_HEADERS };
   
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;

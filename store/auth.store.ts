@@ -3,6 +3,8 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { authService } from '../services/auth.service';
+
+// 👇 Importar tipos desde auth.types.ts
 import { User, UserRole } from '../types/auth.types';
 
 interface AuthState {
@@ -12,8 +14,12 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
+  
+  // ✅ Métodos correctos
   login: (username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  setAuth: (user: User, token: string, refreshToken?: string) => Promise<void>;
+  clearAuth: () => Promise<void>;
   setUser: (user: User) => void;
   clearError: () => void;
 }
@@ -27,6 +33,28 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       isLoading: false,
       error: null,
+
+      // ✅ Método setAuth para guardar usuario y token
+      setAuth: async (user: User, token: string, refreshToken?: string) => {
+        set({
+          user,
+          token,
+          refreshToken: refreshToken || null,
+          isAuthenticated: true,
+          error: null,
+        });
+      },
+
+      // ✅ Método clearAuth para limpiar todo
+      clearAuth: async () => {
+        set({
+          user: null,
+          token: null,
+          refreshToken: null,
+          isAuthenticated: false,
+          error: null,
+        });
+      },
 
       login: async (username: string, password: string) => {
         set({ isLoading: true, error: null });
@@ -59,16 +87,10 @@ export const useAuthStore = create<AuthState>()(
             name: user.name,
           });
 
-          // 3. Guardar en el store
-          set({
-            user,
-            token: accessToken,
-            refreshToken: refreshToken || null,
-            isAuthenticated: true,
-            isLoading: false,
-            error: null,
-          });
+          // 3. Guardar usando setAuth
+          await get().setAuth(user, accessToken, refreshToken);
 
+          set({ isLoading: false });
           console.log('✅ Login completado exitosamente');
           console.log(`🎯 Rol del usuario: ${user.role}`);
         } catch (error: any) {
@@ -96,7 +118,7 @@ export const useAuthStore = create<AuthState>()(
           console.log('🚪 Cerrando sesión...');
           
           if (token) {
-            // Llamar a /auth/logout en el backend
+            // ✅ Llamar a logout con el token
             await authService.logout(token);
           }
           
@@ -105,14 +127,8 @@ export const useAuthStore = create<AuthState>()(
           console.error('⚠️ Error en logout (continuando):', error);
           // Continuamos con el logout local aunque falle el servidor
         } finally {
-          // Limpiar el store
-          set({
-            user: null,
-            token: null,
-            refreshToken: null,
-            isAuthenticated: false,
-            error: null,
-          });
+          // ✅ Limpiar usando clearAuth
+          await get().clearAuth();
         }
       },
 

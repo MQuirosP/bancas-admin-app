@@ -16,6 +16,9 @@ import { Trophy, Play, Square, CheckCircle } from '@tamagui/lucide-icons';
 import { apiClient } from '../../../lib/api.client';
 import { Sorteo, Multiplier, MultiplierKind, SorteoStatus } from '../../../types/models.types';
 
+// ⬇️ Usa el wrapper que hicimos
+import SafeDialogContent from '../../../components/ui/SafeDialogContent';
+
 export default function SorteosListScreen() {
   const queryClient = useQueryClient();
   const [selectedSorteo, setSelectedSorteo] = useState<Sorteo | null>(null);
@@ -91,6 +94,14 @@ export default function SorteosListScreen() {
     }
   };
 
+  // Anim/estilos fuera para no crear unions adentro del JSX
+  const contentAnim = [
+    'quick',
+    { opacity: { overshootClamping: true as const } },
+  ] as const;
+  const enterAnimStyle: any = { x: 0, y: -20, opacity: 0, scale: 0.9 };
+  const exitAnimStyle: any  = { x: 0, y: 10, opacity: 0, scale: 0.95 };
+
   return (
     <ScrollView>
       <YStack padding="$4" gap="$4">
@@ -143,7 +154,7 @@ export default function SorteosListScreen() {
                       {sorteo.status === SorteoStatus.PENDING && (
                         <Button
                           size="$3"
-                          theme="green"
+                          backgroundColor="$green4" borderColor="$green8" borderWidth={1}
                           icon={Play}
                           onPress={() => openSorteoMutation.mutate(sorteo.id)}
                           disabled={openSorteoMutation.isPending}
@@ -155,7 +166,7 @@ export default function SorteosListScreen() {
                       {sorteo.status === SorteoStatus.OPEN && (
                         <Button
                           size="$3"
-                          theme="orange"
+                          backgroundColor="$orange4" borderColor="$orange8" borderWidth={1}
                           icon={Square}
                           onPress={() => closeSorteoMutation.mutate(sorteo.id)}
                           disabled={closeSorteoMutation.isPending}
@@ -167,7 +178,7 @@ export default function SorteosListScreen() {
                       {sorteo.status === SorteoStatus.CLOSED && (
                         <Button
                           size="$3"
-                          theme="blue"
+                          backgroundColor="$blue4" borderColor="$blue8" borderWidth={1}
                           icon={CheckCircle}
                           onPress={() => {
                             setSelectedSorteo(sorteo);
@@ -195,20 +206,15 @@ export default function SorteosListScreen() {
             enterStyle={{ opacity: 0 }}
             exitStyle={{ opacity: 0 }}
           />
-          <Dialog.Content
+
+          {/* ⬇️ Usar el wrapper para evitar TS2590 aquí */}
+          <SafeDialogContent
             bordered
             elevate
             key="content"
-            animation={[
-              'quick',
-              {
-                opacity: {
-                  overshootClamping: true,
-                },
-              },
-            ]}
-            enterStyle={{ x: 0, y: -20, opacity: 0, scale: 0.9 }}
-            exitStyle={{ x: 0, y: 10, opacity: 0, scale: 0.95 }}
+            animation={contentAnim}
+            enterStyle={enterAnimStyle}
+            exitStyle={exitAnimStyle}
             gap="$4"
             padding="$4"
             maxWidth={500}
@@ -275,17 +281,17 @@ export default function SorteosListScreen() {
 
             <XStack gap="$3" justifyContent="flex-end">
               <Dialog.Close asChild>
-                <Button theme="red">Cancelar</Button>
+                <Button backgroundColor="$red4" borderColor="$red8" borderWidth={1}>Cancelar</Button>
               </Dialog.Close>
               <Button
-                theme="blue"
+                backgroundColor="$blue4" borderColor="$blue8" borderWidth={1}
                 onPress={handleEvaluate}
                 disabled={!winningNumber || evaluateSorteoMutation.isPending}
               >
                 {evaluateSorteoMutation.isPending ? 'Evaluando...' : 'Evaluar'}
               </Button>
             </XStack>
-          </Dialog.Content>
+          </SafeDialogContent>
         </Dialog.Portal>
       </Dialog>
     </ScrollView>

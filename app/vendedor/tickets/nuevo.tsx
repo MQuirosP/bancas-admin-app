@@ -391,12 +391,12 @@ const { data: restrictions = [], isLoading: loadingRestrictions } = useQuery<Res
         </Card>
 
         <XStack gap="$3">
-          <Button flex={1} theme="red" onPress={() => router.back()}>
+          <Button flex={1} backgroundColor="$red4" borderColor="$red8" borderWidth={1} onPress={() => router.back()}>
             Cancelar
           </Button>
           <Button
             flex={1}
-            theme="blue"
+            backgroundColor="$blue4" borderColor="$blue8" borderWidth={1}
             onPress={validateAndSubmit}
             disabled={createTicketMutation.isPending || !!cutoffError}
           >

@@ -1,29 +1,13 @@
-import { authService } from "../services/auth.service";
-import { useAuthStore } from "../store/auth.store";
+// hooks/useDrawer.ts
+import { useUIStore } from '../store/ui.store';
 
-export function useAuth() {
-  const { user, isAuthenticated, setAuth, clearAuth } = useAuthStore();
-
-  const login = async (credentials: LoginRequest) => {
-    const response = await authService.login(credentials);
-    await setAuth(response.user, response.token);
-    return response;
-  };
-
-  const logout = async () => {
-    try {
-      await authService.logout();
-    } catch (error) {
-      // Continue with local logout even if API call fails
-    } finally {
-      await clearAuth();
-    }
-  };
+export function useDrawer() {
+  const { drawerOpen, openDrawer, closeDrawer, toggleDrawer } = useUIStore();
 
   return {
-    user,
-    isAuthenticated,
-    login,
-    logout,
+    isOpen: drawerOpen,
+    open: openDrawer,
+    close: closeDrawer,
+    toggle: toggleDrawer,
   };
 }

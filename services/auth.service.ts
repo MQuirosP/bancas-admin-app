@@ -1,16 +1,10 @@
 // services/auth.service.ts
-import { API_CONFIG, AUTH_ENDPOINTS, buildUrl, getAuthHeaders } from '@/lib/api.config';
+import { buildUrl, getAuthHeaders } from '../lib/api.config';
 
-export type UserRole = 'ADMIN' | 'VENTANA' | 'VENDEDOR';
+// ✅ Importar tipos desde auth.types.ts (eliminar duplicados)
+import { User } from '../types/auth.types';
 
-export interface User {
-  id: string;
-  email: string;
-  username: string;
-  name: string;
-  role: UserRole;
-}
-
+// ✅ Interfaces de respuesta del backend
 export interface LoginResponse {
   success: boolean;
   data: {
@@ -39,7 +33,7 @@ class AuthService {
    */
   async login(username: string, password: string): Promise<LoginResponse> {
     try {
-      const response = await fetch(buildUrl(AUTH_ENDPOINTS.LOGIN), {
+      const response = await fetch(buildUrl('/auth/login'), {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify({ username, password }),
@@ -63,7 +57,7 @@ class AuthService {
    */
   async me(accessToken: string): Promise<MeResponse> {
     try {
-      const response = await fetch(buildUrl(AUTH_ENDPOINTS.ME), {
+      const response = await fetch(buildUrl('/auth/me'), {
         method: 'GET',
         headers: getAuthHeaders(accessToken),
       });
@@ -83,10 +77,11 @@ class AuthService {
 
   /**
    * Logout de usuario
+   * ✅ Ahora recibe accessToken como parámetro
    */
   async logout(accessToken: string): Promise<void> {
     try {
-      await fetch(buildUrl(AUTH_ENDPOINTS.LOGOUT), {
+      await fetch(buildUrl('/auth/logout'), {
         method: 'POST',
         headers: getAuthHeaders(accessToken),
       });
@@ -101,7 +96,7 @@ class AuthService {
    */
   async refresh(refreshToken: string): Promise<LoginResponse> {
     try {
-      const response = await fetch(buildUrl(AUTH_ENDPOINTS.REFRESH), {
+      const response = await fetch(buildUrl('/auth/refresh'), {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify({ refreshToken }),

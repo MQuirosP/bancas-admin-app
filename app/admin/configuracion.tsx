@@ -45,7 +45,7 @@ export default function ConfiguracionScreen() {
               </YStack>
             </XStack>
 
-            <Button theme="blue" marginTop="$3">
+            <Button backgroundColor="$blue4" borderColor="$blue8" borderWidth={1} marginTop="$3">
               Guardar Configuración
             </Button>
           </YStack>
