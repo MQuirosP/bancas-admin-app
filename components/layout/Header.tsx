@@ -5,7 +5,22 @@ import { XStack, YStack, Text, Button } from 'tamagui';
 import { Menu, LogOut, Sun, Moon } from '@tamagui/lucide-icons';
 import { useUIStore } from '../../store/ui.store';
 import { useThemeStore } from '../../store/theme.store';
-import { useAuthStore } from '../../store/auth.store';
+import { useAuthStore, UserRole } from '../../store/auth.store';
+import { Image } from 'react-native';
+
+// Función para obtener el título según el rol
+const getTitleByRole = (role: UserRole | undefined): string => {
+  switch (role) {
+    case 'ADMIN':
+      return 'Administración de Bancas';
+    case 'VENTANA':
+      return 'Administración de Ventana';
+    case 'VENDEDOR':
+      return 'Administración de Vendedor';
+    default:
+      return 'Bancas Admin';
+  }
+};
 
 export const Header: React.FC = () => {
   const router = useRouter();
@@ -15,8 +30,10 @@ export const Header: React.FC = () => {
 
   const handleLogout = () => {
     logout();
-    router.replace('/login');
+    router.replace('/(auth)/login');
   };
+
+  const pageTitle = getTitleByRole(user?.role);
 
   return (
     <XStack
@@ -24,19 +41,12 @@ export const Header: React.FC = () => {
       paddingHorizontal="$4"
       paddingVertical="$3"
       alignItems="center"
-      justifyContent="space-between"
       borderBottomWidth={1}
       borderBottomColor="$borderColor"
       height={64}
-      elevation={2}
-      shadowColor="$shadowColor"
-      shadowOffset={{ width: 0, height: 2 }}
-      shadowOpacity={0.1}
-      shadowRadius={4}
     >
-      {/* Left: Menu button + Logo */}
-      <XStack alignItems="center" gap="$3">
-        {/* BOTÓN HAMBURGUESA */}
+      {/* Left: Menu button */}
+      <XStack alignItems="center" width={100}>
         <Button
           size="$3"
           chromeless
@@ -47,28 +57,22 @@ export const Header: React.FC = () => {
           borderRadius="$3"
           padding="$2"
         />
+      </XStack>
 
-        <XStack alignItems="center" gap="$2">
-          <YStack
-            width={40}
-            height={40}
-            backgroundColor="$primary"
-            borderRadius="$3"
-            alignItems="center"
-            justifyContent="center"
-          >
-            <Text fontSize="$6" fontWeight="bold" color="white">
-              B
-            </Text>
-          </YStack>
-          <Text fontSize="$6" fontWeight="600" color="$textPrimary">
-            Bancas Admin
-          </Text>
-        </XStack>
+      {/* Center: Logo + Title */}
+      <XStack flex={1} alignItems="center" justifyContent="center" gap="$3">
+        <Image
+          source={require('../../assets/logo.png')}
+          style={{ width: 120, height: 120 }}
+          resizeMode="contain"
+        />
+        <Text fontSize="$6" fontWeight="600" color="$textPrimary">
+          {pageTitle}
+        </Text>
       </XStack>
 
       {/* Right: Theme toggle + User badge + Logout */}
-      <XStack alignItems="center" gap="$3">
+      <XStack alignItems="center" gap="$3" width={100} justifyContent="flex-end">
         {/* Theme Toggle */}
         <Button
           size="$3"
@@ -88,13 +92,15 @@ export const Header: React.FC = () => {
         />
 
         {/* User Badge */}
-        <XStack
+        {/* <XStack
           alignItems="center"
           gap="$2"
           backgroundColor="$backgroundHover"
           paddingHorizontal="$3"
           paddingVertical="$2"
           borderRadius="$3"
+          display="none"
+          $gtSm={{ display: 'flex' }}
         >
           <YStack
             width={32}
@@ -108,7 +114,7 @@ export const Header: React.FC = () => {
               {user?.name?.charAt(0).toUpperCase() || 'U'}
             </Text>
           </YStack>
-          <YStack display="none" $gtSm={{ display: 'flex' }}>
+          <YStack>
             <Text fontSize="$3" fontWeight="500" color="$textPrimary">
               {user?.name || 'Usuario'}
             </Text>
@@ -116,15 +122,15 @@ export const Header: React.FC = () => {
               {user?.role || 'ROL'}
             </Text>
           </YStack>
-        </XStack>
+        </XStack> */}
 
         {/* Logout Button */}
         <Button
           size="$3"
           chromeless
-          icon={<LogOut size={20} color="$red10" />}
+          icon={<LogOut size={20} color="$error" />}
           onPress={handleLogout}
-          hoverStyle={{ backgroundColor: '$red2' }}
+          hoverStyle={{ backgroundColor: '$backgroundHover' }}
           pressStyle={{ scale: 0.95 }}
           borderRadius="$3"
           padding="$2"
