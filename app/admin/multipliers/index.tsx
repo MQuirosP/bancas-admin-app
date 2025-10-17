@@ -17,7 +17,7 @@ export default function MultipliersListScreen() {
             Nuevo Multiplier
           </Button>
         </XStack>
-        <Text color="$secondary">Implementar CRUD de multipliers con restore/soft delete</Text>
+        <Text color="$textSecondary">Implementar CRUD de multipliers con restore/soft delete</Text>
       </YStack>
     </ScrollView>
   );

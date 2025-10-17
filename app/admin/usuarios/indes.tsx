@@ -58,7 +58,7 @@ export default function UsuariosListScreen() {
                   <Text fontSize="$5" fontWeight="600" color="$color">
                     {usuario.name}
                   </Text>
-                  <Text fontSize="$3" color="$secondary">
+                  <Text fontSize="$3" color="$textSecondary">
                     {usuario.code} • {usuario.email}
                   </Text>
                   <Card

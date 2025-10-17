@@ -8,7 +8,7 @@ export default function AdminTicketsScreen() {
         <Text fontSize="$8" fontWeight="bold" color="$color">
           Tickets Globales
         </Text>
-        <Text color="$secondary">
+        <Text color="$textSecondary">
           Implementar consulta global con filtros por banca/ventana/fecha/estado
         </Text>
       </YStack>

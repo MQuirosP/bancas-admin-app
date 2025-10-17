@@ -8,7 +8,7 @@ export default function VentanaTicketsScreen() {
         <Text fontSize="$8" fontWeight="bold" color="$color">
           Tickets de la Ventana
         </Text>
-        <Text color="$secondary">Implementar lista de tickets de la ventana</Text>
+        <Text color="$textSecondary">Implementar lista de tickets de la ventana</Text>
       </YStack>
     </ScrollView>
   );

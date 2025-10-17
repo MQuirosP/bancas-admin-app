@@ -17,7 +17,7 @@ export default function LoteriasListScreen() {
             Nueva Lotería
           </Button>
         </XStack>
-        <Text color="$secondary">Implementar CRUD de loterías</Text>
+        <Text color="$textSecondary">Implementar CRUD de loterías</Text>
       </YStack>
     </ScrollView>
   );

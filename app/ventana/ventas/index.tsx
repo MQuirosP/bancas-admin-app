@@ -58,13 +58,13 @@ export default function MisVentasScreen() {
               <Text fontSize="$7" fontWeight="bold" color="$primary">
                 45
               </Text>
-              <Text color="$secondary">Tickets Vendidos</Text>
+              <Text color="$textSecondary">Tickets Vendidos</Text>
             </YStack>
             <YStack alignItems="center">
               <Text fontSize="$7" fontWeight="bold" color="$green10">
                 {formatCurrency(12540)}
               </Text>
-              <Text color="$secondary">Total Vendido</Text>
+              <Text color="$textSecondary">Total Vendido</Text>
             </YStack>
           </XStack>
         </Card>
@@ -81,7 +81,7 @@ export default function MisVentasScreen() {
                 <Text fontSize="$4" fontWeight="600">
                   Juan Pérez
                 </Text>
-                <Text fontSize="$3" color="$secondary">
+                <Text fontSize="$3" color="$textSecondary">
                   VEND-001 • 15 tickets
                 </Text>
               </YStack>
@@ -97,7 +97,7 @@ export default function MisVentasScreen() {
                 <Text fontSize="$4" fontWeight="600">
                   María González
                 </Text>
-                <Text fontSize="$3" color="$secondary">
+                <Text fontSize="$3" color="$textSecondary">
                   VEND-002 • 20 tickets
                 </Text>
               </YStack>
@@ -113,7 +113,7 @@ export default function MisVentasScreen() {
                 <Text fontSize="$4" fontWeight="600">
                   Carlos Rodríguez
                 </Text>
-                <Text fontSize="$3" color="$secondary">
+                <Text fontSize="$3" color="$textSecondary">
                   VEND-003 • 10 tickets
                 </Text>
               </YStack>

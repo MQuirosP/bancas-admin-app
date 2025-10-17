@@ -129,7 +129,7 @@ export default function NuevaVentanaScreen() {
                 onChangeText={setSalesCutoffMinutes}
                 keyboardType="number-pad"
               />
-              <Text fontSize="$2" color="$secondary">
+              <Text fontSize="$2" color="$textSecondary">
                 Sobrescribe el cutoff de la banca
               </Text>
             </YStack>

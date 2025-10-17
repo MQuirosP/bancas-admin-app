@@ -42,7 +42,7 @@ export default function MisTicketsScreen() {
           </YStack>
         ) : !tickets?.length ? (
           <Card padding="$4">
-            <Text color="$secondary">Aún no tienes tiquetes hoy.</Text>
+            <Text color="$textSecondary">Aún no tienes tiquetes hoy.</Text>
           </Card>
         ) : (
           <>
@@ -58,7 +58,7 @@ export default function MisTicketsScreen() {
                         </Text>
                       </XStack>
 
-                      <Text fontSize="$3" color="$secondary">
+                      <Text fontSize="$3" color="$textSecondary">
                         Sorteo: {ticket.sorteo?.date} - {ticket.sorteo?.hour}
                       </Text>
 
@@ -75,7 +75,7 @@ export default function MisTicketsScreen() {
                   <YStack marginTop="$3" gap="$1">
                     {(ticket.jugadas ?? []).map((jugada, index) => (
                       <XStack key={index} justifyContent="space-between" paddingVertical="$1">
-                        <Text fontSize="$3" color="$secondary">
+                        <Text fontSize="$3" color="$textSecondary">
                           {jugada.type === 'NUMERO'
                             ? `Número: ${jugada.number}`
                             : `Reventado: ${jugada.reventadoNumber}`}

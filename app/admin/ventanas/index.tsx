@@ -62,7 +62,7 @@ export default function VentanasListScreen() {
                     <Text fontSize="$5" fontWeight="600" color="$color">
                       {ventana.name}
                     </Text>
-                    <Text fontSize="$3" color="$secondary">
+                    <Text fontSize="$3" color="$textSecondary">
                       {ventana.code}
                     </Text>
                   </YStack>

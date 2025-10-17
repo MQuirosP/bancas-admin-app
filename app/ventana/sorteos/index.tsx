@@ -8,7 +8,7 @@ export default function VentanaSorteosScreen() {
         <Text fontSize="$8" fontWeight="bold" color="$color">
           Sorteos
         </Text>
-        <Text color="$secondary">Ver sorteos (permisos limitados)</Text>
+        <Text color="$textSecondary">Ver sorteos (permisos limitados)</Text>
       </YStack>
     </ScrollView>
   );

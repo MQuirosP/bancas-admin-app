@@ -15,7 +15,7 @@ export default function VentanaRestrictionsScreen() {
         <Text fontSize="$8" fontWeight="bold" color="$color">
           Restricciones
         </Text>
-        <Text color="$secondary" fontSize="$3">
+        <Text color="$textSecondary" fontSize="$3">
           Vista de solo lectura de las reglas aplicables
         </Text>
 

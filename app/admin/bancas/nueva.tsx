@@ -102,7 +102,7 @@ export default function NuevaBancaScreen() {
                 onChangeText={setSalesCutoffMinutes}
                 keyboardType="number-pad"
               />
-              <Text fontSize="$2" color="$secondary">
+              <Text fontSize="$2" color="$textSecondary">
                 Minutos antes del sorteo para bloquear ventas
               </Text>
             </YStack>

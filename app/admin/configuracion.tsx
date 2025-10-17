@@ -28,7 +28,7 @@ export default function ConfiguracionScreen() {
                 onChangeText={setDefaultCutoff}
                 keyboardType="number-pad"
               />
-              <Text fontSize="$2" color="$secondary">
+              <Text fontSize="$2" color="$textSecondary">
                 Aplica cuando no hay reglas específicas
               </Text>
             </YStack>
@@ -39,7 +39,7 @@ export default function ConfiguracionScreen() {
               </Switch>
               <YStack flex={1}>
                 <Text fontSize="$4">Panel de Debug</Text>
-                <Text fontSize="$2" color="$secondary">
+                <Text fontSize="$2" color="$textSecondary">
                   Mostrar información de depuración en errores
                 </Text>
               </YStack>

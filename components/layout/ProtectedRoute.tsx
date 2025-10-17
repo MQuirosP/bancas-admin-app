@@ -31,7 +31,7 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
     return (
       <YStack f={1} ai="center" jc="center" p="$4">
         <Spinner size="large" />
-        <Text mt="$2" color="$secondary">Cargando…</Text>
+        <Text mt="$2" color="$textSecondary">Cargando…</Text>
       </YStack>
     )
   }

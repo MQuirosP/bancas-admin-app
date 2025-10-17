@@ -17,7 +17,7 @@ export default function RestrictionsListScreen() {
             Nueva Regla
           </Button>
         </XStack>
-        <Text color="$secondary">
+        <Text color="$textSecondary">
           Implementar CRUD de restriction rules (number, maxAmount, maxTotal, salesCutoffMinutes, etc.)
         </Text>
       </YStack>

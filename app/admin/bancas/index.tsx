@@ -131,7 +131,7 @@ export default function BancasListScreen() {
         {isLoading ? (
           <YStack padding="$8" alignItems="center">
             <Spinner size="large" />
-            <Text marginTop="$3" color="$secondary">Cargando bancas...</Text>
+            <Text marginTop="$3" color="$textSecondary">Cargando bancas...</Text>
           </YStack>
         ) : isError ? (
           <Card padding="$4" backgroundColor="$red4">
@@ -152,7 +152,7 @@ export default function BancasListScreen() {
                 <XStack justifyContent="space-between" alignItems="center">
                   <YStack flex={1}>
                     <Text fontSize="$5" fontWeight="600" color="$color">{banca.name}</Text>
-                    <Text fontSize="$3" color="$secondary">{banca.code}</Text>
+                    <Text fontSize="$3" color="$textSecondary">{banca.code}</Text>
                   </YStack>
                   <Card padding="$2" paddingHorizontal="$3" backgroundColor={banca.isActive ? '$green4' : '$red4'}>
                     <Text fontSize="$2" fontWeight="600" color={banca.isActive ? '$green11' : '$red11'}>

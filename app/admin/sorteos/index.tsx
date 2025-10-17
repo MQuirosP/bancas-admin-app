@@ -114,7 +114,7 @@ export default function SorteosListScreen() {
         {isLoading ? (
           <YStack padding="$8" alignItems="center">
             <Spinner size="large" />
-            <Text marginTop="$3" color="$secondary">
+            <Text marginTop="$3" color="$textSecondary">
               Cargando sorteos...
             </Text>
           </YStack>
