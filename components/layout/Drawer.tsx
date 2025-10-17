@@ -1,55 +1,270 @@
+// components/layout/Drawer.tsx
 import React from 'react';
 import { Animated, Pressable, StyleSheet, Easing } from 'react-native';
+import { useRouter } from 'expo-router';
 import { YStack, XStack, Text, Button, ScrollView } from 'tamagui';
 import {
-  Home, Building2, Users, Package, TrendingUp, Settings, X,
+  Home,
+  Building2,
+  Users,
+  Package,
+  TrendingUp,
+  Settings,
+  X,
+  Store,
+  Trophy,
+  Shield,
+  BarChart3,
+  FileText,
+  Ticket,
+  DollarSign,
+  Calendar,
 } from '@tamagui/lucide-icons';
 import { useAuthStore } from '../../store/auth.store';
 
 interface DrawerProps {
   isOpen: boolean;
-  onClose: () => void; // se llama cuando el usuario toca el overlay o el botón cerrar
+  onClose: () => void;
+}
+
+interface MenuItem {
+  id: string;
+  label: string;
+  icon: any;
+  roles: string[];
+  route?: string;
+  dividerAfter?: boolean;
 }
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export default function Drawer({ isOpen, onClose }: DrawerProps) {
   const user = useAuthStore((s) => s.user);
+  const router = useRouter();
 
-  // ---------- Items por rol ----------
-  const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: Home, roles: ['ADMIN', 'VENTANA', 'VENDEDOR'] },
-    { id: 'bancas', label: 'Bancas', icon: Building2, roles: ['ADMIN'] },
-    { id: 'ventanas', label: 'Ventanas', icon: Building2, roles: ['ADMIN'] },
-    { id: 'usuarios', label: 'Usuarios', icon: Users, roles: ['ADMIN'] },
-    { id: 'tickets', label: 'Tickets', icon: Package, roles: ['ADMIN', 'VENTANA', 'VENDEDOR'] },
-    { id: 'reportes', label: 'Reportes', icon: TrendingUp, roles: ['ADMIN', 'VENTANA'] },
-    { id: 'configuracion', label: 'Configuración', icon: Settings, roles: ['ADMIN'] },
-  ];
-  const filteredItems = menuItems.filter((it) => user?.role && it.roles.includes(user.role));
+  // ========== MENÚ POR ROL ==========
+  const getMenuItems = (): MenuItem[] => {
+    if (user?.role === 'ADMIN') {
+      return [
+        {
+          id: 'dashboard',
+          label: 'Dashboard',
+          icon: Home,
+          roles: ['ADMIN'],
+          route: '/admin',
+        },
+        {
+          id: 'bancas',
+          label: 'Bancas',
+          icon: Building2,
+          roles: ['ADMIN'],
+          route: '/admin/bancas',
+        },
+        {
+          id: 'ventanas',
+          label: 'Ventanas',
+          icon: Store,
+          roles: ['ADMIN'],
+          route: '/admin/ventanas',
+        },
+        {
+          id: 'usuarios',
+          label: 'Usuarios',
+          icon: Users,
+          roles: ['ADMIN'],
+          route: '/admin/usuarios',
+          dividerAfter: true, // Separador visual
+        },
+        {
+          id: 'loterias',
+          label: 'Loterías',
+          icon: Trophy,
+          roles: ['ADMIN'],
+          route: '/admin/loterias',
+        },
+        {
+          id: 'sorteos',
+          label: 'Sorteos',
+          icon: Calendar,
+          roles: ['ADMIN'],
+          route: '/admin/sorteos',
+        },
+        {
+          id: 'multipliers',
+          label: 'Multiplicadores',
+          icon: BarChart3,
+          roles: ['ADMIN'],
+          route: '/admin/multipliers',
+        },
+        {
+          id: 'restrictions',
+          label: 'Restricciones',
+          icon: Shield,
+          roles: ['ADMIN'],
+          route: '/admin/restrictions',
+          dividerAfter: true,
+        },
+        {
+          id: 'tickets',
+          label: 'Tickets',
+          icon: Ticket,
+          roles: ['ADMIN'],
+          route: '/admin/tickets',
+        },
+        {
+          id: 'reportes',
+          label: 'Reportes',
+          icon: TrendingUp,
+          roles: ['ADMIN'],
+          route: '/admin/reportes',
+          dividerAfter: true,
+        },
+        {
+          id: 'configuracion',
+          label: 'Configuración',
+          icon: Settings,
+          roles: ['ADMIN'],
+          route: '/admin/configuracion',
+        },
+      ];
+    }
 
-  // ---------- Animations ----------
-  const [rendered, setRendered] = React.useState(isOpen); // controla si se renderiza (para animar salida)
+    if (user?.role === 'VENTANA') {
+      return [
+        {
+          id: 'dashboard',
+          label: 'Dashboard',
+          icon: Home,
+          roles: ['VENTANA'],
+          route: '/ventana',
+        },
+        {
+          id: 'tickets',
+          label: 'Tickets',
+          icon: Ticket,
+          roles: ['VENTANA'],
+          route: '/ventana/tickets',
+        },
+        {
+          id: 'ventas',
+          label: 'Ventas',
+          icon: DollarSign,
+          roles: ['VENTANA'],
+          route: '/ventana/ventas',
+          dividerAfter: true,
+        },
+        {
+          id: 'sorteos',
+          label: 'Sorteos',
+          icon: Calendar,
+          roles: ['VENTANA'],
+          route: '/ventana/sorteos',
+        },
+        {
+          id: 'restrictions',
+          label: 'Restricciones',
+          icon: Shield,
+          roles: ['VENTANA'],
+          route: '/ventana/restrictions',
+        },
+      ];
+    }
+
+    if (user?.role === 'VENDEDOR') {
+      return [
+        {
+          id: 'dashboard',
+          label: 'Dashboard',
+          icon: Home,
+          roles: ['VENDEDOR'],
+          route: '/vendedor',
+        },
+        {
+          id: 'nuevo-ticket',
+          label: 'Nuevo Ticket',
+          icon: Package,
+          roles: ['VENDEDOR'],
+          route: '/vendedor/tickets/nuevo',
+        },
+        {
+          id: 'mis-tickets',
+          label: 'Mis Tickets',
+          icon: Ticket,
+          roles: ['VENDEDOR'],
+          route: '/vendedor/tickets',
+        },
+      ];
+    }
+
+    return [];
+  };
+
+  const menuItems = getMenuItems();
+
+  // ========== NAVEGACIÓN ==========
+  const handleNavigate = (route?: string) => {
+    if (!route) {
+      console.warn('No route defined for this menu item');
+      return;
+    }
+
+    try {
+      router.push(route as any);
+      onClose(); // Cerrar el drawer después de navegar
+    } catch (error) {
+      console.error('Error navigating:', error);
+    }
+  };
+
+  // ========== ANIMACIONES (mantenidas del código original) ==========
+  const [rendered, setRendered] = React.useState(isOpen);
   const overlayOpacity = React.useRef(new Animated.Value(isOpen ? 1 : 0)).current;
   const panelX = React.useRef(new Animated.Value(isOpen ? 0 : -24)).current;
   const panelOpacity = React.useRef(new Animated.Value(isOpen ? 1 : 0)).current;
 
   React.useEffect(() => {
     if (isOpen) {
-      // Montar si no estaba visible
       if (!rendered) setRendered(true);
-      // Animación de entrada
       Animated.parallel([
-        Animated.timing(overlayOpacity, { toValue: 1, duration: 180, easing: Easing.out(Easing.quad), useNativeDriver: true }),
-        Animated.timing(panelX,        { toValue: 0, duration: 200, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
-        Animated.timing(panelOpacity,  { toValue: 1, duration: 180, easing: Easing.out(Easing.quad), useNativeDriver: true }),
+        Animated.timing(overlayOpacity, {
+          toValue: 1,
+          duration: 180,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.timing(panelX, {
+          toValue: 0,
+          duration: 200,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(panelOpacity, {
+          toValue: 1,
+          duration: 180,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
       ]).start();
     } else if (rendered) {
-      // Animación de salida; luego desmonta
       Animated.parallel([
-        Animated.timing(overlayOpacity, { toValue: 0, duration: 160, easing: Easing.in(Easing.quad), useNativeDriver: true }),
-        Animated.timing(panelX,        { toValue: -12, duration: 160, easing: Easing.in(Easing.cubic), useNativeDriver: true }),
-        Animated.timing(panelOpacity,  { toValue: 0, duration: 160, easing: Easing.in(Easing.quad), useNativeDriver: true }),
+        Animated.timing(overlayOpacity, {
+          toValue: 0,
+          duration: 160,
+          easing: Easing.in(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.timing(panelX, {
+          toValue: -12,
+          duration: 160,
+          easing: Easing.in(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(panelOpacity, {
+          toValue: 0,
+          duration: 160,
+          easing: Easing.in(Easing.quad),
+          useNativeDriver: true,
+        }),
       ]).start(({ finished }) => {
         if (finished) setRendered(false);
       });
@@ -58,6 +273,7 @@ export default function Drawer({ isOpen, onClose }: DrawerProps) {
 
   if (!rendered) return null;
 
+  // ========== RENDER ==========
   return (
     <>
       {/* Overlay con fade IN/OUT */}
@@ -65,7 +281,11 @@ export default function Drawer({ isOpen, onClose }: DrawerProps) {
         onPress={onClose}
         style={[
           StyleSheet.absoluteFillObject,
-          { backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 40, opacity: overlayOpacity },
+          {
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            zIndex: 40,
+            opacity: overlayOpacity,
+          },
         ]}
       />
 
@@ -100,7 +320,9 @@ export default function Drawer({ isOpen, onClose }: DrawerProps) {
             borderBottomColor="#2a2a2f"
             height={64}
           >
-            <Text fontSize="$5" fontWeight="700" color="#ffffff">Menú</Text>
+            <Text fontSize="$5" fontWeight="700" color="#ffffff">
+              Menú
+            </Text>
             <Button
               size="$3"
               circular
@@ -112,41 +334,53 @@ export default function Drawer({ isOpen, onClose }: DrawerProps) {
             </Button>
           </XStack>
 
-          {/* Lista */}
+          {/* Lista de items */}
           <ScrollView flex={1}>
-            <YStack padding="$3" gap="$2">
-              {filteredItems.map((item) => {
+            <YStack padding="$3" gap="$1">
+              {menuItems.map((item) => {
                 const Icon = item.icon;
                 return (
-                  <Button
-                    key={item.id}
-                    backgroundColor="transparent"
-                    color="#ffffff"
-                    justifyContent="flex-start"
-                    paddingHorizontal="$4"
-                    paddingVertical="$3"
-                    borderRadius="$3"
-                    pressStyle={{ backgroundColor: 'rgba(99,102,241,0.2)' }}
-                    hoverStyle={{ backgroundColor: 'rgba(99,102,241,0.1)' }}
-                    onPress={() => {
-                      console.log('Navegar a:', item.id);
-                      onClose();
-                    }}
-                  >
-                    <XStack gap="$3" alignItems="center" width="100%">
-                      <Icon size={20} color="#ffffff" />
-                      <Text fontSize="$4" fontWeight="500" color="#ffffff">
-                        {item.label}
-                      </Text>
-                    </XStack>
-                  </Button>
+                  <React.Fragment key={item.id}>
+                    <Button
+                      backgroundColor="transparent"
+                      color="#ffffff"
+                      justifyContent="flex-start"
+                      paddingHorizontal="$4"
+                      paddingVertical="$3"
+                      borderRadius="$3"
+                      pressStyle={{ backgroundColor: 'rgba(99,102,241,0.2)' }}
+                      hoverStyle={{ backgroundColor: 'rgba(99,102,241,0.1)' }}
+                      onPress={() => handleNavigate(item.route)}
+                    >
+                      <XStack gap="$3" alignItems="center" width="100%">
+                        <Icon size={20} color="#ffffff" />
+                        <Text fontSize="$4" fontWeight="500" color="#ffffff">
+                          {item.label}
+                        </Text>
+                      </XStack>
+                    </Button>
+
+                    {/* Separador visual después de ciertos items */}
+                    {item.dividerAfter && (
+                      <YStack
+                        height={1}
+                        backgroundColor="rgba(255,255,255,0.1)"
+                        marginVertical="$2"
+                      />
+                    )}
+                  </React.Fragment>
                 );
               })}
             </YStack>
           </ScrollView>
 
-          {/* Footer */}
-          <YStack padding="$4" borderTopWidth={1} borderTopColor="#2a2a2f" backgroundColor="rgba(0,0,0,0.2)">
+          {/* Footer con info del usuario */}
+          <YStack
+            padding="$4"
+            borderTopWidth={1}
+            borderTopColor="#2a2a2f"
+            backgroundColor="rgba(0,0,0,0.2)"
+          >
             <XStack gap="$3" alignItems="center">
               <YStack
                 width={40}
@@ -161,7 +395,7 @@ export default function Drawer({ isOpen, onClose }: DrawerProps) {
                 </Text>
               </YStack>
               <YStack f={1}>
-                <Text fontSize="$4" fontWeight="600" color="#ffffff">
+                <Text fontSize="$4" fontWeight="600" color="#ffffff" numberOfLines={1}>
                   {user?.name || 'Usuario'}
                 </Text>
                 <Text fontSize="$2" color="#a1a1aa">
