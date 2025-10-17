@@ -6,44 +6,53 @@ const appConfig = createTamagui({
   ...config,
   themes: {
     light: {
+      // ==================== HEADER ====================
       headerBg: '#0B1220',
       headerHover: 'rgba(255,255,255,0.06)',
       headerTitle: '#ffffff',
+      
+      // ==================== BACKGROUNDS ====================
       background: '#ffffff',
       backgroundHover: '#f8f9fa',
       backgroundPress: '#e9ecef',
       backgroundFocus: '#dee2e6',
       backgroundStrong: '#f1f3f5',
       backgroundTransparent: 'rgba(0,0,0,0.05)',
+      
+      // ==================== COLORES GENERALES ====================
       color: '#000000',
       colorHover: '#262626',
       colorPress: '#000000',
       colorFocus: '#000000',
       colorTransparent: 'rgba(0,0,0,0)',
+      
+      // ==================== BORDES ====================
       borderColor: '#e5e7eb',
       borderColorHover: '#d1d5db',
       borderColorFocus: '#9ca3af',
       borderColorPress: '#6b7280',
+      
+      // ==================== INPUTS ====================
       placeholderColor: '#9ca3af',
       outlineColor: '#4f46e5',
 
-      // Colores de texto específicos
+      // ==================== TEXTO ====================
       textPrimary: '#1a1a1a',
       textSecondary: '#4b5563',
       textTertiary: '#9ca3af',
 
-      // Colores de marca
+      // ==================== COLORES DE MARCA ====================
       primary: '#4f46e5',
       primaryHover: '#4338ca',
       primaryPress: '#3730a3',
 
-      // Estados
+      // ==================== ESTADOS ====================
       success: '#10b981',
       warning: '#f59e0b',
       error: '#ef4444',
       info: '#3b82f6',
 
-      // Colores adicionales
+      // ==================== COLORES ADICIONALES ====================
       red10: '#ef4444',
       red11: '#dc2626',
       blue4: '#dbeafe',
@@ -52,43 +61,53 @@ const appConfig = createTamagui({
       green11: '#065f46',
     },
     dark: {
-      headerBg: '#0B1220', // = mismo valor en dark
+      // ==================== HEADER ====================
+      headerBg: '#0B1220',
       headerHover: 'rgba(255,255,255,0.06)',
+      headerTitle: '#ffffff',
+      
+      // ==================== BACKGROUNDS ====================
       background: '#121214',
       backgroundHover: '#1a1a1d',
       backgroundPress: '#25252a',
       backgroundFocus: '#2a2a2f',
       backgroundStrong: '#1a1a1d',
       backgroundTransparent: 'rgba(255,255,255,0.05)',
+      
+      // ==================== COLORES GENERALES ====================
       color: '#ffffff',
       colorHover: '#f5f5f5',
       colorPress: '#ffffff',
       colorFocus: '#ffffff',
       colorTransparent: 'rgba(255,255,255,0)',
+      
+      // ==================== BORDES ====================
       borderColor: '#2a2a2f',
       borderColorHover: '#35353a',
       borderColorFocus: '#404045',
       borderColorPress: '#4a4a4f',
+      
+      // ==================== INPUTS ====================
       placeholderColor: '#71717a',
       outlineColor: '#6366f1',
 
-      // Colores de texto específicos para tema oscuro
+      // ==================== TEXTO ====================
       textPrimary: '#f5f5f5',
       textSecondary: '#d4d4d8',
       textTertiary: '#a1a1aa',
 
-      // Colores de marca
+      // ==================== COLORES DE MARCA ====================
       primary: '#6366f1',
       primaryHover: '#818cf8',
       primaryPress: '#4f46e5',
 
-      // Estados
+      // ==================== ESTADOS ====================
       success: '#34d399',
       warning: '#fbbf24',
       error: '#f87171',
       info: '#60a5fa',
 
-      // Colores adicionales
+      // ==================== COLORES ADICIONALES ====================
       red10: '#f87171',
       red11: '#ef4444',
       blue4: '#1e3a8a',

@@ -384,7 +384,7 @@ const { data: restrictions = [], isLoading: loadingRestrictions } = useQuery<Res
             <Text fontSize="$5" fontWeight="600">
               Total:
             </Text>
-            <Text fontSize="$7" fontWeight="bold" color="$blue10">
+            <Text fontSize="$7" fontWeight="bold" color="$info">
               {formatCurrency(totalAmount)}
             </Text>
           </XStack>

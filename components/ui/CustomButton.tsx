@@ -18,7 +18,7 @@ export function CustomButton({
     switch (variant) {
       case 'primary':
         return {
-          backgroundColor: '$blue10',
+          backgroundColor: '$info',
           color: 'white',
           hoverStyle: {
             backgroundColor: '$blue11',
@@ -111,7 +111,7 @@ export function CustomButton({
       icon={loading ? <Spinner color={variantStyles.color} /> : props.icon}
       borderRadius="$3"
       fontWeight="600"
-      shadowColor="$shadowColor"
+      shadowColor="$borderColor"
       shadowOffset={{ width: 0, height: 2 }}
       shadowOpacity={0.1}
       shadowRadius={4}

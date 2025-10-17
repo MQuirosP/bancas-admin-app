@@ -28,7 +28,7 @@ const dashboardCards: DashboardCard[] = [
     description: 'Gestionar bancas del sistema',
     icon: Store,
     href: '/admin/bancas',
-    color: '$blue10',
+    color: '$info',
   },
   {
     title: 'Ventanas',
@@ -232,10 +232,10 @@ export default function AdminDashboard() {
             borderRadius="$3"
           >
             <YStack gap="$1">
-              <Text fontSize="$2" color="$purple11" fontWeight="500">
+              <Text fontSize="$2" color="$primary" fontWeight="500">
                 Tickets Hoy
               </Text>
-              <Text fontSize="$7" fontWeight="bold" color="$purple11">
+              <Text fontSize="$7" fontWeight="bold" color="$primary">
                 1,234
               </Text>
             </YStack>

@@ -95,7 +95,7 @@ export default function MisTicketsScreen() {
                 <Text fontSize="$5" fontWeight="600">
                   Total del día:
                 </Text>
-                <Text fontSize="$7" fontWeight="bold" color="$blue10">
+                <Text fontSize="$7" fontWeight="bold" color="$info">
                   {formatCurrency(totalAmount)}
                 </Text>
               </XStack>
