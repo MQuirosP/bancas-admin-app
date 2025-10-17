@@ -71,7 +71,7 @@ export const Header: React.FC = () => {
         </Text>
       </XStack>
 
-      {/* Right: Theme toggle + User badge + Logout */}
+      {/* Right: Theme toggle + Logout */}
       <XStack alignItems="center" gap="$3" width={100} justifyContent="flex-end">
         {/* Theme Toggle */}
         <Button
@@ -90,39 +90,6 @@ export const Header: React.FC = () => {
           borderRadius="$3"
           padding="$2"
         />
-
-        {/* User Badge */}
-        {/* <XStack
-          alignItems="center"
-          gap="$2"
-          backgroundColor="$backgroundHover"
-          paddingHorizontal="$3"
-          paddingVertical="$2"
-          borderRadius="$3"
-          display="none"
-          $gtSm={{ display: 'flex' }}
-        >
-          <YStack
-            width={32}
-            height={32}
-            backgroundColor="$primary"
-            borderRadius="$2"
-            alignItems="center"
-            justifyContent="center"
-          >
-            <Text fontSize="$4" fontWeight="600" color="white">
-              {user?.name?.charAt(0).toUpperCase() || 'U'}
-            </Text>
-          </YStack>
-          <YStack>
-            <Text fontSize="$3" fontWeight="500" color="$textPrimary">
-              {user?.name || 'Usuario'}
-            </Text>
-            <Text fontSize="$1" color="$textTertiary">
-              {user?.role || 'ROL'}
-            </Text>
-          </YStack>
-        </XStack> */}
 
         {/* Logout Button */}
         <Button

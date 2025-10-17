@@ -24,7 +24,7 @@ function buildQuery(params?: Record<string, any>) {
   const qp = new URLSearchParams();
   for (const [k, v] of Object.entries(params)) {
     if (v === undefined || v === null) continue;
-    if (typeof v === 'string' && v.trim() === '') continue; // <- omite strings vacíos
+    if (typeof v === 'string' && v.trim() === '') continue;
     if (Array.isArray(v)) {
       v.forEach((item) => {
         if (item === undefined || item === null) return;
@@ -56,9 +56,60 @@ export class ApiErrorClass extends Error {
 }
 
 // ────────────────────────────────────────────────────────────────────────────────
-// Cliente HTTP
+// Cliente HTTP con refresh token CORREGIDO
 export class ApiClient {
+  private isRefreshing = false;
+  private refreshSubscribers: Array<(token: string) => void> = [];
+
   constructor(private baseURL: string = API_BASE_URL) {}
+
+  private subscribeTokenRefresh(callback: (token: string) => void) {
+    this.refreshSubscribers.push(callback);
+  }
+
+  private onTokenRefreshed(token: string) {
+    this.refreshSubscribers.forEach((callback) => callback(token));
+    this.refreshSubscribers = [];
+  }
+
+  private async refreshAccessToken(): Promise<string> {
+    const { refreshToken } = useAuthStore.getState();
+    
+    if (!refreshToken) {
+      throw new Error('No refresh token available');
+    }
+
+    try {
+      const response = await fetch(`${this.baseURL}/auth/refresh`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ refreshToken }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to refresh token');
+      }
+
+      const data = await response.json();
+      const newAccessToken = data.data?.accessToken || data.accessToken;
+
+      if (!newAccessToken) {
+        throw new Error('No access token in refresh response');
+      }
+
+      // Actualizar el token en el store
+      useAuthStore.setState({ token: newAccessToken });
+
+      return newAccessToken;
+    } catch (error) {
+      console.error('❌ Error en refresh token:', error);
+      // Si falla el refresh, cerrar sesión
+      await useAuthStore.getState().clearAuth();
+      throw error;
+    }
+  }
 
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const token = useAuthStore.getState().token;
@@ -70,7 +121,50 @@ export class ApiClient {
     if (token) headers['Authorization'] = `Bearer ${token}`;
 
     const url = `${this.baseURL}${endpoint}`;
-    const res = await fetch(url, { ...options, headers });
+    
+    // CRÍTICO: NO hacer refresh en endpoints de auth
+    const isAuthEndpoint = endpoint.includes('/auth/login') || 
+                          endpoint.includes('/auth/refresh') || 
+                          endpoint.includes('/auth/register');
+    
+    let res = await fetch(url, { ...options, headers });
+
+    // Si es 401 Y NO es un endpoint de auth, intentar refresh
+    if (res.status === 401 && !isAuthEndpoint) {
+      console.log('🔄 Token expirado, intentando refresh...');
+      
+      if (!this.isRefreshing) {
+        this.isRefreshing = true;
+        
+        try {
+          const newToken = await this.refreshAccessToken();
+          this.isRefreshing = false;
+          this.onTokenRefreshed(newToken);
+
+          console.log('✅ Token refrescado exitosamente');
+          
+          // Reintentar la petición original con el nuevo token
+          headers['Authorization'] = `Bearer ${newToken}`;
+          res = await fetch(url, { ...options, headers });
+        } catch (error) {
+          this.isRefreshing = false;
+          console.error('❌ Refresh token falló, cerrando sesión');
+          throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
+        }
+      } else {
+        // Si ya se está refrescando, esperar a que termine
+        console.log('⏳ Esperando refresh en progreso...');
+        const newToken = await new Promise<string>((resolve, reject) => {
+          this.subscribeTokenRefresh(resolve);
+          // Timeout de 10 segundos
+          setTimeout(() => reject(new Error('Refresh timeout')), 10000);
+        });
+
+        // Reintentar con el nuevo token
+        headers['Authorization'] = `Bearer ${newToken}`;
+        res = await fetch(url, { ...options, headers });
+      }
+    }
 
     // Cuerpo (si existe)
     let data: any = null;
@@ -79,14 +173,8 @@ export class ApiClient {
       try {
         data = JSON.parse(text);
       } catch {
-        data = text; // no-JSON
+        data = text;
       }
-    }
-
-    // 401 → logout
-    if (res.status === 401) {
-      await useAuthStore.getState().clearAuth();
-      throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
     }
 
     // Contrato de error
@@ -105,7 +193,6 @@ export class ApiClient {
     return (data && data.data !== undefined ? data.data : data) as T;
   }
 
-  // ✅ Método GET con params como segundo argumento (Record<string, any>)
   get<T>(endpoint: string, params?: Record<string, any>) {
     const qs = buildQuery(params);
     return this.request<T>(`${endpoint}${qs}`, { method: 'GET' });

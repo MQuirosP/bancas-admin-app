@@ -14,12 +14,12 @@ const loginSchema = z.object({
 
 export default function LoginScreen() {
   const router = useRouter();
-  const login = useAuthStore((state) => state.login);
+  const { login, user } = useAuthStore();
   
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<{ username?: string; password?: string }>({});
+  const [errors, setErrors] = useState<{ username?: string; password?: string; general?: string }>({});
 
   const handleLogin = async () => {
     try {
@@ -28,13 +28,34 @@ export default function LoginScreen() {
       setErrors({});
       
       setLoading(true);
+      console.log('🔐 Iniciando login...');
       
       // Llamar a login del store
       await login(validated.username, validated.password);
       
-      // Navegar al dashboard
-      router.replace('/(dashboard)');
-    } catch (error) {
+      // Obtener el rol del usuario desde el store actualizado
+      const currentUser = useAuthStore.getState().user;
+      console.log('✅ Login exitoso, rol:', currentUser?.role);
+      
+      // Redirigir según el rol
+      if (currentUser?.role === 'ADMIN') {
+        console.log('📍 Redirigiendo a /admin');
+        router.replace('/admin');
+      } else if (currentUser?.role === 'VENTANA') {
+        console.log('📍 Redirigiendo a /ventana');
+        router.replace('/ventana');
+      } else if (currentUser?.role === 'VENDEDOR') {
+        console.log('📍 Redirigiendo a /vendedor');
+        router.replace('/vendedor');
+      } else {
+        // Fallback al dashboard genérico
+        console.log('📍 Redirigiendo a /(dashboard)');
+        router.replace('/(dashboard)');
+      }
+      
+    } catch (error: any) {
+      console.error('❌ Error en login:', error);
+      
       if (error instanceof z.ZodError) {
         const fieldErrors: { username?: string; password?: string } = {};
         error.errors.forEach((err) => {
@@ -43,6 +64,11 @@ export default function LoginScreen() {
           }
         });
         setErrors(fieldErrors);
+      } else {
+        // Error de autenticación del backend
+        setErrors({
+          general: error?.message || 'Error al iniciar sesión. Verifica tus credenciales.',
+        });
       }
     } finally {
       setLoading(false);
@@ -57,31 +83,29 @@ export default function LoginScreen() {
       alignItems="center"
       padding="$6"
     >
-      {/* Logo / Icono */}
-      {/* Logo / Imagen (llenando el contenedor y más grande) */}
-<YStack
-  width={128}
-  height={128}
-  $gtSm={{ width: 320, height: 160 }}   // ↑ más grande en pantallas >= sm
-  alignItems="center"
-  justifyContent="center"
-  marginBottom="$6"
-  borderRadius={24}
-  overflow="hidden"                      // recorta las esquinas redondeadas
-  backgroundColor="$background"          // opcional
-  borderWidth={1}                        // opcional: quitar si no quieres borde
-  borderColor="$borderColor"
->
-  <Image
-    source={require('../../assets/logo.png')}
-    style={{ width: '100%', height: '100%', borderRadius: 24 }}
-    contentFit="cover"                   // ⬅️ llena el contenedor (sin franjas)
-    contentPosition="center"             // centra el recorte
-    transition={150}
-    accessibilityLabel="Logo de la app"
-  />
-</YStack>
-
+      {/* Logo / Imagen */}
+      <YStack
+        width={128}
+        height={128}
+        $gtSm={{ width: 320, height: 160 }}
+        alignItems="center"
+        justifyContent="center"
+        marginBottom="$6"
+        borderRadius={24}
+        overflow="hidden"
+        backgroundColor="$background"
+        borderWidth={1}
+        borderColor="$borderColor"
+      >
+        <Image
+          source={require('../../assets/logo.png')}
+          style={{ width: '100%', height: '100%', borderRadius: 24 }}
+          contentFit="cover"
+          contentPosition="center"
+          transition={150}
+          accessibilityLabel="Logo de la app"
+        />
+      </YStack>
 
       {/* Título */}
       <Text
@@ -104,15 +128,27 @@ export default function LoginScreen() {
         Ingresa tus credenciales para continuar
       </Text>
 
+      {/* Error general */}
+      {errors.general && (
+        <YStack
+          backgroundColor="$red2"
+          padding="$3"
+          borderRadius="$4"
+          marginBottom="$4"
+          width="100%"
+          maxWidth={400}
+        >
+          <Text fontSize="$3" color="$red10" textAlign="center">
+            {errors.general}
+          </Text>
+        </YStack>
+      )}
+
       {/* Formulario */}
       <YStack width="100%" maxWidth={400} gap="$2">
         {/* Campo Username */}
         <YStack gap="$2">
-          <Text
-            fontSize="$4"
-            fontWeight="600"
-            color="$textPrimary"
-          >
+          <Text fontSize="$4" fontWeight="600" color="$textPrimary">
             Usuario
           </Text>
           <XStack
@@ -136,6 +172,7 @@ export default function LoginScreen() {
               height={48}
               fontSize="$4"
               color="$textPrimary"
+              autoCapitalize="none"
             />
           </XStack>
           {errors.username && (
@@ -147,11 +184,7 @@ export default function LoginScreen() {
 
         {/* Campo Password */}
         <YStack gap="$2">
-          <Text
-            fontSize="$4"
-            fontWeight="600"
-            color="$textPrimary"
-          >
+          <Text fontSize="$4" fontWeight="600" color="$textPrimary">
             Contraseña
           </Text>
           <XStack
