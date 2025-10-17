@@ -1,135 +1,139 @@
 // lib/api.client.ts
-import axios, { AxiosInstance, AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios';
 import Constants from 'expo-constants';
+import { useAuthStore } from '../store/auth.store';
+import { ApiError } from '../types/api.types';
 
-const API_BASE_URL = Constants.expoConfig?.extra?.apiBaseUrl || 'https://backend-bancas.onrender.com/api/v1';
+type Extra = {
+  EXPO_PUBLIC_API_BASE_URL?: string;
+  apiBaseUrl?: string;
+};
 
-class ApiClient {
-  private client: AxiosInstance;
-  private isRefreshing = false;
-  private refreshSubscribers: Array<(token: string) => void> = [];
+const extra =
+  ((Constants as any)?.expoConfig?.extra ??
+    (Constants as any)?.manifest?.extra ??
+    {}) as Extra;
 
-  constructor() {
-    this.client = axios.create({
-      baseURL: API_BASE_URL,
-      timeout: 30000,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+const API_BASE_URL =
+  process.env.EXPO_PUBLIC_API_BASE_URL ??
+  extra.EXPO_PUBLIC_API_BASE_URL ??
+  extra.apiBaseUrl ??
+  'https://backend-bancas.onrender.com/api/v1';
 
-    this.setupInterceptors();
+function buildQuery(params?: Record<string, any>) {
+  if (!params) return '';
+  const qp = new URLSearchParams();
+  for (const [k, v] of Object.entries(params)) {
+    if (v === undefined || v === null) continue;
+    if (typeof v === 'string' && v.trim() === '') continue; // <- omite strings vacíos
+    if (Array.isArray(v)) {
+      v.forEach((item) => {
+        if (item === undefined || item === null) return;
+        const s = String(item).trim();
+        if (s === '') return;
+        qp.append(k, s);
+      });
+    } else {
+      qp.set(k, String(v));
+    }
   }
+  const qs = qp.toString();
+  return qs ? `?${qs}` : '';
+}
 
-  private setupInterceptors() {
-    // Request interceptor - agrega token Bearer
-    this.client.interceptors.request.use(
-      async (config: InternalAxiosRequestConfig) => {
-        const { useAuthStore } = await import('../store/auth.store');
-        const token = useAuthStore.getState().token;
+// ────────────────────────────────────────────────────────────────────────────────
+// ✅ Error de API tipado Y EXPORTADO
+export class ApiErrorClass extends Error {
+  constructor(
+    message: string,
+    public code?: string,
+    public details?: Array<{ field?: string; message: string }>,
+    public unrecognizedKeys?: string[],
+    public traceId?: string
+  ) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
 
-        if (token && config.headers) {
-          config.headers.Authorization = `Bearer ${token}`;
-        }
+// ────────────────────────────────────────────────────────────────────────────────
+// Cliente HTTP
+export class ApiClient {
+  constructor(private baseURL: string = API_BASE_URL) {}
 
-        return config;
-      },
-      (error) => Promise.reject(error)
-    );
+  private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+    const token = useAuthStore.getState().token;
 
-    // Response interceptor - maneja 401 y refresh
-    this.client.interceptors.response.use(
-      (response) => response,
-      async (error) => {
-        const originalRequest = error.config;
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      ...(options.headers as Record<string, string> | undefined),
+    };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
 
-        if (
-          error.response?.status === 401 &&
-          !originalRequest._retry &&
-          !originalRequest.url?.includes('/auth/login') &&
-          !originalRequest.url?.includes('/auth/refresh')
-        ) {
-          if (this.isRefreshing) {
-            return new Promise((resolve) => {
-              this.refreshSubscribers.push((token: string) => {
-                originalRequest.headers.Authorization = `Bearer ${token}`;
-                resolve(this.client(originalRequest));
-              });
-            });
-          }
+    const url = `${this.baseURL}${endpoint}`;
+    const res = await fetch(url, { ...options, headers });
 
-          originalRequest._retry = true;
-          this.isRefreshing = true;
-
-          try {
-            const { useAuthStore } = await import('../store/auth.store');
-            const refreshToken = useAuthStore.getState().refreshToken;
-
-            if (!refreshToken) {
-              throw new Error('No refresh token available');
-            }
-
-            const response = await this.client.post('/auth/refresh', { refreshToken });
-            const { accessToken, refreshToken: newRefreshToken } = response.data;
-
-            useAuthStore.getState().setAuth(
-              useAuthStore.getState().user!,
-              accessToken,
-              newRefreshToken
-            );
-
-            this.refreshSubscribers.forEach((callback) => callback(accessToken));
-            this.refreshSubscribers = [];
-
-            originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-            return this.client(originalRequest);
-          } catch (refreshError) {
-            const { useAuthStore } = await import('../store/auth.store');
-            await useAuthStore.getState().clearAuth();
-            this.refreshSubscribers = [];
-            return Promise.reject(refreshError);
-          } finally {
-            this.isRefreshing = false;
-          }
-        }
-
-        return Promise.reject(error);
+    // Cuerpo (si existe)
+    let data: any = null;
+    const text = await res.text();
+    if (text) {
+      try {
+        data = JSON.parse(text);
+      } catch {
+        data = text; // no-JSON
       }
-    );
+    }
+
+    // 401 → logout
+    if (res.status === 401) {
+      await useAuthStore.getState().clearAuth();
+      throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
+    }
+
+    // Contrato de error
+    if (!res.ok || (data && data.success === false)) {
+      const err = (data ?? {}) as ApiError;
+      throw new ApiErrorClass(
+        err.message || `Error ${res.status}`,
+        err.code,
+        err.details,
+        (err as any).unrecognizedKeys ?? (err as any).unrecognized_keys,
+        (err as any).traceId ?? (err as any).trace_id
+      );
+    }
+
+    // Contrato de éxito: { data } o cuerpo plano
+    return (data && data.data !== undefined ? data.data : data) as T;
   }
 
-  async get<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
-    const response = await this.client.get<T>(url, config);
-    return response.data;
+  // ✅ Método GET con params como segundo argumento (Record<string, any>)
+  get<T>(endpoint: string, params?: Record<string, any>) {
+    const qs = buildQuery(params);
+    return this.request<T>(`${endpoint}${qs}`, { method: 'GET' });
   }
 
-  async post<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
-    const response = await this.client.post<T>(url, data, config);
-    return response.data;
+  post<T>(endpoint: string, body?: any) {
+    return this.request<T>(endpoint, {
+      method: 'POST',
+      body: body ? JSON.stringify(body) : undefined,
+    });
   }
 
-  async put<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
-    const response = await this.client.put<T>(url, data, config);
-    return response.data;
+  patch<T>(endpoint: string, body?: any) {
+    return this.request<T>(endpoint, {
+      method: 'PATCH',
+      body: body ? JSON.stringify(body) : undefined,
+    });
   }
 
-  async patch<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
-    const response = await this.client.patch<T>(url, data, config);
-    return response.data;
+  put<T>(endpoint: string, body?: any) {
+    return this.request<T>(endpoint, {
+      method: 'PUT',
+      body: body ? JSON.stringify(body) : undefined,
+    });
   }
 
-  async delete<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
-    const response = await this.client.delete<T>(url, config);
-    return response.data;
-  }
-
-  buildQueryString(params: Record<string, any>): string {
-    const filtered = Object.entries(params)
-      .filter(([_, value]) => value !== undefined && value !== null && value !== '')
-      .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`)
-      .join('&');
-
-    return filtered ? `?${filtered}` : '';
+  delete<T>(endpoint: string) {
+    return this.request<T>(endpoint, { method: 'DELETE' });
   }
 }
 

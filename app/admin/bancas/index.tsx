@@ -12,14 +12,14 @@ export default function BancasListScreen() {
   const [page, setPage] = useState(1);
 
   const { data, isLoading } = useQuery({
-    queryKey: ['bancas', page, search],
-    queryFn: () =>
-      apiClient.get<PaginatedResponse<Banca>>('/bancas', {
-        page,
-        pageSize: 20,
-        search,
-      }),
-  });
+  queryKey: ['bancas', page, search],
+  queryFn: () =>
+    apiClient.get<PaginatedResponse<Banca>>('/bancas', {
+      page,
+      pageSize: 20,
+      ...(search && search.trim() ? { search: search.trim() } : {}), // 👈 sólo si hay valor
+    }),
+});
 
   return (
     <ScrollView>
