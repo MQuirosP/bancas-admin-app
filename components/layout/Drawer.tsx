@@ -73,7 +73,7 @@ export default function Drawer({ isOpen, onClose }: DrawerProps) {
           icon: Users,
           roles: ['ADMIN'],
           route: '/admin/usuarios',
-          dividerAfter: true, // Separador visual
+          dividerAfter: true,
         },
         {
           id: 'loterias',
@@ -210,13 +210,13 @@ export default function Drawer({ isOpen, onClose }: DrawerProps) {
 
     try {
       router.push(route as any);
-      onClose(); // Cerrar el drawer después de navegar
+      onClose();
     } catch (error) {
       console.error('Error navigating:', error);
     }
   };
 
-  // ========== ANIMACIONES (mantenidas del código original) ==========
+  // ========== ANIMACIONES ==========
   const [rendered, setRendered] = React.useState(isOpen);
   const overlayOpacity = React.useRef(new Animated.Value(isOpen ? 1 : 0)).current;
   const panelX = React.useRef(new Animated.Value(isOpen ? 0 : -24)).current;
@@ -304,10 +304,10 @@ export default function Drawer({ isOpen, onClose }: DrawerProps) {
       >
         <YStack
           f={1}
-          backgroundColor="#1a1a1d"
+          backgroundColor="$backgroundHover"
           borderRightWidth={1}
-          borderRightColor="#2a2a2f"
-          shadowColor="black"
+          borderRightColor="$borderColor"
+          shadowColor="$color"
           shadowRadius={20}
           shadowOpacity={0.35}
         >
@@ -317,20 +317,22 @@ export default function Drawer({ isOpen, onClose }: DrawerProps) {
             alignItems="center"
             justifyContent="space-between"
             borderBottomWidth={1}
-            borderBottomColor="#2a2a2f"
+            borderBottomColor="$borderColor"
             height={64}
+            backgroundColor="$backgroundStrong"
           >
-            <Text fontSize="$5" fontWeight="700" color="#ffffff">
+            <Text fontSize="$5" fontWeight="700" color="$textPrimary">
               Menú
             </Text>
             <Button
               size="$3"
               circular
-              backgroundColor="rgba(255,255,255,0.1)"
+              backgroundColor="$backgroundPress"
               onPress={onClose}
-              pressStyle={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
+              pressStyle={{ backgroundColor: '$backgroundFocus' }}
+              hoverStyle={{ backgroundColor: '$backgroundPress' }}
             >
-              <X size={18} color="#ffffff" />
+              <X size={18} color="$textPrimary" />
             </Button>
           </XStack>
 
@@ -343,28 +345,28 @@ export default function Drawer({ isOpen, onClose }: DrawerProps) {
                   <React.Fragment key={item.id}>
                     <Button
                       backgroundColor="transparent"
-                      color="#ffffff"
+                      color="$textPrimary"
                       justifyContent="flex-start"
                       paddingHorizontal="$4"
                       paddingVertical="$3"
                       borderRadius="$3"
-                      pressStyle={{ backgroundColor: 'rgba(99,102,241,0.2)' }}
-                      hoverStyle={{ backgroundColor: 'rgba(99,102,241,0.1)' }}
+                      pressStyle={{ backgroundColor: '$backgroundPress' }}
+                      hoverStyle={{ backgroundColor: '$backgroundPress' }}
                       onPress={() => handleNavigate(item.route)}
                     >
                       <XStack gap="$3" alignItems="center" width="100%">
-                        <Icon size={20} color="#ffffff" />
-                        <Text fontSize="$4" fontWeight="500" color="#ffffff">
+                        <Icon size={20} color="$textSecondary" />
+                        <Text fontSize="$4" fontWeight="500" color="$textPrimary">
                           {item.label}
                         </Text>
                       </XStack>
                     </Button>
 
-                    {/* Separador visual después de ciertos items */}
+                    {/* Separador visual */}
                     {item.dividerAfter && (
                       <YStack
                         height={1}
-                        backgroundColor="rgba(255,255,255,0.1)"
+                        backgroundColor="$borderColor"
                         marginVertical="$2"
                       />
                     )}
@@ -378,14 +380,14 @@ export default function Drawer({ isOpen, onClose }: DrawerProps) {
           <YStack
             padding="$4"
             borderTopWidth={1}
-            borderTopColor="#2a2a2f"
-            backgroundColor="rgba(0,0,0,0.2)"
+            borderTopColor="$borderColor"
+            backgroundColor="$backgroundStrong"
           >
             <XStack gap="$3" alignItems="center">
               <YStack
                 width={40}
                 height={40}
-                backgroundColor="#6366f1"
+                backgroundColor="$primary"
                 borderRadius="$4"
                 alignItems="center"
                 justifyContent="center"
@@ -395,10 +397,15 @@ export default function Drawer({ isOpen, onClose }: DrawerProps) {
                 </Text>
               </YStack>
               <YStack f={1}>
-                <Text fontSize="$4" fontWeight="600" color="#ffffff" numberOfLines={1}>
+                <Text 
+                  fontSize="$4" 
+                  fontWeight="600" 
+                  color="$textPrimary" 
+                  numberOfLines={1}
+                >
                   {user?.name || 'Usuario'}
                 </Text>
-                <Text fontSize="$2" color="#a1a1aa">
+                <Text fontSize="$2" color="$textTertiary">
                   {user?.role || 'ROL'}
                 </Text>
               </YStack>

@@ -2,7 +2,7 @@
 import axios, { AxiosInstance, AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios';
 import Constants from 'expo-constants';
 
-const API_BASE_URL = Constants.expoConfig?.extra?.apiBaseUrl || 'http://localhost:3000/api/v1';
+const API_BASE_URL = Constants.expoConfig?.extra?.apiBaseUrl || 'https://backend-bancas.onrender.com/api/v1';
 
 class ApiClient {
   private client: AxiosInstance;
