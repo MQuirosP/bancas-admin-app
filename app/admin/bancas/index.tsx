@@ -3,7 +3,7 @@ import React, { useMemo, useState } from 'react';
 import { YStack, XStack, Text, Button, Input, ScrollView, Card, Spinner } from 'tamagui';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { Plus, Search } from '@tamagui/lucide-icons';
+import { Plus, Search, X } from '@tamagui/lucide-icons';
 import { apiClient } from '../../../lib/api.client';
 import { PaginatedResponse, Banca } from '../../../types/models.types';
 
@@ -86,21 +86,39 @@ export default function BancasListScreen() {
           </Button>
         </XStack>
 
-        <XStack gap="$3">
-          <Input
-            flex={1}
-            placeholder="Buscar bancas..."
-            value={searchInput}
-            onChangeText={(v) => setSearchInput(v)}
-            size="$4"
-            // opcional: Enter para buscar
-            onSubmitEditing={handleSearchClick}
-            returnKeyType="search"
-          />
+        <XStack gap="$3" ai="center">
+          <XStack flex={1} gap="$2" ai="center">
+            <Input
+              flex={1}
+              placeholder="Buscar bancas..."
+              value={searchInput}
+              onChangeText={setSearchInput}
+              size="$4"
+              // ✅ Compatibles con RN/Tamagui
+              inputMode="search"
+              enterKeyHint="search"
+              clearButtonMode="while-editing"
+              onSubmitEditing={handleSearchClick}
+              returnKeyType="search"
+              aria-label="Buscar bancas"
+            />
+            {searchInput.length > 0 && (
+              <Button
+                size="$2"
+                variant="outlined"
+                circular
+                icon={X}
+                onPress={() => setSearchInput('')}
+                aria-label="Limpiar búsqueda"
+              />
+            )}
+          </XStack>
+
           <Button icon={Search} onPress={handleSearchClick}>
             Buscar
           </Button>
         </XStack>
+
 
         {isLoading ? (
           <YStack padding="$8" alignItems="center">
