@@ -87,36 +87,44 @@ export default function BancasListScreen() {
         </XStack>
 
         <XStack gap="$3" ai="center">
-          <XStack flex={1} gap="$2" ai="center">
-            <Input
-              flex={1}
-              placeholder="Buscar bancas..."
-              value={searchInput}
-              onChangeText={setSearchInput}
-              size="$4"
-              // ✅ Compatibles con RN/Tamagui
-              inputMode="search"
-              enterKeyHint="search"
-              clearButtonMode="while-editing"
-              onSubmitEditing={handleSearchClick}
-              returnKeyType="search"
-              aria-label="Buscar bancas"
-            />
-            {searchInput.length > 0 && (
-              <Button
-                size="$2"
-                variant="outlined"
-                circular
-                icon={X}
-                onPress={() => setSearchInput('')}
-                aria-label="Limpiar búsqueda"
+          <XStack flex={1} ai="center" gap="$2">
+            <XStack flex={1} position="relative" ai="center">
+              <Input
+                flex={1}
+                placeholder="Buscar bancas..."
+                value={searchInput}
+                onChangeText={setSearchInput}
+                size="$4"
+                inputMode="search"
+                enterKeyHint="search"
+                clearButtonMode="while-editing"       // iOS
+                onSubmitEditing={handleSearchClick}
+                returnKeyType="search"
+                aria-label="Buscar bancas"
+                pr="$8"                                // ← deja espacio para el botón interno
               />
-            )}
-          </XStack>
 
-          <Button icon={Search} onPress={handleSearchClick}>
-            Buscar
-          </Button>
+              {searchInput.length > 0 && (
+                <Button
+                  size="$2"
+                  circular
+                  icon={X}
+                  onPress={() => setSearchInput('')}
+                  aria-label="Limpiar búsqueda"
+                  position="absolute"
+                  right="$2"
+                  // centrado vertical cross-platform
+                  alignSelf="center"
+                  // opcional: quitar fondo para que parezca ícono dentro del input
+                  variant="outlined"
+                />
+              )}
+            </XStack>
+
+            <Button icon={Search} onPress={handleSearchClick}>
+              Buscar
+            </Button>
+          </XStack>
         </XStack>
 
 
