@@ -2,6 +2,7 @@ export interface Banca {
   id: string;
   name: string;
   code: string;
+  address: string;
   isActive: boolean;
   salesCutoffMinutes?: number;
   createdAt: string;
@@ -13,6 +14,7 @@ export interface Ventana {
   bancaId: string;
   name: string;
   code: string;
+  address: string;
   isActive: boolean;
   salesCutoffMinutes?: number;
   createdAt: string;
