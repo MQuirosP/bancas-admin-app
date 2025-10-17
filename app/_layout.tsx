@@ -1,14 +1,15 @@
 // app/_layout.tsx
-import React, { useEffect } from 'react';
-import '../lib/patch-animated'; // ✅ Primera línea después de imports de React
-import { Slot } from 'expo-router';
+import React from 'react';
+import '../lib/patch-animated';
 import { Stack } from 'expo-router';
 import { TamaguiProvider, Theme } from 'tamagui';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import config from '@/tamagui.config';
 import { useThemeStore } from '../store/theme.store';
 import { SystemThemeSync } from '../components/theme/SystemThemeSync';
-import { LogBox } from "react-native";
+import { MainLayout } from '../components/layout/MainLayout';
+import { LogBox } from 'react-native';
+import { useAuthStore } from '../store/auth.store';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -23,20 +24,34 @@ LogBox.ignoreLogs([
   'Animated: `useNativeDriver` is not supported',
 ]);
 
-
 function RootLayoutContent() {
   const { theme } = useThemeStore();
+  const { isAuthenticated } = useAuthStore();
 
+  // Si NO está autenticado, NO mostrar MainLayout (Header/Footer)
+  if (!isAuthenticated) {
+    return (
+      <Theme name={theme}>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="index" />
+          <Stack.Screen name="(auth)" />
+        </Stack>
+      </Theme>
+    );
+  }
+
+  // Si está autenticado, envolver con MainLayout
   return (
     <Theme name={theme}>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="index" />
-        <Stack.Screen name="(auth)" />
-        <Stack.Screen name="(dashboard)" />
-        <Stack.Screen name="admin" />
-        <Stack.Screen name="ventana" />
-        <Stack.Screen name="vendedor" />
-      </Stack>
+      <MainLayout>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="index" />
+          <Stack.Screen name="(dashboard)" />
+          <Stack.Screen name="admin" />
+          <Stack.Screen name="ventana" />
+          <Stack.Screen name="vendedor" />
+        </Stack>
+      </MainLayout>
     </Theme>
   );
 }

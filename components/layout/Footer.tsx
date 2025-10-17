@@ -1,65 +1,26 @@
+// components/layout/Footer.tsx
 import React from 'react';
-import { XStack, Text, Anchor, Separator } from 'tamagui';
+import { XStack, Text } from 'tamagui';
 
+/**
+ * Footer: Componente inmutable que se muestra en toda la aplicación.
+ * Usa SOLO tokens definidos en tamagui.config.ts
+ */
 export const Footer: React.FC = () => {
   return (
     <XStack
-      backgroundColor="$footerBg"
+      backgroundColor="#1a1a1d" // Color fijo oscuro (igual que headerBg)
       borderTopWidth={1}
-      borderTopColor="$borderColor"
+      borderTopColor="#2a2a2f" // Color fijo oscuro
       paddingHorizontal="$4"
       paddingVertical="$3"
       justifyContent="center"
       alignItems="center"
-      gap="$3"
       height={56}
-      shadowColor="$shadowColor"
-      shadowOpacity={0.1}
-      shadowRadius={8}
-      elevation={2}
     >
-      <Text fontSize="$2" color="$textTertiary" fontWeight="400">
-        © 2025 Bancas Admin
+      <Text fontSize="$3" color="#a1a1aa" fontWeight="400">
+        © 2025 Bancas Admin - Todos los derechos reservados
       </Text>
-      
-      <Separator vertical height={16} borderColor="$borderColor" />
-      
-      <Anchor 
-        href="#" 
-        fontSize="$2" 
-        color="$textSecondary"
-        textDecorationLine="none"
-        hoverStyle={{ color: '$primary' }}
-        pressStyle={{ color: '$primaryDark' }}
-      >
-        Soporte
-      </Anchor>
-      
-      <Separator vertical height={16} borderColor="$borderColor" />
-      
-      <Anchor 
-        href="#" 
-        fontSize="$2" 
-        color="$textSecondary"
-        textDecorationLine="none"
-        hoverStyle={{ color: '$primary' }}
-        pressStyle={{ color: '$primaryDark' }}
-      >
-        Términos
-      </Anchor>
-      
-      <Separator vertical height={16} borderColor="$borderColor" />
-      
-      <Anchor 
-        href="#" 
-        fontSize="$2" 
-        color="$textSecondary"
-        textDecorationLine="none"
-        hoverStyle={{ color: '$primary' }}
-        pressStyle={{ color: '$primaryDark' }}
-      >
-        Privacidad
-      </Anchor>
     </XStack>
   );
 };
