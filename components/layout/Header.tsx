@@ -37,7 +37,7 @@ export const Header: React.FC = () => {
 
   return (
     <XStack
-      backgroundColor="$backgroundStrong"
+      backgroundColor="$headerBg"
       paddingHorizontal="$4"
       paddingVertical="$3"
       alignItems="center"
@@ -50,7 +50,7 @@ export const Header: React.FC = () => {
         <Button
           size="$3"
           chromeless
-          icon={<Menu size={24} color="$textPrimary" />}
+          icon={<Menu size={24} color="$headerTitle" />}
           onPress={toggleDrawer}
           hoverStyle={{ backgroundColor: '$backgroundHover' }}
           pressStyle={{ scale: 0.95 }}
@@ -66,7 +66,7 @@ export const Header: React.FC = () => {
           style={{ width: 120, height: 120 }}
           resizeMode="contain"
         />
-        <Text fontSize="$6" fontWeight="600" color="$textPrimary">
+        <Text fontSize="$6" fontWeight="600" color="$headerTitle">
           {pageTitle}
         </Text>
       </XStack>

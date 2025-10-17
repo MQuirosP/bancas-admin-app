@@ -6,6 +6,9 @@ const appConfig = createTamagui({
   ...config,
   themes: {
     light: {
+      headerBg: '#0B1220',
+      headerHover: 'rgba(255,255,255,0.06)',
+      headerTitle: '#ffffff',
       background: '#ffffff',
       backgroundHover: '#f8f9fa',
       backgroundPress: '#e9ecef',
@@ -23,23 +26,23 @@ const appConfig = createTamagui({
       borderColorPress: '#6b7280',
       placeholderColor: '#9ca3af',
       outlineColor: '#4f46e5',
-      
+
       // Colores de texto específicos
       textPrimary: '#1a1a1a',
       textSecondary: '#4b5563',
       textTertiary: '#9ca3af',
-      
+
       // Colores de marca
       primary: '#4f46e5',
       primaryHover: '#4338ca',
       primaryPress: '#3730a3',
-      
+
       // Estados
       success: '#10b981',
       warning: '#f59e0b',
       error: '#ef4444',
       info: '#3b82f6',
-      
+
       // Colores adicionales
       red10: '#ef4444',
       red11: '#dc2626',
@@ -49,6 +52,8 @@ const appConfig = createTamagui({
       green11: '#065f46',
     },
     dark: {
+      headerBg: '#0B1220', // = mismo valor en dark
+      headerHover: 'rgba(255,255,255,0.06)',
       background: '#121214',
       backgroundHover: '#1a1a1d',
       backgroundPress: '#25252a',
@@ -66,23 +71,23 @@ const appConfig = createTamagui({
       borderColorPress: '#4a4a4f',
       placeholderColor: '#71717a',
       outlineColor: '#6366f1',
-      
+
       // Colores de texto específicos para tema oscuro
       textPrimary: '#f5f5f5',
       textSecondary: '#d4d4d8',
       textTertiary: '#a1a1aa',
-      
+
       // Colores de marca
       primary: '#6366f1',
       primaryHover: '#818cf8',
       primaryPress: '#4f46e5',
-      
+
       // Estados
       success: '#34d399',
       warning: '#fbbf24',
       error: '#f87171',
       info: '#60a5fa',
-      
+
       // Colores adicionales
       red10: '#f87171',
       red11: '#ef4444',
