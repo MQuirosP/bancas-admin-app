@@ -1,21 +1,18 @@
 import React, { useState } from 'react';
-import { YStack, XStack, Text, Button, Input, Card, Switch, ScrollView, Select } from 'tamagui';
+import { YStack, XStack, Text, Button, Input, Card, ScrollView, Select } from 'tamagui';
 import { useRouter } from 'expo-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient, ApiErrorClass } from '../../../lib/api.client';
-import { Loteria } from '../../../types/models.types';
+import { Sorteo, Loteria } from '../../../types/models.types';
 import { Check, ChevronDown } from '@tamagui/lucide-icons';
-import { LoteriaMultiplier } from '../../../types/api.types';
 
-export default function NuevoMultiplierScreen() {
+export default function NuevoSorteoScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
 
   const [loteriaId, setLoteriaId] = useState('');
   const [name, setName] = useState('');
-  const [valueX, setValueX] = useState('');
-  const [kind, setKind] = useState<'NUMERO' | 'REVENTADO'>('NUMERO');
-  const [isActive, setIsActive] = useState(true);
+  const [scheduledAt, setScheduledAt] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Cargar lista de loterías para el select
@@ -27,9 +24,9 @@ export default function NuevoMultiplierScreen() {
   const loterias = loteriasData?.data || [];
 
   const createMutation = useMutation({
-    mutationFn: (data: any) => apiClient.post('/multipliers', data),
+    mutationFn: (data: Partial<Sorteo>) => apiClient.post<Sorteo>('/sorteos', data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['multipliers'] });
+      queryClient.invalidateQueries({ queryKey: ['sorteos'] });
       router.back();
     },
     onError: (error: ApiErrorClass) => {
@@ -48,12 +45,10 @@ export default function NuevoMultiplierScreen() {
   const handleSubmit = () => {
     setErrors({});
 
-    const payload: Partial<LoteriaMultiplier> = {
+    const payload: any = {
       loteriaId,
       name,
-      valueX: valueX ? parseFloat(valueX) : undefined,
-      kind,
-      isActive,
+      scheduledAt: scheduledAt ? new Date(scheduledAt).toISOString() : undefined,
     };
 
     createMutation.mutate(payload);
@@ -63,7 +58,7 @@ export default function NuevoMultiplierScreen() {
     <ScrollView flex={1} backgroundColor="$background">
       <YStack padding="$4" gap="$4" maxWidth={600} alignSelf="center" width="100%">
         <Text fontSize="$8" fontWeight="bold" color="$color">
-          Nuevo Multiplicador
+          Nuevo Sorteo
         </Text>
 
         <Card padding="$4">
@@ -107,10 +102,13 @@ export default function NuevoMultiplierScreen() {
               </Text>
               <Input
                 size="$4"
-                placeholder="x2, Base, etc."
+                placeholder="Sorteo Tarde, Sorteo Noche, etc."
                 value={name}
                 onChangeText={setName}
               />
+              <Text fontSize="$2" color="$textSecondary">
+                Máximo 100 caracteres
+              </Text>
               {errors.name && (
                 <Text color="$error" fontSize="$2">
                   {errors.name}
@@ -120,65 +118,23 @@ export default function NuevoMultiplierScreen() {
 
             <YStack gap="$2">
               <Text fontSize="$4" fontWeight="500">
-                Valor Multiplicador *
+                Fecha y Hora Programada *
               </Text>
               <Input
                 size="$4"
-                placeholder="2.0"
-                value={valueX}
-                onChangeText={setValueX}
-                keyboardType="decimal-pad"
+                placeholder="2024-10-17T15:00"
+                value={scheduledAt}
+                onChangeText={setScheduledAt}
               />
-              {errors.valueX && (
-                <Text color="$error" fontSize="$2">
-                  {errors.valueX}
-                </Text>
-              )}
-            </YStack>
-
-            <YStack gap="$2">
-              <Text fontSize="$4" fontWeight="500">
-                Tipo *
+              <Text fontSize="$2" color="$textSecondary">
+                Formato: YYYY-MM-DDTHH:mm (ej: 2024-10-17T15:00)
               </Text>
-              <Select value={kind} onValueChange={(value: string) => setKind(value as 'NUMERO' | 'REVENTADO')}>
-                <Select.Trigger width="100%" iconAfter={ChevronDown}>
-                  <Select.Value placeholder="Tipo de multiplicador" />
-                </Select.Trigger>
-
-                <Select.Content zIndex={200000}>
-                  <Select.ScrollUpButton />
-                  <Select.Viewport>
-                    <Select.Group>
-                      <Select.Item index={0} value="NUMERO">
-                        <Select.ItemText>NUMERO</Select.ItemText>
-                        <Select.ItemIndicator marginLeft="auto">
-                          <Check size={16} />
-                        </Select.ItemIndicator>
-                      </Select.Item>
-                      <Select.Item index={1} value="REVENTADO">
-                        <Select.ItemText>REVENTADO</Select.ItemText>
-                        <Select.ItemIndicator marginLeft="auto">
-                          <Check size={16} />
-                        </Select.ItemIndicator>
-                      </Select.Item>
-                    </Select.Group>
-                  </Select.Viewport>
-                  <Select.ScrollDownButton />
-                </Select.Content>
-              </Select>
-              {errors.kind && (
+              {errors.scheduledAt && (
                 <Text color="$error" fontSize="$2">
-                  {errors.kind}
+                  {errors.scheduledAt}
                 </Text>
               )}
             </YStack>
-
-            <XStack gap="$3" alignItems="center">
-              <Switch size="$4" checked={isActive} onCheckedChange={setIsActive}>
-                <Switch.Thumb animation="quick" />
-              </Switch>
-              <Text fontSize="$4">Activo</Text>
-            </XStack>
           </YStack>
         </Card>
 
@@ -190,9 +146,9 @@ export default function NuevoMultiplierScreen() {
             flex={1}
             backgroundColor="$blue4" borderColor="$blue8" borderWidth={1}
             onPress={handleSubmit}
-            disabled={createMutation.isPending || !loteriaId || !name || !valueX}
+            disabled={createMutation.isPending || !loteriaId || !name || !scheduledAt}
           >
-            {createMutation.isPending ? 'Creando...' : 'Crear Multiplicador'}
+            {createMutation.isPending ? 'Creando...' : 'Crear Sorteo'}
           </Button>
         </XStack>
       </YStack>

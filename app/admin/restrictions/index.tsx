@@ -7,7 +7,7 @@ export default function RestrictionsListScreen() {
   const router = useRouter();
 
   return (
-    <ScrollView>
+    <ScrollView flex={1} backgroundColor="$background">
       <YStack padding="$4" gap="$4">
         <XStack justifyContent="space-between" alignItems="center">
           <Text fontSize="$8" fontWeight="bold" color="$color">

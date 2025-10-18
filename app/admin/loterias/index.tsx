@@ -7,7 +7,7 @@ export default function LoteriasListScreen() {
   const router = useRouter();
 
   return (
-    <ScrollView>
+    <ScrollView flex={1} backgroundColor="$background">
       <YStack padding="$4" gap="$4">
         <XStack justifyContent="space-between" alignItems="center">
           <Text fontSize="$8" fontWeight="bold" color="$color">
@@ -17,7 +17,9 @@ export default function LoteriasListScreen() {
             Nueva Lotería
           </Button>
         </XStack>
-        <Text color="$textSecondary">Implementar CRUD de loterías</Text>
+        <Text color="$textSecondary">
+          Implementar CRUD de loterías
+        </Text>
       </YStack>
     </ScrollView>
   );

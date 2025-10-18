@@ -6,7 +6,7 @@ export default function ConfiguracionScreen() {
   const [enableDebug, setEnableDebug] = useState(false);
 
   return (
-    <ScrollView>
+    <ScrollView flex={1} backgroundColor="$background">
       <YStack padding="$4" gap="$4" maxWidth={600} alignSelf="center" width="100%">
         <Text fontSize="$8" fontWeight="bold" color="$color">
           Configuración Global

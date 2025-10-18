@@ -1,15 +1,24 @@
 import React from 'react';
-import { YStack, Text, ScrollView } from 'tamagui';
+import { YStack, XStack, Text, Button, ScrollView } from 'tamagui';
+import { useRouter } from 'expo-router';
+import { Plus } from '@tamagui/lucide-icons';
 
-export default function AdminTicketsScreen() {
+export default function TicketsListScreen() {
+  const router = useRouter();
+
   return (
-    <ScrollView>
+    <ScrollView flex={1} backgroundColor="$background">
       <YStack padding="$4" gap="$4">
-        <Text fontSize="$8" fontWeight="bold" color="$color">
-          Tickets Globales
-        </Text>
+        <XStack justifyContent="space-between" alignItems="center">
+          <Text fontSize="$8" fontWeight="bold" color="$color">
+            Tickets
+          </Text>
+          <Button icon={Plus} onPress={() => router.push('/admin/tickets/nuevo')}>
+            Nuevo Ticket
+          </Button>
+        </XStack>
         <Text color="$textSecondary">
-          Implementar consulta global con filtros por banca/ventana/fecha/estado
+          Implementar CRUD de tickets de lotería
         </Text>
       </YStack>
     </ScrollView>

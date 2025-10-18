@@ -55,7 +55,7 @@ export default function NuevaVentanaScreen() {
   };
 
   return (
-    <ScrollView>
+    <ScrollView backgroundColor={'$background'}>
       <YStack padding="$4" gap="$4" maxWidth={600} alignSelf="center" width="100%">
         <Text fontSize="$8" fontWeight="bold" color="$color">
           Nueva Ventana

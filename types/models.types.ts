@@ -26,6 +26,7 @@ export interface Usuario {
   code: string;
   name: string;
   email: string;
+  username: string;
   role: string;
   bancaId?: string;
   ventanaId?: string;

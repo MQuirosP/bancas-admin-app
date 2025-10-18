@@ -7,17 +7,19 @@ export default function MultipliersListScreen() {
   const router = useRouter();
 
   return (
-    <ScrollView>
+    <ScrollView flex={1} backgroundColor="$background">
       <YStack padding="$4" gap="$4">
         <XStack justifyContent="space-between" alignItems="center">
           <Text fontSize="$8" fontWeight="bold" color="$color">
-            Multipliers
+            Multiplicadores
           </Text>
           <Button icon={Plus} onPress={() => router.push('/admin/multipliers/nuevo')}>
-            Nuevo Multiplier
+            Nuevo Multiplicador
           </Button>
         </XStack>
-        <Text color="$textSecondary">Implementar CRUD de multipliers con restore/soft delete</Text>
+        <Text color="$textSecondary">
+          Implementar CRUD de multiplicadores (LoteriaMultiplier)
+        </Text>
       </YStack>
     </ScrollView>
   );
