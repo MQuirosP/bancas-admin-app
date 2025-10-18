@@ -174,11 +174,24 @@ export default function NuevoMultiplierScreen() {
             </YStack>
 
             <XStack gap="$3" alignItems="center">
-              <Switch size="$4" checked={isActive} onCheckedChange={setIsActive}>
-                <Switch.Thumb animation="quick" />
+              <Switch
+                size="$2"
+                checked={isActive}
+                onCheckedChange={(v) => setIsActive(!!v)}
+                // visibilidad/contraste en web
+                bw={1}
+                bc="$borderColor"
+                bg={isActive ? '$color10' : '$background'}
+                hoverStyle={{ bg: isActive ? '$color10' : '$backgroundHover' }}
+                aria-label="Activo"
+                focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: 'var(--color10)' }}
+              >
+                <Switch.Thumb animation="quick" bg="$color12" />
               </Switch>
+
               <Text fontSize="$4">Activo</Text>
             </XStack>
+
           </YStack>
         </Card>
 

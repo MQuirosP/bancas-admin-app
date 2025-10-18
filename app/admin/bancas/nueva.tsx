@@ -48,7 +48,7 @@ export default function NuevaBancaScreen() {
   };
 
   return (
-    <ScrollView>
+    <ScrollView flex={1} backgroundColor={'$background'}>
       <YStack padding="$4" gap="$4" maxWidth={600} alignSelf="center" width="100%">
         <Text fontSize="$8" fontWeight="bold" color="$color">
           Nueva Banca
@@ -108,11 +108,30 @@ export default function NuevaBancaScreen() {
             </YStack>
 
             <XStack gap="$3" alignItems="center">
-              <Switch size="$4" checked={isActive} onCheckedChange={setIsActive}>
-                <Switch.Thumb animation="quick" />
+              <Switch
+                size="$2"
+                checked={isActive}
+                onCheckedChange={(val) => setIsActive(!!val)}
+                // estilos base
+                bw={1}
+                bc="$borderColor"
+                // estilos dependientes del estado
+                bg={isActive ? '$color10' : '$background'}
+                hoverStyle={{ bg: isActive ? '$color10' : '$backgroundHover' }}
+                focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: 'var(--color10)' }}
+              >
+                <Switch.Thumb
+                  animation="quick"
+                  bg="$color12"
+                  shadowColor="$shadowColor"
+                  shadowRadius={6}
+                  shadowOffset={{ width: 0, height: 2 }}
+                />
               </Switch>
+
               <Text fontSize="$4">Activa</Text>
             </XStack>
+
           </YStack>
         </Card>
 

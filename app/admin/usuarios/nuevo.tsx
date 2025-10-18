@@ -241,11 +241,23 @@ export default function NuevoUsuarioScreen() {
             </YStack>
 
             <XStack gap="$3" alignItems="center">
-              <Switch size="$4" checked={isActive} onCheckedChange={setIsActive}>
-                <Switch.Thumb animation="quick" />
+              <Switch
+                size="$2"
+                checked={isActive}
+                onCheckedChange={(v) => setIsActive(!!v)}
+                // visibilidad en web
+                bw={1}
+                bc="$borderColor"
+                bg={isActive ? '$color10' : '$background'}
+                hoverStyle={{ bg: isActive ? '$color10' : '$backgroundHover' }}
+                aria-label="Activo"
+              >
+                <Switch.Thumb animation="quick" bg="$color12" />
               </Switch>
+
               <Text fontSize="$4">Activo</Text>
             </XStack>
+
           </YStack>
         </Card>
 
