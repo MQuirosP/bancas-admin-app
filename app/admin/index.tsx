@@ -28,7 +28,7 @@ const dashboardCards: DashboardCard[] = [
     description: 'Gestionar bancas del sistema',
     icon: Store,
     href: '/admin/bancas',
-    color: '$info',
+    color: '$cyan10',
   },
   {
     title: 'Ventanas',
