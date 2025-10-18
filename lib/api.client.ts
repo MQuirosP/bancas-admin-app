@@ -1,6 +1,6 @@
 // lib/api.client.ts
 import Constants from 'expo-constants';
-import { useAuthStore } from '../store/auth.store';
+import { getAccessToken, getRefreshToken, setAccessToken, clearTokens } from './auth.token';
 import { ApiError } from '../types/api.types';
 
 type Extra = {
@@ -40,8 +40,6 @@ function buildQuery(params?: Record<string, any>) {
   return qs ? `?${qs}` : '';
 }
 
-// ────────────────────────────────────────────────────────────────────────────────
-// ✅ Error de API tipado Y EXPORTADO
 export class ApiErrorClass extends Error {
   constructor(
     message: string,
@@ -55,8 +53,6 @@ export class ApiErrorClass extends Error {
   }
 }
 
-// ────────────────────────────────────────────────────────────────────────────────
-// Cliente HTTP con refresh token CORREGIDO
 export class ApiClient {
   private isRefreshing = false;
   private refreshSubscribers: Array<(token: string) => void> = [];
@@ -73,7 +69,7 @@ export class ApiClient {
   }
 
   private async refreshAccessToken(): Promise<string> {
-    const { refreshToken } = useAuthStore.getState();
+    const refreshToken = await getRefreshToken();
     
     if (!refreshToken) {
       throw new Error('No refresh token available');
@@ -99,20 +95,19 @@ export class ApiClient {
         throw new Error('No access token in refresh response');
       }
 
-      // Actualizar el token en el store
-      useAuthStore.setState({ token: newAccessToken });
+      // ✅ SOLO guardar en auth.token.ts, NO tocar el store
+      await setAccessToken(newAccessToken);
 
       return newAccessToken;
     } catch (error) {
       console.error('❌ Error en refresh token:', error);
-      // Si falla el refresh, cerrar sesión
-      await useAuthStore.getState().clearAuth();
+      await clearTokens();
       throw error;
     }
   }
 
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    const token = useAuthStore.getState().token;
+    const token = await getAccessToken();
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -122,14 +117,12 @@ export class ApiClient {
 
     const url = `${this.baseURL}${endpoint}`;
     
-    // CRÍTICO: NO hacer refresh en endpoints de auth
     const isAuthEndpoint = endpoint.includes('/auth/login') || 
                           endpoint.includes('/auth/refresh') || 
                           endpoint.includes('/auth/register');
     
     let res = await fetch(url, { ...options, headers });
 
-    // Si es 401 Y NO es un endpoint de auth, intentar refresh
     if (res.status === 401 && !isAuthEndpoint) {
       console.log('🔄 Token expirado, intentando refresh...');
       
@@ -143,7 +136,6 @@ export class ApiClient {
 
           console.log('✅ Token refrescado exitosamente');
           
-          // Reintentar la petición original con el nuevo token
           headers['Authorization'] = `Bearer ${newToken}`;
           res = await fetch(url, { ...options, headers });
         } catch (error) {
@@ -152,21 +144,17 @@ export class ApiClient {
           throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
         }
       } else {
-        // Si ya se está refrescando, esperar a que termine
         console.log('⏳ Esperando refresh en progreso...');
         const newToken = await new Promise<string>((resolve, reject) => {
           this.subscribeTokenRefresh(resolve);
-          // Timeout de 10 segundos
           setTimeout(() => reject(new Error('Refresh timeout')), 10000);
         });
 
-        // Reintentar con el nuevo token
         headers['Authorization'] = `Bearer ${newToken}`;
         res = await fetch(url, { ...options, headers });
       }
     }
 
-    // Cuerpo (si existe)
     let data: any = null;
     const text = await res.text();
     if (text) {
@@ -177,7 +165,6 @@ export class ApiClient {
       }
     }
 
-    // Contrato de error
     if (!res.ok || (data && data.success === false)) {
       const err = (data ?? {}) as ApiError;
       throw new ApiErrorClass(
@@ -189,7 +176,6 @@ export class ApiClient {
       );
     }
 
-    // Contrato de éxito: { data } o cuerpo plano
     return (data && data.data !== undefined ? data.data : data) as T;
   }
 

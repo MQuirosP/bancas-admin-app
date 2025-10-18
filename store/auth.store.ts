@@ -3,22 +3,19 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { authService } from '../services/auth.service';
-
-// 👇 Importar tipos desde auth.types.ts
+import { clearTokens } from '../lib/auth.token';
 import { User, UserRole } from '../types/auth.types';
 
 interface AuthState {
   user: User | null;
-  token: string | null;
-  refreshToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
 
-  // ✅ Métodos
+  // Métodos
   login: (username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
-  setAuth: (user: User, token: string, refreshToken?: string) => Promise<void>;
+  setAuth: (user: User) => void;
   clearAuth: () => Promise<void>;
   setUser: (user: User) => void;
   clearError: () => void;
@@ -28,42 +25,37 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
       user: null,
-      token: null,
-      refreshToken: null,
       isAuthenticated: false,
       isLoading: false,
       error: null,
 
-      // ✅ Guarda user + tokens y marca autenticado
-      setAuth: async (user: User, token: string, refreshToken?: string) => {
+      // ✅ Solo guarda el user, NO tokens
+      setAuth: (user: User) => {
         set({
           user,
-          token,
-          refreshToken: refreshToken || null,
           isAuthenticated: true,
           error: null,
         });
       },
 
-      // ✅ Limpia todo el estado de auth
+      // ✅ Limpia estado Y tokens de SecureStore
       clearAuth: async () => {
+        await clearTokens();
         set({
           user: null,
-          token: null,
-          refreshToken: null,
           isAuthenticated: false,
           error: null,
         });
       },
 
-      // ✅ Flujo de login corregido
+      // ✅ Login completo
       login: async (username: string, password: string) => {
         set({ isLoading: true, error: null });
 
         try {
           console.log('🔐 Intentando login con:', username);
 
-          // 1) /auth/login
+          // 1) authService.login() ya guarda tokens en auth.token.ts
           const loginResponse = await authService.login(username, password);
           console.log('✅ Login exitoso');
 
@@ -71,13 +63,7 @@ export const useAuthStore = create<AuthState>()(
             throw new Error('Respuesta de login inválida');
           }
 
-          const { accessToken, refreshToken } = loginResponse.data;
-
-          // 2) Guardar SOLO el token en el store ANTES de /auth/me
-          //    para que apiClient añada Authorization automáticamente
-          useAuthStore.setState({ token: accessToken });
-
-          // 3) /auth/me (no pases token; lo lee el apiClient del store)
+          // 2) Obtener información del usuario
           console.log('📡 Obteniendo información del usuario...');
           const meResponse = await authService.me();
 
@@ -92,8 +78,8 @@ export const useAuthStore = create<AuthState>()(
             name: user.name,
           });
 
-          // 4) Persistir todo junto y marcar autenticado
-          await get().setAuth(user, accessToken, refreshToken || undefined);
+          // 3) Guardar solo el usuario en el store
+          get().setAuth(user);
 
           set({ isLoading: false });
           console.log('✅ Login completado exitosamente');
@@ -103,11 +89,9 @@ export const useAuthStore = create<AuthState>()(
 
           const errorMessage = error?.message || 'Error al iniciar sesión';
 
-          // Limpia estado y propaga error
+          // Limpia estado
           set({
             user: null,
-            token: null,
-            refreshToken: null,
             isAuthenticated: false,
             isLoading: false,
             error: errorMessage,
@@ -117,10 +101,11 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      // ✅ Logout sin pasar token (apiClient lo añade si existe)
+      // ✅ Logout
       logout: async () => {
         try {
           console.log('🚪 Cerrando sesión...');
+          // authService.logout() ya limpia tokens de auth.token.ts
           await authService.logout();
           console.log('✅ Logout exitoso');
         } catch (error) {
@@ -141,9 +126,13 @@ export const useAuthStore = create<AuthState>()(
     {
       name: 'auth-storage',
       storage: createJSONStorage(() => AsyncStorage),
+      // ✅ Solo persistir user e isAuthenticated
+      partialize: (state) => ({
+        user: state.user,
+        isAuthenticated: state.isAuthenticated,
+      }),
     }
   )
 );
 
-// Export types
 export type { User, UserRole };

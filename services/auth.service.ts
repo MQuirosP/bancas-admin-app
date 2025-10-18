@@ -1,5 +1,6 @@
 // services/auth.service.ts
 import { apiClient } from '../lib/api.client';
+import { setTokens, setAccessToken, clearTokens } from '../lib/auth.token';
 import { User } from '../types/auth.types';
 
 export interface LoginResponse {
@@ -18,9 +19,7 @@ export interface MeResponse {
   message?: string;
 }
 
-// ── Normalizadores ─────────────────────────────────────────────────────────────
 function normalizeLoginPayload(raw: any): LoginResponse {
-  // tu apiClient ya retorna body o body.data directo; aquí lo envolvemos
   const payload = raw;
 
   const accessToken =
@@ -43,7 +42,6 @@ function normalizeLoginPayload(raw: any): LoginResponse {
     undefined;
 
   if (!accessToken) {
-    // mensaje que tu store espera para marcar error
     throw new Error('Respuesta de login inválida');
   }
 
@@ -68,15 +66,20 @@ function normalizeMePayload(raw: any): MeResponse {
   return { success: true, data: user, message: payload?.message };
 }
 
-// ── Servicio ───────────────────────────────────────────────────────────────────
 class AuthService {
   async login(username: string, password: string): Promise<LoginResponse> {
-    // apiClient.post devuelve body o body.data (NO el AxiosResponse)
     const body = await apiClient.post<any>('/auth/login', { username, password });
-    return normalizeLoginPayload(body);
+    const normalized = normalizeLoginPayload(body);
+    
+    // ✅ GUARDAR tokens en auth.token.ts
+    await setTokens(
+      normalized.data.accessToken,
+      normalized.data.refreshToken || ''
+    );
+    
+    return normalized;
   }
 
-  // sin parámetros: apiClient añade Authorization desde el store
   async me(): Promise<MeResponse> {
     const body = await apiClient.get<any>('/auth/me');
     return normalizeMePayload(body);
@@ -84,11 +87,18 @@ class AuthService {
 
   async logout(): Promise<void> {
     await apiClient.post<void>('/auth/logout');
+    // ✅ LIMPIAR tokens
+    await clearTokens();
   }
 
   async refresh(refreshToken: string): Promise<LoginResponse> {
     const body = await apiClient.post<any>('/auth/refresh', { refreshToken });
-    return normalizeLoginPayload(body);
+    const normalized = normalizeLoginPayload(body);
+    
+    // ✅ ACTUALIZAR access token
+    await setAccessToken(normalized.data.accessToken);
+    
+    return normalized;
   }
 }
 

@@ -1,4 +1,3 @@
-// app/(dashboard)/_layout.tsx
 import React from 'react';
 import { Stack } from 'expo-router';
 import { YStack, XStack, Text, Theme } from 'tamagui';
@@ -14,7 +13,7 @@ export default function DashboardLayout() {
   return (
     <YStack flex={1}>
       {/* Header - Usa el componente centralizado */}
-      <Header />
+      {/* <Header /> */}
 
       {/* Content - Aplica el tema dinámico */}
       <Theme name={theme}>
@@ -26,7 +25,7 @@ export default function DashboardLayout() {
       </Theme>
 
       {/* Drawer superpuesto */}
-      <Drawer isOpen={drawerOpen} onClose={closeDrawer} />
+      {/* <Drawer isOpen={drawerOpen} onClose={closeDrawer} /> */}
 
       {/* Footer - SIEMPRE OSCURO */}
       <XStack
