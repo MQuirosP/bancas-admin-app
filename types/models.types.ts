@@ -21,18 +21,28 @@ export interface Ventana {
   updatedAt: string;
 }
 
+// --- Usuarios ---
+
+export type UserRole = 'ADMIN' | 'VENTANA' | 'VENDEDOR';
+
 export interface Usuario {
   id: string;
-  code: string;
   name: string;
-  email: string;
   username: string;
-  role: string;
-  bancaId?: string;
-  ventanaId?: string;
-  salesCutoffMinutes?: number;
+  email?: string | null;
+  code?: string | null;
+  role: UserRole;
+  ventanaId?: string | null;   // solo para VENTANA / VENDEDOR
   isActive: boolean;
+
+  // soft-delete flags (el backend los tiene)
+  isDeleted?: boolean;
+  deletedAt?: string | null;
+  deletedBy?: string | null;
+  deletedReason?: string | null;
+
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface Loteria {
@@ -159,4 +169,25 @@ export interface PaginatedResponse<T> {
     total: number;
     totalPages: number;
   };
+}
+
+// Paginación estándar del backend (usa "meta", no "pagination")
+export interface MetaPage {
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}
+
+export interface ApiListResponse<T> {
+  success: boolean;
+  data: T[];
+  meta: MetaPage;
+}
+
+export interface ApiItemResponse<T> {
+  success: boolean;
+  data: T;
 }

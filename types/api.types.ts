@@ -424,3 +424,19 @@ export interface DashboardStats {
   }>;
   tickets: Ticket[];
 }
+
+export type ApiListMeta = {
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  hasNextPage?: boolean;
+  hasPrevPage?: boolean;
+};
+
+export type ApiListResponse<T> = { data: T[]; meta: ApiListMeta };
+export type ApiItemResponse<T> = { data: T };
+export type UsersQueryParams = {
+  page?: number; pageSize?: number; role?: 'ADMIN'|'VENTANA'|'VENDEDOR';
+  isDeleted?: boolean; search?: string;
+};

@@ -8,16 +8,17 @@ type Extra = {
   apiBaseUrl?: string;
 };
 
-const extra =
-  ((Constants as any)?.expoConfig?.extra ??
-    (Constants as any)?.manifest?.extra ??
-    {}) as Extra;
+const extra = ((Constants as any)?.expoConfig?.extra ??
+  (Constants as any)?.manifest?.extra ??
+  {}) as Extra;
 
 const API_BASE_URL =
   process.env.EXPO_PUBLIC_API_BASE_URL ??
   extra.EXPO_PUBLIC_API_BASE_URL ??
   extra.apiBaseUrl ??
   'https://backend-bancas.onrender.com/api/v1';
+
+export const buildQueryString = buildQuery; // alias público
 
 function buildQuery(params?: Record<string, any>) {
   if (!params) return '';
@@ -59,6 +60,21 @@ export class ApiClient {
 
   constructor(private baseURL: string = API_BASE_URL) {}
 
+  public buildQueryString(params?: Record<string, any>) {
+  return buildQuery(params);
+}
+
+  private async requestWithBody<T>(
+    endpoint: string,
+    method: 'DELETE' | 'POST' | 'PUT' | 'PATCH',
+    body?: any
+  ): Promise<T> {
+    return this.request<T>(endpoint, {
+      method,
+      body: body ? JSON.stringify(body) : undefined,
+    });
+  }
+
   private subscribeTokenRefresh(callback: (token: string) => void) {
     this.refreshSubscribers.push(callback);
   }
@@ -70,7 +86,7 @@ export class ApiClient {
 
   private async refreshAccessToken(): Promise<string> {
     const refreshToken = await getRefreshToken();
-    
+
     if (!refreshToken) {
       throw new Error('No refresh token available');
     }
@@ -116,26 +132,27 @@ export class ApiClient {
     if (token) headers['Authorization'] = `Bearer ${token}`;
 
     const url = `${this.baseURL}${endpoint}`;
-    
-    const isAuthEndpoint = endpoint.includes('/auth/login') || 
-                          endpoint.includes('/auth/refresh') || 
-                          endpoint.includes('/auth/register');
-    
+
+    const isAuthEndpoint =
+      endpoint.includes('/auth/login') ||
+      endpoint.includes('/auth/refresh') ||
+      endpoint.includes('/auth/register');
+
     let res = await fetch(url, { ...options, headers });
 
     if (res.status === 401 && !isAuthEndpoint) {
       console.log('🔄 Token expirado, intentando refresh...');
-      
+
       if (!this.isRefreshing) {
         this.isRefreshing = true;
-        
+
         try {
           const newToken = await this.refreshAccessToken();
           this.isRefreshing = false;
           this.onTokenRefreshed(newToken);
 
           console.log('✅ Token refrescado exitosamente');
-          
+
           headers['Authorization'] = `Bearer ${newToken}`;
           res = await fetch(url, { ...options, headers });
         } catch (error) {
@@ -207,6 +224,10 @@ export class ApiClient {
 
   delete<T>(endpoint: string) {
     return this.request<T>(endpoint, { method: 'DELETE' });
+  }
+
+  deleteWithBody<T>(endpoint: string, body?: any) {
+    return this.requestWithBody<T>(endpoint, 'DELETE', body);
   }
 }
 
