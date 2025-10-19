@@ -1,13 +1,13 @@
+// app/admin/loterias/nueva.tsx
 import React from 'react'
 import { YStack, Text, ScrollView } from 'tamagui'
-import { useRouter } from 'expo-router'
 import { useToast } from '@/hooks/useToast'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { apiClient } from '@/lib/api.client'
-import LoteriaForm from '../../../components/loterias/LoteriaForm'
+import { apiClient, ApiErrorClass } from '@/lib/api.client'
+import LoteriaForm from '@/components/loterias/LoteriaForm'
+import { safeBack, goToList } from '@/lib/navigation'
 
 export default function NuevaLoteriaScreen() {
-  const router = useRouter()
   const toast = useToast()
   const qc = useQueryClient()
 
@@ -16,17 +16,10 @@ export default function NuevaLoteriaScreen() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['loterias'] })
       toast.success('Lotería guardada')
-      router.replace('/admin/loterias')
+      goToList('/admin/loterias')
     },
-    onError: (e: any) => toast.error(e?.message || 'No fue posible guardar'),
+    onError: (e: ApiErrorClass) => toast.error(e?.message || 'No fue posible guardar'),
   })
-
-  const goBackSafe = () => {
-    // web puede no tener historial
-    // @ts-ignore
-    if (typeof router.canGoBack === 'function' && router.canGoBack()) router.back()
-    else router.replace('/admin/loterias')
-  }
 
   return (
     <ScrollView flex={1} backgroundColor="$background">
@@ -36,7 +29,7 @@ export default function NuevaLoteriaScreen() {
           mode="create"
           submitting={create.isPending}
           onSubmit={(values) => create.mutate(values)}
-          onCancel={goBackSafe}
+          onCancel={() => safeBack('/admin/loterias')}
         />
       </YStack>
     </ScrollView>

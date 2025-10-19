@@ -1,174 +1,150 @@
-import React, { useState } from 'react';
-import { YStack, XStack, Text, Button, Input, Card, Switch, Select, ScrollView } from 'tamagui';
-import { useRouter } from 'expo-router';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { apiClient, ApiErrorClass } from '../../../lib/api.client';
-import { Banca, Ventana } from '../../../types/models.types';
+// app/admin/ventanas/nueva.tsx
+import React, { useEffect, useMemo, useState } from 'react'
+import { YStack, XStack, Text, Button, Card, ScrollView, Spinner } from 'tamagui'
+import { useRouter } from 'expo-router'
+import { ArrowLeft, Save, RefreshCw } from '@tamagui/lucide-icons'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useToast } from '@/hooks/useToast'
+import { Toolbar } from '@/components/ui/Toolbar'
+import { useConfirm } from '@/components/ui/Confirm'
+import VentanaForm, { VentanaFormValues } from '@/components/ventanas/VentanaForm'
+import { createVentana, listBancasLite } from '@/services/ventanas.service'
 
 export default function NuevaVentanaScreen() {
-  const router = useRouter();
-  const queryClient = useQueryClient();
+  const router = useRouter()
+  const toast = useToast()
+  const qc = useQueryClient()
+  const { confirm, ConfirmRoot } = useConfirm()
 
-  const [bancaId, setBancaId] = useState('');
-  const [name, setName] = useState('');
-  const [code, setCode] = useState('');
-  const [isActive, setIsActive] = useState(true);
-  const [salesCutoffMinutes, setSalesCutoffMinutes] = useState('');
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const { data: bancas, isLoading: loadingBancas, isError: errorBancas, refetch: refetchBancas, isFetching } = useQuery({
+    queryKey: ['bancas', 'lite'],
+    queryFn: listBancasLite,
+    staleTime: 60_000,
+  })
 
-  const { data: bancas } = useQuery({
-    queryKey: ['bancas'],
-    queryFn: () => apiClient.get<Banca[]>('/bancas'),
-  });
+  const firstBancaId = useMemo(() => (bancas?.[0]?.id ?? ''), [bancas])
 
-  const createMutation = useMutation({
-    mutationFn: (data: Partial<Ventana>) => apiClient.post<Ventana>('/ventanas', data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['ventanas'] });
-      router.back();
+  const [values, setValues] = useState<VentanaFormValues>({
+    bancaId: '',
+    name: '',
+    code: '',
+    email: '',
+    phone: '',
+    address: '',
+    commissionMarginX: null,
+    isActive: true,
+  })
+
+  useEffect(() => {
+    if (!values.bancaId && firstBancaId) {
+      setValues((prev) => ({ ...prev, bancaId: firstBancaId }))
+    }
+  }, [firstBancaId])
+
+  const setField: typeof setValues extends (arg: infer _T) => any
+    ? <K extends keyof VentanaFormValues>(key: K, val: VentanaFormValues[K]) => void
+    : never = (key, val) => setValues((prev) => ({ ...prev, [key]: val }))
+
+  const isDirty = useMemo(() => JSON.stringify(values) !== JSON.stringify({
+    bancaId: '',
+    name: '',
+    code: '',
+    email: '',
+    phone: '',
+    address: '',
+    commissionMarginX: null,
+    isActive: true,
+  }), [values])
+
+  const creating = useMutation({
+    mutationFn: () => createVentana({
+      bancaId: values.bancaId,
+      name: values.name.trim(),
+      code: values.code.trim() || null,
+      email: values.email.trim() || null,
+      phone: values.phone.trim() || null,
+      address: values.address.trim() || null,
+      commissionMarginX: values.commissionMarginX == null ? null : Number(values.commissionMarginX),
+      isActive: !!values.isActive,
+    }),
+    onSuccess: (res: any) => {
+      qc.invalidateQueries({ queryKey: ['ventanas'] })
+      toast.success('Ventana creada')
+      const createdId = res?.data?.id ?? res?.id
+      if (createdId) router.replace(`/admin/ventanas/${createdId}` as any)
+      else router.back()
     },
-    onError: (error: ApiErrorClass) => {
-      if (error.details) {
-        const fieldErrors: Record<string, string> = {};
-        error.details.forEach((detail) => {
-          if (detail.field) {
-            fieldErrors[detail.field] = detail.message;
-          }
-        });
-        setErrors(fieldErrors);
-      }
-    },
-  });
+    onError: (e: any) => toast.error(e?.message || 'No fue posible crear la ventana'),
+  })
 
-  const handleSubmit = () => {
-    setErrors({});
+  const onSave = () => {
+    if (!values.bancaId) return toast.error('Selecciona una banca')
+    if (!values.name || values.name.trim().length < 2) return toast.error('El nombre es obligatorio')
+    creating.mutate()
+  }
 
-    const payload: Partial<Ventana> = {
-      bancaId,
-      name,
-      code,
-      isActive,
-      salesCutoffMinutes: salesCutoffMinutes ? parseInt(salesCutoffMinutes) : undefined,
-    };
-
-    createMutation.mutate(payload);
-  };
+  const onCancel = async () => {
+    if (!isDirty) return router.back()
+    const ok = await confirm({
+      title: 'Cancelar creación',
+      description: 'Hay cambios sin guardar. ¿Deseas salir de todos modos?',
+      okText: 'Salir',
+    })
+    if (ok) router.back()
+  }
 
   return (
-    <ScrollView backgroundColor={'$background'}>
-      <YStack padding="$4" gap="$4" maxWidth={600} alignSelf="center" width="100%">
-        <Text fontSize="$8" fontWeight="bold" color="$color">
-          Nueva Ventana
-        </Text>
+    <ScrollView flex={1} backgroundColor="$background" contentContainerStyle={{ flexGrow: 1 }}>
+      <YStack flex={1} padding="$4" gap="$4">
+        {/* Header */}
+        <XStack jc="space-between" ai="center" gap="$3" flexWrap="wrap">
+          <XStack ai="center" gap="$2">
+            <Button
+              icon={ArrowLeft}
+              onPress={onCancel}
+              bg="$background"
+              hoverStyle={{ bg: '$backgroundHover', scale: 1.02 }}
+              pressStyle={{ scale: 0.98 }}
+            >
+              <Text>Cancelar</Text>
+            </Button>
 
-        <Card padding="$4">
-          <YStack gap="$4">
-            <YStack gap="$2">
-              <Text fontSize="$4" fontWeight="500">
-                Banca *
-              </Text>
-              <Select value={bancaId} onValueChange={setBancaId}>
-                <Select.Trigger width="100%">
-                  <Select.Value placeholder="Seleccionar banca" />
-                </Select.Trigger>
-                <Select.Content zIndex={200000}>
-                  <Select.Viewport>
-                    {bancas?.map((banca, index) => (
-                      <Select.Item key={banca.id} index={index} value={banca.id}>
-                        <Select.ItemText>{banca.name}</Select.ItemText>
-                      </Select.Item>
-                    ))}
-                  </Select.Viewport>
-                </Select.Content>
-              </Select>
-              {errors.bancaId && (
-                <Text color="$error" fontSize="$2">
-                  {errors.bancaId}
-                </Text>
-              )}
-            </YStack>
-
-            <YStack gap="$2">
-              <Text fontSize="$4" fontWeight="500">
-                Nombre *
-              </Text>
-              <Input size="$4" placeholder="Nombre de la ventana" value={name} onChangeText={setName} />
-              {errors.name && (
-                <Text color="$error" fontSize="$2">
-                  {errors.name}
-                </Text>
-              )}
-            </YStack>
-
-            <YStack gap="$2">
-              <Text fontSize="$4" fontWeight="500">
-                Código *
-              </Text>
-              <Input
-                size="$4"
-                placeholder="VNT-001"
-                value={code}
-                onChangeText={setCode}
-                autoCapitalize="characters"
-              />
-              {errors.code && (
-                <Text color="$error" fontSize="$2">
-                  {errors.code}
-                </Text>
-              )}
-            </YStack>
-
-            <YStack gap="$2">
-              <Text fontSize="$4" fontWeight="500">
-                Minutos de Cutoff (opcional)
-              </Text>
-              <Input
-                size="$4"
-                placeholder="5"
-                value={salesCutoffMinutes}
-                onChangeText={setSalesCutoffMinutes}
-                keyboardType="number-pad"
-              />
-              <Text fontSize="$2" color="$textSecondary">
-                Sobrescribe el cutoff de la banca
-              </Text>
-            </YStack>
-
-            <XStack gap="$3" alignItems="center">
-              <Switch
-                size="$2"
-                checked={isActive}
-                onCheckedChange={(v) => setIsActive(!!v)}
-                // visibilidad/contraste en web
-                bw={1}
-                bc="$borderColor"
-                bg={isActive ? '$color10' : '$background'}
-                hoverStyle={{ bg: isActive ? '$color10' : '$backgroundHover' }}
-                aria-label="Activa"
-              >
-                <Switch.Thumb animation="quick" bg="$color12" />
-              </Switch>
-
-              <Text fontSize="$4">Activa</Text>
+            <XStack ai="center" gap="$2">
+              <Text fontSize="$8" fontWeight="bold">Nueva Ventana</Text>
+              {(isFetching || loadingBancas) && <Spinner size="small" />}
             </XStack>
+          </XStack>
 
-          </YStack>
-        </Card>
-
-        <XStack gap="$3">
-          <Button flex={1} backgroundColor="$red4" borderColor="$red8" borderWidth={1} onPress={() => router.back()}>
-            Cancelar
-          </Button>
-          <Button
-            flex={1}
-            backgroundColor="$blue4" borderColor="$blue8" borderWidth={1}
-            onPress={handleSubmit}
-            disabled={createMutation.isPending || !bancaId || !name || !code}
-          >
-            {createMutation.isPending ? 'Creando...' : 'Crear Ventana'}
-          </Button>
+          <XStack gap="$2" flexWrap="wrap">
+            <Button icon={RefreshCw} onPress={() => refetchBancas()}><Text>Refrescar</Text></Button>
+            <Button
+              icon={Save}
+              onPress={onSave}
+              bg="$primary"
+              color="$background"
+              hoverStyle={{ bg: '$primaryHover', scale: 1.02 }}
+              pressStyle={{ bg: '$primaryPress', scale: 0.98 }}
+              disabled={creating.isPending}
+            >
+              {creating.isPending ? <Spinner size="small" /> : <Text>Guardar</Text>}
+            </Button>
+          </XStack>
         </XStack>
+
+        {/* Form */}
+        <Toolbar>
+          <VentanaForm
+            values={values}
+            setField={setField}
+            bancas={bancas ?? []}
+            loadingBancas={loadingBancas}
+            errorBancas={errorBancas}
+            onRetryBancas={() => refetchBancas()}
+          />
+        </Toolbar>
+
+        <ConfirmRoot />
       </YStack>
     </ScrollView>
-  );
+  )
 }
