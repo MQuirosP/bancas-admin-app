@@ -1,16 +1,30 @@
 // app/admin/usuarios/index.tsx
 import React, { useMemo, useState } from 'react'
-import { YStack, XStack, Text, Button, Input, Card, ScrollView, Spinner, Separator, Switch } from 'tamagui'
+import {
+  YStack,
+  XStack,
+  Text,
+  Button,
+  Input,
+  Card,
+  ScrollView,
+  Spinner,
+  Separator,
+  Select,
+  Sheet,
+} from 'tamagui'
 import { useRouter } from 'expo-router'
-import { Plus, Search, X, Trash2, RefreshCw } from '@tamagui/lucide-icons'
+import { Plus, Search, X, Trash2, RefreshCw, ChevronDown, Check } from '@tamagui/lucide-icons'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient, ApiErrorClass } from '@/lib/api.client'
 import type { Usuario } from '@/types/models.types'
 import type { UsersQueryParams } from '@/services/users.service'
 import { useToast } from '@/hooks/useToast'
 import { Toolbar } from '@/components/ui/Toolbar'
-import { RoleBadge, StatusPill } from '@/components/ui/Badge'
-import { useConfirm } from '@/components/ui/Confirm' // tu modal propio basado en RN Modal
+import { RoleBadge } from '@/components/ui/Badge'
+import ActiveBadge from '@/components/ui/ActiveBadge'
+import { useConfirm } from '@/components/ui/Confirm'
+import FilterSwitch from '@/components/ui/FilterSwitch'
 
 async function fetchUsers(
   params: UsersQueryParams & { page: number; pageSize: number }
@@ -26,6 +40,85 @@ async function fetchUsers(
     totalPages: Number(m?.totalPages ?? 1),
   }
   return { data: items, meta }
+}
+
+/** Select de roles SIN Select.Portal (compatible con tu versión) */
+function RoleSelect({
+  value,
+  onChange,
+}: {
+  value: UsersQueryParams['role'] | undefined
+  onChange: (val: UsersQueryParams['role'] | undefined) => void
+}) {
+  type RoleValue = UsersQueryParams['role'] | 'ALL' | undefined
+  const internal = (value ?? 'ALL') as RoleValue
+
+  const items: { value: RoleValue; label: string }[] = [
+    { value: 'ALL',      label: 'Todos' },
+    { value: 'ADMIN',    label: 'ADMIN' },
+    { value: 'VENTANA',  label: 'VENTANA' },
+    { value: 'VENDEDOR', label: 'VENDEDOR' },
+  ]
+
+  const labelOf = (v: RoleValue) => items.find(i => i.value === v)?.label ?? 'Todos'
+
+  return (
+    <Select
+      size="$3"
+      value={internal}
+      onValueChange={(v: string) =>
+        onChange(v === 'ALL' ? undefined : (v as UsersQueryParams['role']))
+      }
+    >
+      <Select.Trigger
+        px="$3"
+        br="$3"
+        bw={1}
+        bc="$borderColor"
+        bg="$background"
+        hoverStyle={{ bg: '$backgroundHover' }}
+        focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
+        iconAfter={ChevronDown}
+      >
+        <Select.Value>{labelOf(internal)}</Select.Value>
+      </Select.Trigger>
+
+      {/* Adapt móvil */}
+      <Select.Adapt when="sm">
+        <Sheet modal dismissOnSnapToBottom animation="quick">
+          <Sheet.Frame p="$4">
+            <Select.Adapt.Contents />
+          </Sheet.Frame>
+          <Sheet.Overlay />
+        </Sheet>
+      </Select.Adapt>
+
+      {/* Contenido inline (sin Portal) */}
+      <Select.Content zIndex={1000}>
+        <YStack br="$3" bw={1} bc="$borderColor" bg="$background">
+          <Select.ScrollUpButton />
+          <Select.Viewport>
+            {items.map((it, idx) => (
+              <Select.Item
+                key={String(it.value)}
+                value={String(it.value)}
+                index={idx}
+                pressStyle={{ bg: '$backgroundHover' }}
+                bw={0}
+                px="$3"
+              >
+                <Select.ItemText>{it.label}</Select.ItemText>
+                <Select.ItemIndicator ml="auto">
+                  <Check size={16} />
+                </Select.ItemIndicator>
+              </Select.Item>
+            ))}
+          </Select.Viewport>
+          <Select.ScrollDownButton />
+        </YStack>
+      </Select.Content>
+    </Select>
+  )
 }
 
 export default function UsuariosListScreen() {
@@ -95,15 +188,15 @@ export default function UsuariosListScreen() {
             pressStyle={{ bg: '$primaryPress', scale: 0.98 }}
             color="$background"
           >
-            Nuevo Usuario
+            <Text>Nuevo Usuario</Text>
           </Button>
         </XStack>
 
         {/* Filtros */}
         <Toolbar>
           <YStack gap="$3">
-            <XStack gap="$2" ai="center" flexWrap="wrap">
-              <XStack flex={1} position="relative" ai="center">
+            <XStack gap="$3" ai="center" flexWrap="wrap">
+              <XStack flex={1} position="relative" ai="center" minWidth={260}>
                 <Input
                   flex={1}
                   placeholder="Buscar por nombre, usuario o correo"
@@ -130,33 +223,38 @@ export default function UsuariosListScreen() {
                   />
                 )}
               </XStack>
+
               <Button icon={Search} onPress={handleSearch} hoverStyle={{ scale: 1.02 }} pressStyle={{ scale: 0.98 }}>
-                Buscar
+                <Text>Buscar</Text>
               </Button>
+
               <Separator vertical />
-              <XStack ai="center" gap="$2">
+
+              <XStack ai="center" gap="$2" minWidth={220}>
                 <Text fontSize="$3">Rol:</Text>
-                <select
-                  value={role ?? ''}
-                  onChange={(e) => setRole((e.target.value || undefined) as any)}
-                  style={{ padding: 8, borderRadius: 8 }}
-                >
-                  <option value="">Todos</option>
-                  <option value="ADMIN">ADMIN</option>
-                  <option value="VENTANA">VENTANA</option>
-                  <option value="VENDEDOR">VENDEDOR</option>
-                </select>
+                <RoleSelect value={role} onChange={setRole} />
               </XStack>
+
               <Separator vertical />
-              <XStack ai="center" gap="$2">
-                <Text fontSize="$3">Eliminados:</Text>
-                <Switch checked={!!isDeleted} onCheckedChange={(v) => setIsDeleted(!!v || undefined)} />
+
+              {/* Etiqueta + switch en bloque para que no se sobreponga */}
+              <XStack ai="center" gap="$2" minWidth={200}>
+                <FilterSwitch
+                  label="Eliminados:"
+                  checked={!!isDeleted}
+                  onCheckedChange={(v) => setIsDeleted(v || undefined)}
+                />
               </XStack>
+
               <Separator vertical />
+
               <Button icon={RefreshCw} onPress={() => { setPage(1); refetch() }} hoverStyle={{ scale: 1.02 }} pressStyle={{ scale: 0.98 }}>
-                Refrescar
+                <Text>Refrescar</Text>
               </Button>
-              <Button onPress={clearFilters} hoverStyle={{ scale: 1.02 }} pressStyle={{ scale: 0.98 }}>Limpiar</Button>
+
+              <Button onPress={clearFilters} hoverStyle={{ scale: 1.02 }} pressStyle={{ scale: 0.98 }}>
+                <Text>Limpiar</Text>
+              </Button>
             </XStack>
           </YStack>
         </Toolbar>
@@ -175,59 +273,67 @@ export default function UsuariosListScreen() {
           </Card>
         ) : (
           <YStack gap="$2">
-            {rows!.map((u) => (
-              <Card
-                key={u.id}
-                padding="$4"
-                backgroundColor="$backgroundHover"
-                borderColor="$borderColor"
-                borderWidth={1}
-                pressStyle={{
-                  backgroundColor: '$backgroundPress',
-                  borderColor: '$borderColorHover'
-                }}
-              >
-                <XStack justifyContent="space-between" ai="center" gap="$3" flexWrap="wrap">
-                  <YStack flex={1} gap="$1" minWidth={260}>
-                    <XStack ai="center" gap="$2" flexWrap="wrap">
-                      <Text fontSize="$5" fontWeight="600">{u.name}</Text>
-                      <Text fontSize="$3" color="$textSecondary">({u.username})</Text>
-                      <RoleBadge role={u.role as any} />
-                      <StatusPill active={!(u as any).isActive === false ? true : !!(u as any).isActive} />
+            {rows!.map((u) => {
+              const isActive = (u as any).isActive !== false
+              return (
+                <Card
+                  key={u.id}
+                  padding="$4"
+                  backgroundColor="$backgroundHover"
+                  borderColor="$borderColor"
+                  borderWidth={1}
+                  pressStyle={{ backgroundColor: '$backgroundPress', borderColor: '$borderColorHover', scale: 0.98 }}
+                  onPress={() => router.push(`/admin/usuarios/${u.id}` as any)}
+                >
+                  <XStack justifyContent="space-between" ai="center" gap="$3" flexWrap="wrap">
+                    <YStack flex={1} gap="$1" minWidth={260}>
+                      <XStack ai="center" gap="$2" flexWrap="wrap">
+                        <Text fontSize="$5" fontWeight="600">{u.name}</Text>
+                        <Text fontSize="$3" color="$textSecondary">({u.username})</Text>
+                        <RoleBadge role={u.role as any} />
+                        <ActiveBadge active={isActive} />
+                      </XStack>
+                      <Text fontSize="$3" color="$textSecondary">
+                        {u.email || '—'} {u.ventanaId ? `• Ventana ${u.ventanaId}` : ''} {(u as any).code ? `• Código ${(u as any).code}` : ''}
+                      </Text>
+                    </YStack>
+
+                    <XStack gap="$2">
+                      {!u.isDeleted ? (
+                        <Button
+                          icon={Trash2}
+                          onPress={(e: any) => { e?.stopPropagation?.(); confirmDelete(u) }}
+                          hoverStyle={{ bg: '$backgroundHover', scale: 1.02 }}
+                          pressStyle={{ scale: 0.98 }}
+                        >
+                          <Text>Eliminar</Text>
+                        </Button>
+                      ) : (
+                        <Button
+                          icon={RefreshCw}
+                          onPress={(e: any) => { e?.stopPropagation?.(); confirmRestore(u) }}
+                          disabled={restore.isPending}
+                        >
+                          {restore.isPending ? <Spinner size="small" /> : <Text>Restaurar</Text>}
+                        </Button>
+                      )}
                     </XStack>
-                    <Text fontSize="$3" color="$textSecondary">
-                      {u.email || '—'} {u.ventanaId ? `• Ventana ${u.ventanaId}` : ''} {(u as any).code ? `• Código ${(u as any).code}` : ''}
-                    </Text>
-                  </YStack>
-                  <XStack gap="$2">
-                    {!u.isDeleted ? (
-                      <Button icon={Trash2} onPress={() => confirmDelete(u)} hoverStyle={{ bg: '$backgroundHover', scale: 1.02 }} pressStyle={{ scale: 0.98 }}>
-                        Eliminar
-                      </Button>
-                    ) : (
-                      <Button icon={RefreshCw} onPress={() => confirmRestore(u)} disabled={restore.isPending}>
-                        {restore.isPending ? <Spinner size="small" /> : 'Restaurar'}
-                      </Button>
-                    )}
-                    <Button onPress={() => router.push(`/admin/usuarios/${u.id}` as any)} bg="$background" hoverStyle={{ bg: '$backgroundHover' }}>
-                      Editar
-                    </Button>
                   </XStack>
-                </XStack>
-              </Card>
-            ))}
+                </Card>
+              )
+            })}
           </YStack>
         )}
 
         {/* Paginación */}
         {!!meta && (
           <XStack gap="$2" jc="center" mt="$4" ai="center">
-            <Button disabled={page <= 1} onPress={() => setPage((p) => Math.max(1, p - 1))}>Anterior</Button>
+            <Button disabled={page <= 1} onPress={() => setPage((p) => Math.max(1, p - 1))}><Text>Anterior</Text></Button>
             <Card padding="$2" px="$4" bg="$backgroundHover" borderColor="$borderColor" borderWidth={1}>
               <Text fontSize="$3">Página {meta.page} de {meta.totalPages}</Text>
             </Card>
             <Button disabled={page >= (meta.totalPages || 1)} onPress={() => setPage((p) => Math.min(p + 1, meta.totalPages || p + 1))}>
-              Siguiente
+              <Text>Siguiente</Text>
             </Button>
           </XStack>
         )}
