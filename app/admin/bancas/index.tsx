@@ -71,15 +71,15 @@ export default function BancasListScreen() {
   const handleNext = () => setPage((p) => Math.min(p + 1, pagination?.totalPages ?? p + 1));
 
   return (
-    <ScrollView 
+    <ScrollView
       flex={1}
       backgroundColor="$background"
       contentContainerStyle={{ flexGrow: 1 }}
     >
-      <YStack 
+      <YStack
         flex={1}
-        padding="$4" 
-        gap="$4" 
+        padding="$4"
+        gap="$4"
         backgroundColor="$background"
       >
         {/* Header con título y botón */}
@@ -88,7 +88,10 @@ export default function BancasListScreen() {
             <Text fontSize="$8" fontWeight="bold" color="$color">Bancas</Text>
             {isFetching && <Spinner size="small" />}
           </XStack>
-          <Button icon={Plus} onPress={() => router.push('/admin/bancas/nueva')}>
+          <Button icon={Plus} onPress={() => router.push('/admin/bancas/nueva')} bg="$primary"
+            hoverStyle={{ bg: '$primaryHover', scale: 1.02 }}
+            pressStyle={{ bg: '$primaryPress', scale: 0.98 }}
+            color="$background">
             Nueva Banca
           </Button>
         </XStack>
@@ -161,7 +164,7 @@ export default function BancasListScreen() {
                 backgroundColor="$backgroundHover"
                 borderColor="$borderColor"
                 borderWidth={1}
-                pressStyle={{ 
+                pressStyle={{
                   scale: 0.98,
                   backgroundColor: '$backgroundPress',
                   borderColor: '$borderColorHover'
@@ -173,9 +176,9 @@ export default function BancasListScreen() {
                     <Text fontSize="$5" fontWeight="600" color="$color">{banca.name}</Text>
                     <Text fontSize="$3" color="$textSecondary">{banca.code}</Text>
                   </YStack>
-                  <Card 
-                    padding="$2" 
-                    paddingHorizontal="$3" 
+                  <Card
+                    padding="$2"
+                    paddingHorizontal="$3"
                     backgroundColor={banca.isActive ? '$green4' : '$red4'}
                     borderWidth={0}
                   >
@@ -195,9 +198,9 @@ export default function BancasListScreen() {
             <Button size="$3" disabled={page <= 1} onPress={handlePrev}>
               Anterior
             </Button>
-            <Card 
-              padding="$2" 
-              paddingHorizontal="$4" 
+            <Card
+              padding="$2"
+              paddingHorizontal="$4"
               justifyContent="center"
               backgroundColor="$backgroundHover"
               borderColor="$borderColor"
