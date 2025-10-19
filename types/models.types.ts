@@ -14,6 +14,8 @@ export interface Ventana {
   bancaId: string;
   name: string;
   code: string;
+  email: string;
+  phone: string;
   address: string;
   isActive: boolean;
   salesCutoffMinutes?: number;
