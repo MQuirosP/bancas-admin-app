@@ -1,15 +1,26 @@
-// app/vendedor/_layout.tsx
 import React from 'react';
-import { Stack } from 'expo-router';
-import { YStack } from 'tamagui';
+import { Stack, Redirect } from 'expo-router';
+import { YStack, Text } from 'tamagui';
 import { useAuthStore } from '../../store/auth.store';
 
 export default function VendedorLayout() {
-  const { user } = useAuthStore();
+  const { user, isAuthenticated, isHydrating } = useAuthStore();
 
-  // Verificar que el usuario tenga rol VENDEDOR
+  if (isHydrating) {
+    return (
+      <YStack f={1} ai="center" jc="center" bg="$background">
+        <Text color="$gray11">Preparando sesión…</Text>
+      </YStack>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Redirect href="/(auth)/login" />;
+  }
+
   if (user?.role !== 'VENDEDOR') {
-    return null;
+    const home = user?.role === 'ADMIN' ? '/admin' : '/ventana';
+    return <Redirect href={home} />;
   }
 
   return (

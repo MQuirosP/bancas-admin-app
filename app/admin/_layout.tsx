@@ -1,17 +1,32 @@
-// app/admin/_layout.tsx
 import React from 'react';
-import { Stack } from 'expo-router';
-import { YStack } from 'tamagui';
+import { Stack, Redirect } from 'expo-router';
+import { YStack, Text } from 'tamagui';
 import { useAuthStore } from '../../store/auth.store';
 
 export default function AdminLayout() {
-  const { user } = useAuthStore();
+  const { user, isAuthenticated, isHydrating } = useAuthStore();
 
-  // Verificar que el usuario tenga rol ADMIN
-  if (user?.role !== 'ADMIN') {
-    return null;
+  // 1) Durante hidratación o si aún no sabemos, muestra un loader (no null)
+  if (isHydrating) {
+    return (
+      <YStack f={1} ai="center" jc="center" bg="$background">
+        <Text color="$gray11">Preparando sesión…</Text>
+      </YStack>
+    );
   }
 
+  // 2) Si no hay sesión, fuera de aquí
+  if (!isAuthenticated) {
+    return <Redirect href="/(auth)/login" />;
+  }
+
+  // 3) Si no es ADMIN, mándalo a su home real
+  if (user?.role !== 'ADMIN') {
+    const home = user?.role === 'VENTANA' ? '/ventana' : '/vendedor';
+    return <Redirect href={home} />;
+  }
+
+  // 4) Rol correcto => renderiza el Stack
   return (
     <YStack flex={1} backgroundColor="$background">
       <Stack screenOptions={{ headerShown: false }}>

@@ -6,11 +6,15 @@ import { authService } from '../services/auth.service';
 import { clearTokens } from '../lib/auth.token';
 import { User, UserRole } from '../types/auth.types';
 
+// 1) Amplía el estado
 interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
+
+  /** 👈 NUEVO: true mientras rehidrata desde AsyncStorage */
+  isHydrating: boolean;
 
   // Métodos
   login: (username: string, password: string) => Promise<void>;
@@ -29,7 +33,9 @@ export const useAuthStore = create<AuthState>()(
       isLoading: false,
       error: null,
 
-      // ✅ Solo guarda el user, NO tokens
+      // 👇 inicia en true hasta que termine la hidratación
+      isHydrating: true,
+
       setAuth: (user: User) => {
         set({
           user,
@@ -38,7 +44,6 @@ export const useAuthStore = create<AuthState>()(
         });
       },
 
-      // ✅ Limpia estado Y tokens de SecureStore
       clearAuth: async () => {
         await clearTokens();
         set({
@@ -48,69 +53,36 @@ export const useAuthStore = create<AuthState>()(
         });
       },
 
-      // ✅ Login completo
       login: async (username: string, password: string) => {
         set({ isLoading: true, error: null });
-
         try {
-          console.log('🔐 Intentando login con:', username);
-
-          // 1) authService.login() ya guarda tokens en auth.token.ts
           const loginResponse = await authService.login(username, password);
-          console.log('✅ Login exitoso');
-
           if (!loginResponse?.success || !loginResponse.data?.accessToken) {
             throw new Error('Respuesta de login inválida');
           }
-
-          // 2) Obtener información del usuario
-          console.log('📡 Obteniendo información del usuario...');
           const meResponse = await authService.me();
-
           if (!meResponse?.success || !meResponse.data) {
             throw new Error('Error al obtener información del usuario');
           }
-
           const user = meResponse.data;
-          console.log('✅ Usuario obtenido:', {
-            username: user.username,
-            role: user.role,
-            name: user.name,
-          });
-
-          // 3) Guardar solo el usuario en el store
           get().setAuth(user);
-
           set({ isLoading: false });
-          console.log('✅ Login completado exitosamente');
-          console.log(`🎯 Rol del usuario: ${user.role}`);
         } catch (error: any) {
-          console.error('❌ Error en login:', error);
-
-          const errorMessage = error?.message || 'Error al iniciar sesión';
-
-          // Limpia estado
           set({
             user: null,
             isAuthenticated: false,
             isLoading: false,
-            error: errorMessage,
+            error: error?.message || 'Error al iniciar sesión',
           });
-
           throw error;
         }
       },
 
-      // ✅ Logout
       logout: async () => {
         try {
-          console.log('🚪 Cerrando sesión...');
-          // authService.logout() ya limpia tokens de auth.token.ts
           await authService.logout();
-          console.log('✅ Logout exitoso');
-        } catch (error) {
-          console.error('⚠️ Error en logout (continuando):', error);
-        } finally {
+        } catch {}
+        finally {
           await get().clearAuth();
         }
       },
@@ -126,7 +98,7 @@ export const useAuthStore = create<AuthState>()(
     {
       name: 'auth-storage',
       storage: createJSONStorage(() => AsyncStorage),
-      // ✅ Solo persistir user e isAuthenticated
+      // Solo persistimos lo que hace falta
       partialize: (state) => ({
         user: state.user,
         isAuthenticated: state.isAuthenticated,
@@ -134,5 +106,21 @@ export const useAuthStore = create<AuthState>()(
     }
   )
 );
+
+// 2) Suscribimos eventos del persist para controlar hidratación
+useAuthStore.persist?.onHydrate?.(() => {
+  useAuthStore.setState({ isHydrating: true });
+});
+useAuthStore.persist?.onFinishHydration?.(() => {
+  const s = useAuthStore.getState();
+  useAuthStore.setState({
+    isHydrating: false,
+    isAuthenticated: !!s.user,
+  });
+});
+
+// 3) (opcional) helper por si prefieres derivarlo
+export const authHasHydrated = () =>
+  useAuthStore.persist?.hasHydrated?.() ?? false;
 
 export type { User, UserRole };
