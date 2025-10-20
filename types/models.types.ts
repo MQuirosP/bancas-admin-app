@@ -19,6 +19,7 @@ export interface Ventana {
   address: string;
   isActive: boolean;
   salesCutoffMinutes?: number;
+  commissionMarginX?: number | null;
   createdAt: string;
   updatedAt: string;
 }

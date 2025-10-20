@@ -1,7 +1,10 @@
 // components/ventanas/VentanaForm.tsx
-import React from 'react'
-import { YStack, XStack, Text, Input, Card, Switch, Separator, Select, Sheet, Adapt, Button } from 'tamagui'
-import { ChevronDown, X as XIcon } from '@tamagui/lucide-icons'
+import React, { useEffect, useMemo, useState } from 'react'
+import {
+  YStack, XStack, Text, Input, Card, Switch, Separator,
+  Select, Sheet, Adapt, Button, Spinner
+} from 'tamagui'
+import { ChevronDown } from '@tamagui/lucide-icons'
 
 export type VentanaFormValues = {
   bancaId: string
@@ -17,17 +20,82 @@ export type VentanaFormValues = {
 type BancaLite = { id: string; name: string }
 
 type Props = {
-  values: VentanaFormValues
-  setField: <K extends keyof VentanaFormValues>(key: K, val: VentanaFormValues[K]) => void
+  onSubmit: (values: VentanaFormValues) => Promise<void> | void
+  submitting?: boolean
+  onCancel?: () => void
   bancas: BancaLite[]
   loadingBancas?: boolean
   errorBancas?: boolean
-  onRetryBancas?: () => void
+  onRetryBancas?: () => void | Promise<void>
+  /** Opcional: precargar valores (por ejemplo, para "duplicar") */
+  initialValues?: Partial<VentanaFormValues>
+}
+
+const DEFAULTS: VentanaFormValues = {
+  bancaId: '',
+  name: '',
+  code: '',
+  email: '',
+  phone: '',
+  address: '',
+  commissionMarginX: null,
+  isActive: true,
 }
 
 export default function VentanaForm({
-  values, setField, bancas, loadingBancas, errorBancas, onRetryBancas,
+  onSubmit,
+  submitting,
+  onCancel,
+  bancas,
+  loadingBancas,
+  errorBancas,
+  onRetryBancas,
+  initialValues,
 }: Props) {
+  // Estado interno estandarizado (como BancaForm)
+  const [values, setValues] = useState<VentanaFormValues>({
+    ...DEFAULTS,
+    ...(initialValues ?? {}),
+  })
+
+  const setField = <K extends keyof VentanaFormValues>(key: K, val: VentanaFormValues[K]) =>
+    setValues((prev) => ({ ...prev, [key]: val }))
+
+  const firstBancaId = useMemo(() => (bancas?.[0]?.id ?? ''), [bancas])
+
+  // Autoselección primera banca si no hay valor
+  useEffect(() => {
+    if (!values.bancaId && firstBancaId && !loadingBancas && !errorBancas) {
+      setValues((prev) => ({ ...prev, bancaId: firstBancaId }))
+    }
+  }, [firstBancaId, loadingBancas, errorBancas])
+
+  // Validación mínima (igual patrón que en pantallas "nueva")
+  const canSubmit = useMemo(() => {
+    if (!values.bancaId) return false
+    if (!values.name || values.name.trim().length < 2) return false
+    if (values.commissionMarginX != null && Number.isNaN(Number(values.commissionMarginX))) return false
+    return true
+  }, [values])
+
+  const handleSubmit = async () => {
+    if (!canSubmit) return
+    const payload: VentanaFormValues = {
+      bancaId: values.bancaId,
+      name: values.name.trim(),
+      code: values.code?.trim(),
+      email: values.email?.trim(),
+      phone: values.phone?.trim(),
+      address: values.address?.trim(),
+      commissionMarginX:
+        values.commissionMarginX == null || values.commissionMarginX === ('' as any)
+          ? null
+          : Number(values.commissionMarginX),
+      isActive: !!values.isActive,
+    }
+    await onSubmit?.(payload)
+  }
+
   return (
     <YStack gap="$4">
       {/* Estado + Banca */}
@@ -44,6 +112,7 @@ export default function VentanaForm({
               bg={values.isActive ? '$color10' : '$background'}
               hoverStyle={{ bg: values.isActive ? '$color10' : '$backgroundHover' }}
               focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: 'var(--color10)' }}
+              disabled={submitting}
             >
               <Switch.Thumb
                 animation="quick"
@@ -69,11 +138,20 @@ export default function VentanaForm({
                 bg="$background"
                 px="$3"
                 iconAfter={ChevronDown}
-                disabled={!!loadingBancas || !!errorBancas}
+                disabled={!!loadingBancas || !!errorBancas || submitting}
               >
-                <Select.Value placeholder={loadingBancas ? 'Cargando…' : (errorBancas ? 'Error' : 'Selecciona banca')} />
+                <Select.Value
+                  placeholder={
+                    loadingBancas
+                      ? 'Cargando…'
+                      : errorBancas
+                        ? 'Error al cargar'
+                        : (bancas.length ? 'Selecciona banca' : 'No hay bancas')
+                  }
+                />
               </Select.Trigger>
 
+              {/* Adapt para mobile */}
               <Adapt when="sm">
                 <Sheet modal snapPoints={[50]} dismissOnSnapToBottom>
                   <Sheet.Frame ai="center" jc="center">
@@ -90,7 +168,7 @@ export default function VentanaForm({
                     <Select.Item
                       key={b.id}
                       index={index}
-                      value={b.id}
+                      value={String(b.id)}
                       pressStyle={{ bg: '$backgroundHover' }}
                       bw={0}
                       px="$3"
@@ -103,8 +181,13 @@ export default function VentanaForm({
               </Select.Content>
             </Select>
 
+
+
+            {loadingBancas && <Spinner size="small" />}
             {errorBancas && (
-              <Button size="$2" onPress={onRetryBancas} icon={XIcon}><Text>Reintentar</Text></Button>
+              <Button size="$2" onPress={onRetryBancas} disabled={submitting}>
+                <Text>Reintentar</Text>
+              </Button>
             )}
           </XStack>
         </XStack>
@@ -119,6 +202,7 @@ export default function VentanaForm({
               placeholder="Nombre de la ventana"
               value={values.name}
               onChangeText={(t) => setField('name', t)}
+              editable={!submitting}
             />
           </YStack>
 
@@ -129,6 +213,7 @@ export default function VentanaForm({
                 placeholder="Código"
                 value={values.code}
                 onChangeText={(t) => setField('code', t)}
+                editable={!submitting}
               />
             </YStack>
 
@@ -140,8 +225,9 @@ export default function VentanaForm({
                 value={values.commissionMarginX == null ? '' : String(values.commissionMarginX)}
                 onChangeText={(t) => {
                   const v = t.trim()
-                  setField('commissionMarginX', v === '' ? null : Number(v))
+                  setField('commissionMarginX', v === '' ? null : (Number(v) as any))
                 }}
+                editable={!submitting}
               />
             </YStack>
           </XStack>
@@ -155,6 +241,7 @@ export default function VentanaForm({
                 keyboardType="email-address"
                 value={values.email}
                 onChangeText={(t) => setField('email', t)}
+                editable={!submitting}
               />
             </YStack>
 
@@ -164,6 +251,7 @@ export default function VentanaForm({
                 placeholder="Teléfono"
                 value={values.phone}
                 onChangeText={(t) => setField('phone', t)}
+                editable={!submitting}
               />
             </YStack>
           </XStack>
@@ -174,10 +262,35 @@ export default function VentanaForm({
               placeholder="Dirección"
               value={values.address}
               onChangeText={(t) => setField('address', t)}
+              editable={!submitting}
             />
           </YStack>
         </YStack>
       </Card>
+
+      {/* Acciones (estándar como BancaForm) */}
+      <XStack jc="flex-end" gap="$2" flexWrap="wrap">
+        <Button
+          bg="$background"
+          hoverStyle={{ bg: '$backgroundHover', scale: 1.02 }}
+          pressStyle={{ scale: 0.98 }}
+          onPress={onCancel}
+          disabled={submitting}
+        >
+          <Text>Cancelar</Text>
+        </Button>
+
+        <Button
+          bg="$primary"
+          color="$background"
+          hoverStyle={{ bg: '$primaryHover', scale: 1.02 }}
+          pressStyle={{ bg: '$primaryPress', scale: 0.98 }}
+          onPress={handleSubmit}
+          disabled={!canSubmit || !!submitting}
+        >
+          {submitting ? <Spinner size="small" /> : <Text>Guardar</Text>}
+        </Button>
+      </XStack>
     </YStack>
   )
 }
