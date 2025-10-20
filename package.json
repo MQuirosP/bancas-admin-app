@@ -52,17 +52,17 @@
     "react-native-web": "~0.19.10",
     "tamagui": "^1.135.2",
     "zod": "^3.22.4",
-    "zustand": "^4.5.7"
+    "zustand": "^4.5.7",
+    "@babel/core": "^7.20.0",
+    "@tamagui/babel-plugin": "^1.135.2",
+    "babel-plugin-module-resolver": "^5.0.2"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.0",
     "@playwright/test": "^1.40.0",
-    "@tamagui/babel-plugin": "^1.135.2",
     "@testing-library/jest-native": "^5.4.3",
     "@testing-library/react-native": "^12.4.0",
     "@types/node": "^18.19.130",
     "@types/react": "~18.2.45",
-    "babel-plugin-module-resolver": "^5.0.2",
     "eslint": "^8.57.0",
     "eslint-config-expo": "^7.0.0",
     "eslint-config-prettier": "^9.1.0",
