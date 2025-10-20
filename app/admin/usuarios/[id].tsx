@@ -7,6 +7,7 @@ import UserForm, { UserFormValues } from '@/components/usuarios/UserForm'
 import { useToast } from '@/hooks/useToast'
 import { useVentanasInfinite } from '@/hooks/useVentanasInfinite'
 import { getErrorMessage, safe } from '../../../lib/errors'
+import { safeBack } from '../../../lib/navigation'
 
 export default function UsuarioDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
@@ -80,7 +81,7 @@ export default function UsuarioDetailScreen() {
           mode="edit"
           initial={data}
           onSubmit={handleSubmit}
-          onCancel={() => router.back()}
+          onCancel={() => safeBack('/admin/usuarios')}
           onDelete={() => softDelete.mutate({ id })}
           onRestore={() => restore.mutate(id)}
           ventanas={ventanas}

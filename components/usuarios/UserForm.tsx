@@ -1,11 +1,15 @@
 // components/usuarios/UserForm.tsx
 import React, { useEffect, useMemo, useState } from 'react'
-import { YStack, XStack, Text, Button, Input, Card, Switch, Spinner, Separator, Select, Sheet, Adapt } from 'tamagui'
+import {
+  YStack, XStack, Text, Button, Input, Card, Switch, Spinner,
+  Select, Sheet, Adapt
+} from 'tamagui'
 import { z } from 'zod'
 import type { Usuario } from '@/types/models.types'
 import { useToast } from '@/hooks/useToast'
 import { FieldGroup, FieldLabel, FieldError } from '@/components/ui/Field'
 import { ChevronDown, X as XIcon } from '@tamagui/lucide-icons'
+import { isDirty as isDirtyUtil } from "../../utils/forms/dirty";
 
 const createSchema = z.object({
   name: z.string().trim().min(2, 'El nombre es requerido'),
@@ -28,7 +32,7 @@ const editSchema = z.object({
   name: z.string().trim().min(2, 'El nombre es requerido').optional(),
   username: z.string().trim().min(3, 'El usuario debe tener al menos 3 caracteres').optional(),
   email: z.string().email('Correo inválido').optional(),
-  code: z.string().trim().min(2, 'Código muy corto').optional(),
+  // ⛔️ NO incluimos "code" en update porque el backend lo rechaza
   role: z.enum(['ADMIN', 'VENTANA', 'VENDEDOR']).optional(),
   ventanaId: z.string().trim().nullable().optional(),
   isActive: z.boolean().optional(),
@@ -64,12 +68,23 @@ type Props = {
   onCancel?: () => void
   onDelete?: () => void
   onRestore?: () => void
-  // 👇 nuevo: para el Select de ventanas
   ventanas?: VentanaLite[]
   loadingVentanas?: boolean
   errorVentanas?: boolean
   onRetryVentanas?: () => void
 }
+
+// función pura para normalizar antes de comparar (no usa hooks)
+const normalizeUser = (v: UserFormUI) => ({
+  name: (v.name ?? '').trim(),
+  username: (v.username ?? '').trim(),
+  email: (v.email ?? '').trim(),
+  code: (v.code ?? '').trim(),
+  role: v.role,
+  ventanaId: v.role !== 'ADMIN' ? (v.ventanaId ?? '').trim() : '',
+  isActive: !!v.isActive,
+  // password no participa en dirty-check
+})
 
 const UserForm: React.FC<Props> = ({
   mode, initial, submitting, onSubmit, onCancel, onDelete, onRestore,
@@ -93,10 +108,18 @@ const UserForm: React.FC<Props> = ({
 
   useEffect(() => { setValues(initialUI); setErrors({}) }, [initialUI])
 
-  const setField = <K extends keyof UserFormUI>(key: K, v: UserFormUI[K]) => setValues((s) => ({ ...s, [key]: v }))
+  const setField = <K extends keyof UserFormUI>(key: K, v: UserFormUI[K]) =>
+    setValues((s) => ({ ...s, [key]: v }))
+
+  // ✅ AHORA sí dentro del componente
+  const isDirty = useMemo(() => {
+    if (mode === 'create') return true
+    return isDirtyUtil(values, initialUI, normalizeUser)
+  }, [mode, values, initialUI])
 
   const handleSubmit = async () => {
     setErrors({})
+
     if (mode === 'create') {
       const raw = {
         name: values.name,
@@ -111,27 +134,43 @@ const UserForm: React.FC<Props> = ({
       const parsed = createSchema.safeParse(raw)
       if (!parsed.success) {
         const fieldErrors: Record<string, string> = {}
-        parsed.error.issues.forEach((i) => { const k = i.path[0]?.toString?.(); if (k) fieldErrors[k] = i.message })
-        setErrors(fieldErrors); toast.error('Revisa los campos marcados'); return
+        parsed.error.issues.forEach((i) => {
+          const k = i.path[0]?.toString?.()
+          if (k) fieldErrors[k] = i.message
+        })
+        setErrors(fieldErrors)
+        toast.error('Revisa los campos marcados')
+        return
       }
-      await onSubmit(parsed.data); return
+      await onSubmit(parsed.data)
+      return
     }
+
+    // EDIT
     const raw = {
       name: values.name || undefined,
       username: values.username || undefined,
       email: values.email?.trim() || undefined,
-      code: values.code?.trim() || undefined,
+      // ⛔️ NO enviar code en update
       role: values.role || undefined,
       ventanaId: values.role !== 'ADMIN' ? (values.ventanaId?.trim() || undefined) : null,
       isActive: values.isActive,
       password: values.password?.trim() ? values.password : undefined,
     }
+
     const parsed = editSchema.safeParse(raw)
     if (!parsed.success) {
       const fieldErrors: Record<string, string> = {}
-      parsed.error.issues.forEach((i) => { const k = i.path[0]?.toString?.(); if (k) fieldErrors[k] = i.message })
-      setErrors(fieldErrors); toast.error('Revisa los campos marcados'); return
+      parsed.error.issues.forEach((i) => {
+        const k = i.path[0]?.toString?.()
+        if (k) fieldErrors[k] = i.message
+      })
+      setErrors(fieldErrors)
+      toast.error('Revisa los campos marcados')
+      return
     }
+
+    if (!isDirty) { toast.info('No hay cambios para guardar'); return }
     await onSubmit(parsed.data)
   }
 
@@ -192,7 +231,6 @@ const UserForm: React.FC<Props> = ({
           <XStack gap="$3" ai="center" flexWrap="wrap">
             <YStack>
               <FieldLabel>Rol</FieldLabel>
-              {/* Cambia el select nativo por Tamagui si prefieres, pero este no genera texto suelto */}
               <Select
                 value={values.role}
                 onValueChange={(val) => setField('role', val as any)}
@@ -226,7 +264,6 @@ const UserForm: React.FC<Props> = ({
             {values.role !== 'ADMIN' && (
               <YStack minWidth={240}>
                 <FieldLabel>Ventana</FieldLabel>
-
                 <Select
                   value={values.ventanaId || ''}
                   onValueChange={(val) => setField('ventanaId', val)}
@@ -237,13 +274,10 @@ const UserForm: React.FC<Props> = ({
                     bg="$background"
                     px="$3"
                     iconAfter={ChevronDown}
-                    // 👇 aquí va el disabled
                     disabled={!!loadingVentanas || !!errorVentanas}
                   >
                     <Select.Value
-                      placeholder={
-                        loadingVentanas ? 'Cargando…' : (errorVentanas ? 'Error' : 'Selecciona ventana')
-                      }
+                      placeholder={loadingVentanas ? 'Cargando…' : (errorVentanas ? 'Error' : 'Selecciona ventana')}
                     />
                   </Select.Trigger>
 
@@ -284,7 +318,6 @@ const UserForm: React.FC<Props> = ({
 
                 <FieldError message={errors.ventanaId} />
               </YStack>
-
             )}
 
             <XStack gap="$3" ai="center">
@@ -307,7 +340,9 @@ const UserForm: React.FC<Props> = ({
 
           <XStack gap="$2">
             <FieldGroup flex={1} minWidth={260}>
-              <FieldLabel hint={mode === 'edit' ? 'Deja en blanco para no cambiar' : undefined}>Contraseña</FieldLabel>
+              <FieldLabel hint={mode === 'edit' ? 'Deja en blanco para no cambiar' : undefined}>
+                Contraseña
+              </FieldLabel>
               <Input
                 value={values.password || ''}
                 onChangeText={(v) => setField('password', v)}
@@ -322,17 +357,65 @@ const UserForm: React.FC<Props> = ({
         </YStack>
       </Card>
 
-      <XStack gap="$2" jc="flex-end" flexWrap="wrap">
-        {onDelete && <Button onPress={onDelete} hoverStyle={{ scale: 1.02 }} pressStyle={{ scale: 0.98 }}>Eliminar</Button>}
-        {onRestore && <Button onPress={onRestore}>Restaurar</Button>}
-        <Button onPress={onCancel}>Cancelar</Button>
+      <XStack gap="$3" jc="flex-end" flexWrap="wrap" mt="$2">
+        {/* Eliminar: solo si activo */}
+        {onDelete && values.isActive === true && (
+          <Button
+            minWidth={120}
+            px="$4"
+            backgroundColor="$red4"
+            borderColor="$red8"
+            borderWidth={1}
+            onPress={onDelete}
+            disabled={!!submitting}
+            hoverStyle={{ scale: 1.02 }}
+            pressStyle={{ scale: 0.98 }}
+          >
+            Eliminar
+          </Button>
+        )}
+
+        {/* Restaurar: solo si inactivo */}
+        {onRestore && values.isActive === false && (
+          <Button
+            minWidth={120}
+            px="$4"
+            backgroundColor="$green4"
+            borderColor="$green8"
+            borderWidth={1}
+            onPress={onRestore}
+            disabled={!!submitting}
+            hoverStyle={{ scale: 1.02 }}
+            pressStyle={{ scale: 0.98 }}
+          >
+            Restaurar
+          </Button>
+        )}
+
         <Button
+          minWidth={120}
+          px="$4"
+          onPress={onCancel}
+          disabled={!!submitting}
+          backgroundColor="$gray4"
+          borderColor="$gray8"
+          borderWidth={1}
+          hoverStyle={{ scale: 1.02 }}
+          pressStyle={{ scale: 0.98 }}
+        >
+          Cancelar
+        </Button>
+
+        <Button
+          minWidth={120}
+          px="$4"
           onPress={handleSubmit}
           disabled={!!submitting}
-          bg="$primary"
-          color="$background"
-          hoverStyle={{ bg: '$primaryHover', scale: 1.02 }}
-          pressStyle={{ bg: '$primaryPress', scale: 0.98 }}
+          backgroundColor="$blue4"
+          borderColor="$blue8"
+          borderWidth={1}
+          hoverStyle={{ scale: 1.02 }}
+          pressStyle={{ scale: 0.98 }}
         >
           {submitting ? <Spinner size="small" /> : 'Guardar'}
         </Button>
