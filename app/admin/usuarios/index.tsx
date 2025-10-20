@@ -26,6 +26,7 @@ import ActiveBadge from '@/components/ui/ActiveBadge'
 import { useConfirm } from '@/components/ui/Confirm'
 import FilterSwitch from '@/components/ui/FilterSwitch'
 import { useVentanasInfinite } from '@/hooks/useVentanasInfinite'
+import { set } from 'date-fns'
 
 
 async function fetchUsers(
@@ -134,9 +135,9 @@ export default function UsuariosListScreen() {
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
   const [role, setRole] = useState<UsersQueryParams['role'] | undefined>(undefined)
-  const [isActive, setIsActive] = useState<boolean | undefined>(undefined)
+  const [isActive, setIsActive] = useState<boolean | undefined>(true)
 
-  const params: UsersQueryParams & { page: number; pageSize: number } = { page, pageSize, search, role, isActive }
+  const params: UsersQueryParams & { page: number; pageSize: number } = { page, pageSize, search, role }
 
   const { data, isLoading, isFetching, isError, refetch } = useQuery({
     queryKey: ['users', 'list', params],
@@ -145,7 +146,13 @@ export default function UsuariosListScreen() {
     staleTime: 60_000,
   })
 
-  const rows = useMemo(() => data?.data ?? [], [data])
+  const rows = useMemo(() => {
+    const base = data?.data ?? []
+    if (isActive === true) return base.filter(u => (u as any).isActive !== false)
+    if (isActive === false) return base.filter(u => (u as any).isActive === false)
+    return base
+  }, [data, isActive])
+
   const meta = data?.meta
 
   const softDelete = useMutation({
@@ -180,7 +187,7 @@ export default function UsuariosListScreen() {
   }, [vData])
 
   const handleSearch = () => { setPage(1); setSearch(searchInput.trim()) }
-  const clearFilters = () => { setSearchInput(''); setSearch(''); setRole(undefined); setIsActive(undefined); setPage(1) }
+  const clearFilters = () => { setSearchInput(''); setSearch(''); setRole(undefined); setIsActive(true); setPage(1) }
 
   const confirmDelete = async (u: Usuario) => {
     const ok = await confirm({ title: 'Confirmar eliminación', description: `¿Eliminar a ${u.name}?`, okText: 'Eliminar', cancelText: 'Cancelar' })
@@ -261,8 +268,11 @@ export default function UsuariosListScreen() {
               <XStack ai="center" gap="$2" minWidth={200} marginLeft={'$3'}>
                 <FilterSwitch
                   label="Activos:"
-                  checked={!!isActive}
-                  onCheckedChange={(v) => setIsActive(v || undefined)}
+                  checked={isActive === true}
+                  onCheckedChange={(v) => {
+                    setIsActive(v)
+                    setPage(1)
+                  }}
                 />
               </XStack>
 
@@ -311,7 +321,7 @@ export default function UsuariosListScreen() {
         ) : (
           <YStack gap="$2">
             {rows!.map((u) => {
-              const isActive = (u as any).isActive !== false
+              const rowIsActive = (u as any).isActive !== false
               return (
                 <Card
                   key={u.id}
@@ -328,7 +338,7 @@ export default function UsuariosListScreen() {
                         <Text fontSize="$5" fontWeight="600">{u.name}</Text>
                         <Text fontSize="$3" color="$textSecondary">({u.username})</Text>
                         <RoleBadge role={u.role as any} />
-                        <ActiveBadge active={isActive} />
+                        <ActiveBadge active={rowIsActive} />
                       </XStack>
                       <Text fontSize="$3" color="$textSecondary">
                         {u.email || '—'}
