@@ -1,6 +1,7 @@
 // services/users.service.ts
 import { apiClient } from '@/lib/api.client'
 import type { Usuario } from '@/types/models.types'
+import { compact } from '../utils/object'
 
 export type UsersQueryParams = {
   page?: number
@@ -41,13 +42,15 @@ export function toCreateUserDTO(
   if (!v.username) throw new Error('username es requerido')
   if (!v.role) throw new Error('role es requerido')
 
+  const toNull = (x?: string | null) => (x && x.trim() !== '' ? x.trim() : null)
+
   return {
-    name: v.name,
-    username: v.username,
-    email: v.email ?? null,
-    code: v.code ?? null,
+    name: v.name.trim(),
+    username: v.username.trim(),
+    email: toNull(v.email),            // 👈 manda null si viene vacío
+    code: toNull(v.code),
     role: v.role as CreateUserDTO['role'],
-    ventanaId: (v as any).ventanaId ?? null, // si lo tienes en el form
+    ventanaId: toNull((v as any).ventanaId),
     password: v.password,
     isActive: v.isActive ?? true,
   }
@@ -90,7 +93,7 @@ export const usersService = {
   },
 
   update: async (id: string, payload: UpdateUserDTO) => {
-    return apiClient.patch<Usuario>(`/users/${id}`, payload)
+    return apiClient.patch<Usuario>(`/users/${id}`, compact(payload))
   },
 
   softDelete: async (id: string, reason?: string) => {

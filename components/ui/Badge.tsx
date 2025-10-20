@@ -19,6 +19,7 @@ export function RoleBadge({ role }: { role: 'ADMIN' | 'VENTANA' | 'VENDEDOR' }) 
       ? { bg: '$indigo3',  bc: '$indigo10',  color: '$indigo10' }
       : role === 'VENTANA'
       ? { bg: '$cyan3',    bc: '$cyan10',    color: '$cyan10' }
+      : role === 'VENDEDOR' ? { bg: '$orange3',   bc: '$orange10',   color: '$orange10' }
       : { bg: '$backgroundStrong', bc: '$textSecondary', color: '$textSecondary' }
 
   return (

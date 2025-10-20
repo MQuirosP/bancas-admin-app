@@ -12,7 +12,7 @@ export function ActiveBadge({ active, compact = false }: ActiveBadgeProps) {
   const bg = active ? '$green4' : '$red4'
   const border = active ? '$green8' : '$red8'
   const fg = active ? '$green11' : '$red11'
-  const label = active ? 'ACTIVA' : 'INACTIVA'
+  const label = active ? 'ACTIVO' : 'INACTIVO'
 
   return (
     <XStack

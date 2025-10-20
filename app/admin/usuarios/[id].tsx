@@ -1,10 +1,12 @@
 // app/admin/usuarios/[id].tsx
-import React from 'react'
-import { YStack, XStack, Text, ScrollView, Spinner } from 'tamagui'
+import React, { useMemo } from 'react'
+import { YStack, XStack, Text, ScrollView, Spinner, Button } from 'tamagui'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useUserQuery, useUpdateUser, useSoftDeleteUser, useRestoreUser } from '@/hooks/useUsers'
-import { UserForm, type UserFormValues } from '@/components/usuarios/UserForm'
+import UserForm, { UserFormValues } from '@/components/usuarios/UserForm'
 import { useToast } from '@/hooks/useToast'
+import { useVentanasInfinite } from '@/hooks/useVentanasInfinite'
+import { getErrorMessage, safe } from '../../../lib/errors'
 
 export default function UsuarioDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
@@ -16,8 +18,26 @@ export default function UsuarioDetailScreen() {
   const softDelete = useSoftDeleteUser()
   const restore = useRestoreUser()
 
+  const {
+    data: vData,
+    isFetching: vFetching,
+    isError: vError,
+    refetch: vRefetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useVentanasInfinite('')
+
+  const ventanas = useMemo(() => {
+    const arr = (vData?.pages ?? []).flatMap(p => p.data ?? [])
+      .filter(v => (v.isActive ?? true) === true)
+    const map = new Map(arr.map(v => [v.id, v]))
+    return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name, 'es'))
+  }, [vData])
+
   const handleSubmit = async (values: UserFormValues) => {
-    await updateUser.mutateAsync(values)
+    const [_, err] = await safe(updateUser.mutateAsync(values))
+    if (err) return toast.error(getErrorMessage(err))
     toast.success('Usuario guardado')
     router.replace('/admin/usuarios')
   }
@@ -55,6 +75,7 @@ export default function UsuarioDetailScreen() {
     <ScrollView flex={1} backgroundColor={'$background'}>
       <YStack padding="$4" gap="$4" maxWidth={700} alignSelf="center" width="100%">
         <Text fontSize="$8" fontWeight="bold">Editar Usuario</Text>
+
         <UserForm
           mode="edit"
           initial={data}
@@ -62,7 +83,21 @@ export default function UsuarioDetailScreen() {
           onCancel={() => router.back()}
           onDelete={() => softDelete.mutate({ id })}
           onRestore={() => restore.mutate(id)}
+          ventanas={ventanas}
+          loadingVentanas={vFetching || isFetchingNextPage}
+          errorVentanas={vError}
+          onRetryVentanas={() => vRefetch()}
         />
+
+        {hasNextPage && (
+          <Button
+            onPress={() => fetchNextPage()}
+            disabled={isFetchingNextPage}
+            alignSelf="flex-start"
+          >
+            {isFetchingNextPage ? 'Cargando…' : 'Cargar más ventanas'}
+          </Button>
+        )}
       </YStack>
     </ScrollView>
   )

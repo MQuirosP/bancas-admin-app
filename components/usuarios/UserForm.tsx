@@ -1,17 +1,18 @@
 // components/usuarios/UserForm.tsx
 import React, { useEffect, useMemo, useState } from 'react'
-import { YStack, XStack, Text, Button, Input, Card, Switch, Spinner } from 'tamagui'
+import { YStack, XStack, Text, Button, Input, Card, Switch, Spinner, Separator, Select, Sheet, Adapt } from 'tamagui'
 import { z } from 'zod'
 import type { Usuario } from '@/types/models.types'
 import { useToast } from '@/hooks/useToast'
 import { FieldGroup, FieldLabel, FieldError } from '@/components/ui/Field'
+import { ChevronDown, X as XIcon } from '@tamagui/lucide-icons'
 
 const createSchema = z.object({
   name: z.string().trim().min(2, 'El nombre es requerido'),
   username: z.string().trim().min(3, 'El usuario debe tener al menos 3 caracteres'),
   email: z.string().email('Correo inválido').optional(),
   code: z.string().trim().min(2, 'Código muy corto').optional(),
-  role: z.enum(['ADMIN','VENTANA','VENDEDOR']),
+  role: z.enum(['ADMIN', 'VENTANA', 'VENDEDOR']),
   ventanaId: z.string().trim().optional(),
   isActive: z.boolean().optional(),
   password: z.string().min(8, 'La contraseña debe tener al menos 8 caracteres'),
@@ -28,7 +29,7 @@ const editSchema = z.object({
   username: z.string().trim().min(3, 'El usuario debe tener al menos 3 caracteres').optional(),
   email: z.string().email('Correo inválido').optional(),
   code: z.string().trim().min(2, 'Código muy corto').optional(),
-  role: z.enum(['ADMIN','VENTANA','VENDEDOR']).optional(),
+  role: z.enum(['ADMIN', 'VENTANA', 'VENDEDOR']).optional(),
   ventanaId: z.string().trim().nullable().optional(),
   isActive: z.boolean().optional(),
   password: z.string().min(8, 'La contraseña debe tener al menos 8 caracteres').optional(),
@@ -53,6 +54,8 @@ type UserFormUI = {
   password?: string
 }
 
+type VentanaLite = { id: string; name: string }
+
 type Props = {
   mode: 'create' | 'edit'
   initial?: Partial<Usuario> | null
@@ -61,9 +64,17 @@ type Props = {
   onCancel?: () => void
   onDelete?: () => void
   onRestore?: () => void
+  // 👇 nuevo: para el Select de ventanas
+  ventanas?: VentanaLite[]
+  loadingVentanas?: boolean
+  errorVentanas?: boolean
+  onRetryVentanas?: () => void
 }
 
-export const UserForm: React.FC<Props> = ({ mode, initial, submitting, onSubmit, onCancel, onDelete, onRestore }) => {
+const UserForm: React.FC<Props> = ({
+  mode, initial, submitting, onSubmit, onCancel, onDelete, onRestore,
+  ventanas = [], loadingVentanas, errorVentanas, onRetryVentanas,
+}) => {
   const toast = useToast()
 
   const initialUI: UserFormUI = useMemo(() => ({
@@ -145,6 +156,7 @@ export const UserForm: React.FC<Props> = ({ mode, initial, submitting, onSubmit,
                 value={values.username}
                 onChangeText={(v) => setField('username', v)}
                 placeholder="Nombre de usuario"
+                autoCapitalize="none"
                 focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
               />
               <FieldError message={errors.username} />
@@ -159,6 +171,7 @@ export const UserForm: React.FC<Props> = ({ mode, initial, submitting, onSubmit,
                 onChangeText={(v) => setField('email', v)}
                 placeholder="correo@ejemplo.com"
                 inputMode="email"
+                autoCapitalize="none"
                 focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
               />
               <FieldError message={errors.email} />
@@ -179,29 +192,99 @@ export const UserForm: React.FC<Props> = ({ mode, initial, submitting, onSubmit,
           <XStack gap="$3" ai="center" flexWrap="wrap">
             <YStack>
               <FieldLabel>Rol</FieldLabel>
-              <select
+              {/* Cambia el select nativo por Tamagui si prefieres, pero este no genera texto suelto */}
+              <Select
                 value={values.role}
-                onChange={(e) => setField('role', e.target.value as any)}
-                style={{ padding: 8, borderRadius: 8, minWidth: 160 }}
+                onValueChange={(val) => setField('role', val as any)}
               >
-                <option value="ADMIN">ADMIN</option>
-                <option value="VENTANA">VENTANA</option>
-                <option value="VENDEDOR">VENDEDOR</option>
-              </select>
+                <Select.Trigger bw={1} bc="$borderColor" px="$3" iconAfter={ChevronDown}>
+                  <Select.Value placeholder="Selecciona rol" />
+                </Select.Trigger>
+                <Adapt when="sm">
+                  <Sheet modal snapPoints={[50]} dismissOnSnapToBottom>
+                    <Sheet.Frame ai="center" jc="center">
+                      <Adapt.Contents />
+                    </Sheet.Frame>
+                    <Sheet.Overlay />
+                  </Sheet>
+                </Adapt>
+                <Select.Content zIndex={1_000_000}>
+                  <Select.ScrollUpButton />
+                  <Select.Viewport>
+                    {(['ADMIN', 'VENTANA', 'VENDEDOR'] as const).map((r, i) => (
+                      <Select.Item key={r} index={i} value={r}>
+                        <Select.ItemText>{r}</Select.ItemText>
+                      </Select.Item>
+                    ))}
+                  </Select.Viewport>
+                  <Select.ScrollDownButton />
+                </Select.Content>
+              </Select>
               <FieldError message={errors.role} />
             </YStack>
 
             {values.role !== 'ADMIN' && (
-              <YStack minWidth={220}>
+              <YStack minWidth={240}>
                 <FieldLabel>Ventana</FieldLabel>
-                <Input
-                  value={values.ventanaId}
-                  onChangeText={(v) => setField('ventanaId', v)}
-                  placeholder="ventanaId"
-                  focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
-                />
+
+                <Select
+                  value={values.ventanaId || ''}
+                  onValueChange={(val) => setField('ventanaId', val)}
+                >
+                  <Select.Trigger
+                    bw={1}
+                    bc="$borderColor"
+                    bg="$background"
+                    px="$3"
+                    iconAfter={ChevronDown}
+                    // 👇 aquí va el disabled
+                    disabled={!!loadingVentanas || !!errorVentanas}
+                  >
+                    <Select.Value
+                      placeholder={
+                        loadingVentanas ? 'Cargando…' : (errorVentanas ? 'Error' : 'Selecciona ventana')
+                      }
+                    />
+                  </Select.Trigger>
+
+                  <Adapt when="sm">
+                    <Sheet modal snapPoints={[50]} dismissOnSnapToBottom>
+                      <Sheet.Frame ai="center" jc="center">
+                        <Adapt.Contents />
+                      </Sheet.Frame>
+                      <Sheet.Overlay />
+                    </Sheet>
+                  </Adapt>
+
+                  <Select.Content zIndex={1_000_000}>
+                    <Select.ScrollUpButton />
+                    <Select.Viewport>
+                      {ventanas.map((v, index) => (
+                        <Select.Item
+                          key={v.id}
+                          index={index}
+                          value={v.id}
+                          pressStyle={{ bg: '$backgroundHover' }}
+                          bw={0}
+                          px="$3"
+                        >
+                          <Select.ItemText>{v.name}</Select.ItemText>
+                        </Select.Item>
+                      ))}
+                    </Select.Viewport>
+                    <Select.ScrollDownButton />
+                  </Select.Content>
+                </Select>
+
+                {errorVentanas && (
+                  <Button size="$2" onPress={onRetryVentanas} icon={XIcon} mt="$2">
+                    <Text>Reintentar</Text>
+                  </Button>
+                )}
+
                 <FieldError message={errors.ventanaId} />
               </YStack>
+
             )}
 
             <XStack gap="$3" ai="center">
@@ -216,9 +299,9 @@ export const UserForm: React.FC<Props> = ({ mode, initial, submitting, onSubmit,
                 focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: 'var(--color10)' }}
                 aria-label="Activo"
               >
-                <Switch.Thumb animation="quick" bg="$color12" shadowColor="$shadowColor" shadowRadius={6} shadowOffset={{ width: 0, height: 2 }} />
+                <Switch.Thumb animation="quick" bg="$color12" />
               </Switch>
-              <Text fontSize="$4">Activa</Text>
+              <Text fontSize="$4">Activo</Text>
             </XStack>
           </XStack>
 
@@ -230,6 +313,7 @@ export const UserForm: React.FC<Props> = ({ mode, initial, submitting, onSubmit,
                 onChangeText={(v) => setField('password', v)}
                 placeholder="******"
                 secureTextEntry
+                autoCapitalize="none"
                 focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
               />
               <FieldError message={errors.password} />
@@ -256,3 +340,5 @@ export const UserForm: React.FC<Props> = ({ mode, initial, submitting, onSubmit,
     </YStack>
   )
 }
+
+export default UserForm

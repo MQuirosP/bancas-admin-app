@@ -25,6 +25,8 @@ import { RoleBadge } from '@/components/ui/Badge'
 import ActiveBadge from '@/components/ui/ActiveBadge'
 import { useConfirm } from '@/components/ui/Confirm'
 import FilterSwitch from '@/components/ui/FilterSwitch'
+import { useVentanasInfinite } from '@/hooks/useVentanasInfinite'
+
 
 async function fetchUsers(
   params: UsersQueryParams & { page: number; pageSize: number }
@@ -54,9 +56,9 @@ function RoleSelect({
   const internal = (value ?? 'ALL') as RoleValue
 
   const items: { value: RoleValue; label: string }[] = [
-    { value: 'ALL',      label: 'Todos' },
-    { value: 'ADMIN',    label: 'ADMIN' },
-    { value: 'VENTANA',  label: 'VENTANA' },
+    { value: 'ALL', label: 'Todos' },
+    { value: 'ADMIN', label: 'ADMIN' },
+    { value: 'VENTANA', label: 'VENTANA' },
     { value: 'VENDEDOR', label: 'VENDEDOR' },
   ]
 
@@ -159,6 +161,24 @@ export default function UsuariosListScreen() {
     onError: (err: ApiErrorClass) => toast.error(err?.message || 'No fue posible restaurar'),
   })
 
+  const {
+    data: vData,
+    isFetching: vFetching,
+    isError: vError,
+    fetchNextPage,
+    hasNextPage,
+  } = useVentanasInfinite('') // sin búsqueda
+
+  // Aplana + crea mapa { id: code|name }
+  const ventanaLabelById = useMemo(() => {
+    const all = (vData?.pages ?? []).flatMap(p => p.data ?? [])
+    const map = new Map<string, string>()
+    for (const v of all) {
+      map.set(v.id, (v as any).code ?? v.name ?? v.id)
+    }
+    return map
+  }, [vData])
+
   const handleSearch = () => { setPage(1); setSearch(searchInput.trim()) }
   const clearFilters = () => { setSearchInput(''); setSearch(''); setRole(undefined); setIsDeleted(undefined); setPage(1) }
 
@@ -259,6 +279,23 @@ export default function UsuariosListScreen() {
           </YStack>
         </Toolbar>
 
+        {/* Cargar más ventanas para etiquetas */}
+        {hasNextPage && (
+          <Button
+            onPress={() => fetchNextPage()}
+            disabled={vFetching}
+            size="$2"
+            alignSelf="flex-start"
+            bg="$background"
+            bw={1}
+            bc="$borderColor"
+            hoverStyle={{ bg: '$backgroundHover', scale: 1.02 }}
+            pressStyle={{ scale: 0.98 }}
+          >
+            <Text>{vFetching ? 'Cargando…' : 'Cargar más ventanas'}</Text>
+          </Button>
+        )}
+
         {/* Lista */}
         {isLoading ? (
           <Card padding="$4" elevate><Text>Cargando usuarios…</Text></Card>
@@ -294,7 +331,9 @@ export default function UsuariosListScreen() {
                         <ActiveBadge active={isActive} />
                       </XStack>
                       <Text fontSize="$3" color="$textSecondary">
-                        {u.email || '—'} {u.ventanaId ? `• Ventana ${u.ventanaId}` : ''} {(u as any).code ? `• Código ${(u as any).code}` : ''}
+                        {u.email || '—'}
+                        {!!u.ventanaId && <> • Ventana {ventanaLabelById.get(u.ventanaId) ?? u.ventanaId}</>}
+                        {!!(u as any).code && <> • Código {(u as any).code}</>}
                       </Text>
                     </YStack>
 
@@ -323,6 +362,25 @@ export default function UsuariosListScreen() {
               )
             })}
           </YStack>
+        )}
+
+        {/* ...lista de usuarios... */}
+
+        {hasNextPage && (
+          <Button
+            onPress={() => fetchNextPage()}
+            disabled={vFetching}
+            size="$2"
+            alignSelf="flex-start"
+            mt="$2"
+            bg="$background"
+            bw={1}
+            bc="$borderColor"
+            hoverStyle={{ bg: '$backgroundHover', scale: 1.02 }}
+            pressStyle={{ scale: 0.98 }}
+          >
+            <Text>{vFetching ? 'Cargando…' : 'Cargar más ventanas'}</Text>
+          </Button>
         )}
 
         {/* Paginación */}
