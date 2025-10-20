@@ -7,7 +7,7 @@ export type UsersQueryParams = {
   page?: number
   pageSize?: number
   role?: 'ADMIN' | 'VENTANA' | 'VENDEDOR'
-  isDeleted?: boolean
+  isActive?: boolean
   search?: string
 }
 

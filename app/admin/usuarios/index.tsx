@@ -134,9 +134,9 @@ export default function UsuariosListScreen() {
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
   const [role, setRole] = useState<UsersQueryParams['role'] | undefined>(undefined)
-  const [isDeleted, setIsDeleted] = useState<boolean | undefined>(undefined)
+  const [isActive, setIsActive] = useState<boolean | undefined>(undefined)
 
-  const params: UsersQueryParams & { page: number; pageSize: number } = { page, pageSize, search, role, isDeleted }
+  const params: UsersQueryParams & { page: number; pageSize: number } = { page, pageSize, search, role, isActive }
 
   const { data, isLoading, isFetching, isError, refetch } = useQuery({
     queryKey: ['users', 'list', params],
@@ -180,7 +180,7 @@ export default function UsuariosListScreen() {
   }, [vData])
 
   const handleSearch = () => { setPage(1); setSearch(searchInput.trim()) }
-  const clearFilters = () => { setSearchInput(''); setSearch(''); setRole(undefined); setIsDeleted(undefined); setPage(1) }
+  const clearFilters = () => { setSearchInput(''); setSearch(''); setRole(undefined); setIsActive(undefined); setPage(1) }
 
   const confirmDelete = async (u: Usuario) => {
     const ok = await confirm({ title: 'Confirmar eliminación', description: `¿Eliminar a ${u.name}?`, okText: 'Eliminar', cancelText: 'Cancelar' })
@@ -250,7 +250,7 @@ export default function UsuariosListScreen() {
 
               <Separator vertical />
 
-              <XStack ai="center" gap="$2" minWidth={220}>
+              <XStack ai="center" gap="$2" minWidth={180}>
                 <Text fontSize="$3">Rol:</Text>
                 <RoleSelect value={role} onChange={setRole} />
               </XStack>
@@ -258,11 +258,11 @@ export default function UsuariosListScreen() {
               <Separator vertical />
 
               {/* Etiqueta + switch en bloque para que no se sobreponga */}
-              <XStack ai="center" gap="$2" minWidth={200}>
+              <XStack ai="center" gap="$2" minWidth={200} marginLeft={'$3'}>
                 <FilterSwitch
-                  label="Eliminados:"
-                  checked={!!isDeleted}
-                  onCheckedChange={(v) => setIsDeleted(v || undefined)}
+                  label="Activos:"
+                  checked={!!isActive}
+                  onCheckedChange={(v) => setIsActive(v || undefined)}
                 />
               </XStack>
 
