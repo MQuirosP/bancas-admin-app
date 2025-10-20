@@ -1,6 +1,6 @@
 // components/bancas/BancaForm.tsx
 import React, { useEffect, useMemo, useState } from 'react'
-import { YStack, XStack, Text, Button, Input, Card, Switch } from 'tamagui'
+import { YStack, XStack, Text, Button, Input, Card, Switch, Spinner } from 'tamagui'
 import { z } from 'zod'
 import type { Banca } from '@/types/models.types'
 import { ApiErrorClass } from '@/lib/api.client'
@@ -53,6 +53,17 @@ export const BancaForm: React.FC<Props> = ({ initial, submitting, onSubmit, onCa
 
   const [values, setValues] = useState<BancaFormUI>(initialUI)
   const [errors, setErrors] = useState<Record<string, string>>({})
+
+  // Habilita "Guardar" solo si los campos están OK
+  const canSubmit = useMemo(() => {
+    if (!values.name || values.name.trim().length < 2) return false
+    if (!values.code || values.code.trim().length < 2) return false
+
+    const scm = values.salesCutoffMinutes?.trim()
+    if (scm && Number.isNaN(Number(scm))) return false
+
+    return true
+  }, [values])
 
   useEffect(() => {
     setValues(initialUI)
@@ -161,28 +172,36 @@ export const BancaForm: React.FC<Props> = ({ initial, submitting, onSubmit, onCa
           <Text fontSize="$4">Activa</Text>
         </XStack>
 
-        <XStack gap="$3" mt="$2">
+        <XStack gap="$3" jc='flex-end' flexWrap='wrap' mt="$2">
           {onCancel && (
             <Button
-              flex={1}
-              backgroundColor="$red4"
-              borderColor="$red8"
-              borderWidth={1}
+              minWidth={120}
+              px={'$4'}
               onPress={onCancel}
               disabled={!!submitting}
+              backgroundColor="$gray4"
+              borderColor="$gray8"
+              color={'$background'}
+              borderWidth={1}
+              hoverStyle={{ scale: 1.02 }}
+              pressStyle={{ scale: 0.98 }}
             >
-              Cancelar
+              <Text>Cancelar</Text>
             </Button>
           )}
           <Button
-            flex={1}
+            minWidth={120}
+            px="$4"
+            onPress={handleSubmit}
+            disabled={!canSubmit || !!submitting}
             backgroundColor="$blue4"
             borderColor="$blue8"
             borderWidth={1}
-            onPress={handleSubmit}
-            disabled={!!submitting}
+            color="$background"
+            hoverStyle={{ scale: 1.02 }}
+            pressStyle={{ scale: 0.98 }}
           >
-            {submitting ? 'Guardando…' : 'Guardar'}
+            {submitting ? <Spinner size="small" /> : <Text>Guardar</Text>}
           </Button>
         </XStack>
       </YStack>

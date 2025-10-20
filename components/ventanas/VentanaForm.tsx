@@ -281,12 +281,16 @@ export default function VentanaForm({
         </Button>
 
         <Button
-          bg="$primary"
+          minWidth={120}
+          px="$4"
+          onPress={handleSubmit}
+          disabled={!canSubmit || !!submitting}
+          backgroundColor={"$blue4"}
+          borderColor="$blue8"
+          borderWidth={1}
           color="$background"
           hoverStyle={{ bg: '$primaryHover', scale: 1.02 }}
           pressStyle={{ bg: '$primaryPress', scale: 0.98 }}
-          onPress={handleSubmit}
-          disabled={!canSubmit || !!submitting}
         >
           {submitting ? <Spinner size="small" /> : <Text>Guardar</Text>}
         </Button>

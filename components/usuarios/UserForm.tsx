@@ -117,6 +117,28 @@ const UserForm: React.FC<Props> = ({
     return isDirtyUtil(values, initialUI, normalizeUser)
   }, [mode, values, initialUI])
 
+  // Habilita "Guardar" según modo y validaciones mínimas de UI
+  const canSubmit = useMemo(() => {
+    if (!values.name || values.name.trim().length < 2) return false
+    if (!values.username || values.username.trim().length < 3) return false
+
+    // Si no es ADMIN, ventana es obligatoria
+    if (values.role !== 'ADMIN' && !values.ventanaId?.trim()) return false
+
+    // Email opcional: si viene, que tenga formato básico
+    if (values.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email.trim())) return false
+
+    if (mode === 'create') {
+      if (!values.password || values.password.trim().length < 8) return false
+      return true
+    }
+
+    // En edición, solo permitir si hay cambios
+    if (mode === 'edit' && !isDirty) return false
+    return true
+  }, [values, mode, isDirty])
+
+
   const handleSubmit = async () => {
     setErrors({})
 
@@ -399,25 +421,27 @@ const UserForm: React.FC<Props> = ({
           disabled={!!submitting}
           backgroundColor="$gray4"
           borderColor="$gray8"
+          color="$background"
           borderWidth={1}
           hoverStyle={{ scale: 1.02 }}
           pressStyle={{ scale: 0.98 }}
         >
-          Cancelar
+          <Text>Cancelar</Text>
         </Button>
 
         <Button
           minWidth={120}
           px="$4"
           onPress={handleSubmit}
-          disabled={!!submitting}
+          disabled={!canSubmit || !!submitting}
           backgroundColor="$blue4"
           borderColor="$blue8"
           borderWidth={1}
+          color="$background"
           hoverStyle={{ scale: 1.02 }}
           pressStyle={{ scale: 0.98 }}
         >
-          {submitting ? <Spinner size="small" /> : 'Guardar'}
+          {submitting ? <Spinner size="small" /> : <Text>Guardar</Text>}
         </Button>
       </XStack>
     </YStack>
