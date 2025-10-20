@@ -50,7 +50,7 @@ export async function listVentanas(params: VentanasQueryParams): Promise<Paginat
     total: Number(m.total ?? (Array.isArray(data) ? data.length : 0)),
     totalPages: Number(m.totalPages ?? 1),
   }
-
+  console.log(data, meta)
   return { data, meta }
 }
 
@@ -67,7 +67,7 @@ export async function createVentana(payload: VentanaCreateDTO) {
 }
 
 export async function updateVentana(id: string, payload: VentanaUpdateDTO) {
-  return apiClient.patch(`/ventanas/${id}`, payload)
+  return apiClient.put(`/ventanas/${id}`, payload)
 }
 
 export async function softDeleteVentana(id: string) {

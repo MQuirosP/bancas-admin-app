@@ -2,7 +2,7 @@
 import React, { useMemo, useState } from 'react'
 import { YStack, XStack, Text, Button, Input, Card, ScrollView, Spinner, Separator } from 'tamagui'
 import { useRouter } from 'expo-router'
-import { Plus, Search, X, RefreshCw, Trash2 } from '@tamagui/lucide-icons'
+import { Plus, Search, X, RefreshCw, Trash2, RotateCcw } from '@tamagui/lucide-icons'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Toolbar } from '@/components/ui/Toolbar'
 import ActiveBadge from '@/components/ui/ActiveBadge'
@@ -10,8 +10,8 @@ import FilterSwitch from '@/components/ui/FilterSwitch'
 import { useConfirm } from '@/components/ui/Confirm'
 import { useToast } from '@/hooks/useToast'
 import {
-  listVentanas, Ventana, VentanasQueryParams,
-  softDeleteVentana,
+  listVentanas, Ventana,
+  softDeleteVentana, updateVentana, restoreVentana
 } from '@/services/ventanas.service'
 
 export default function VentanasListScreen() {
@@ -25,24 +25,36 @@ export default function VentanasListScreen() {
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
 
-  // ✅ Único filtro: isActive (por defecto true = mostrar activas)
+  // ✅ Filtro solo en cliente: ON => activas; OFF => inactivas
   const [isActive, setIsActive] = useState<boolean>(true)
 
-  const params: VentanasQueryParams = { page, pageSize, search, isActive }
-
+  // ✅ NO incluimos isActive en params para el backend
   const { data, isLoading, isFetching, isError, refetch } = useQuery({
-    queryKey: ['ventanas', 'list', params],
-    queryFn: () => listVentanas(params),
+    queryKey: ['ventanas', 'list', { page, pageSize, search }], // ← sin isActive
+    queryFn: () => listVentanas({ page, pageSize, search }),
     placeholderData: { data: [], meta: { page: 1, pageSize: 20, total: 0, totalPages: 1 } },
     staleTime: 60_000,
   })
 
-  const rows = useMemo(() => data?.data ?? [], [data])
+  const allRows = data?.data ?? []
+  // ✅ Filtrado en memoria
+  const rows = useMemo(
+    () => allRows.filter(v => (v.isActive ?? true) === isActive),
+    [allRows, isActive]
+  )
   const meta = data?.meta
 
   const mDelete = useMutation({
     mutationFn: (id: string) => softDeleteVentana(id),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['ventanas'] }); toast.success('Ventana eliminada') },
+    onError: (e: any) => toast.error(e?.message || 'No fue posible eliminar'),
+  })
+
+  // ✅ Restaurar inactivas => set isActive = true vía update
+  const mRestoreInactive = useMutation({
+    mutationFn: (id: string) => restoreVentana(id),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['ventanas'] }); toast.success('Ventana restaurada') },
+    onError: (e: any) => toast.error(e?.message || 'No fue posible restaurar'),
   })
 
   const handleSearch = () => { setPage(1); setSearch(searchInput.trim()) }
@@ -56,6 +68,11 @@ export default function VentanasListScreen() {
   const askDelete = async (v: Ventana) => {
     const ok = await confirm({ title: 'Confirmar eliminación', description: `¿Eliminar “${v.name}”?`, okText: 'Eliminar' })
     if (ok) mDelete.mutate(v.id)
+  }
+
+  const restoreInactive = (e: any, v: Ventana) => {
+    e?.stopPropagation?.()
+    mRestoreInactive.mutate(v.id)
   }
 
   return (
@@ -122,8 +139,10 @@ export default function VentanasListScreen() {
                 label="Activas:"
                 checked={isActive}
                 onCheckedChange={(v) => {
-                  setPage(1)
+                  // 👇 Solo cambiamos el filtro en memoria
                   setIsActive(!!v)
+                  // Si quisieras refetch explícito al togglear:
+                  // refetch()
                 }}
               />
 
@@ -177,14 +196,24 @@ export default function VentanasListScreen() {
                     </YStack>
 
                     <XStack gap="$2">
-                      <Button
-                        icon={Trash2}
-                        onPress={(e: any) => { e?.stopPropagation?.(); askDelete(v) }}
-                        hoverStyle={{ bg: '$backgroundHover', scale: 1.02 }}
-                        pressStyle={{ scale: 0.98 }}
-                      >
-                        <Text>Eliminar</Text>
-                      </Button>
+                      {active ? (
+                        <Button
+                          icon={Trash2}
+                          onPress={(e: any) => { e?.stopPropagation?.(); askDelete(v) }}
+                          hoverStyle={{ bg: '$backgroundHover', scale: 1.02 }}
+                          pressStyle={{ scale: 0.98 }}
+                        >
+                          <Text>Eliminar</Text>
+                        </Button>
+                      ) : (
+                        <Button
+                          icon={RotateCcw}
+                          onPress={(e: any) => restoreInactive(e, v)}
+                          disabled={mRestoreInactive.isPending}
+                        >
+                          {mRestoreInactive.isPending ? <Spinner size="small" /> : <Text>Restaurar</Text>}
+                        </Button>
+                      )}
                     </XStack>
                   </XStack>
                 </Card>

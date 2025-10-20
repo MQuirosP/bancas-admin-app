@@ -5,12 +5,11 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 import { ArrowLeft, RefreshCw, Save, Trash2, RotateCcw } from '@tamagui/lucide-icons'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useToast } from '@/hooks/useToast'
-import { Toolbar } from '@/components/ui/Toolbar'
 import ActiveBadge from '@/components/ui/ActiveBadge'
 import { useConfirm } from '@/components/ui/Confirm'
 import VentanaForm, { VentanaFormValues } from '@/components/ventanas/VentanaForm'
 import {
-  getVentana, updateVentana, softDeleteVentana, restoreVentana, listBancasLite
+  getVentana, updateVentana, softDeleteVentana, listBancasLite, restoreVentana
 } from '@/services/ventanas.service'
 
 export default function VentanaDetailScreen() {
@@ -63,19 +62,34 @@ export default function VentanaDetailScreen() {
       phone: payload.phone.trim() || null,
       address: payload.address.trim() || null,
       commissionMarginX: payload.commissionMarginX == null ? null : Number(payload.commissionMarginX),
-      isActive: !!payload.isActive,
+      // isActive: !!payload.isActive,
     }),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['ventanas'] }); toast.success('Cambios guardados') },
     onError: (e: any) => toast.error(e?.message || 'No fue posible guardar'),
   })
 
+  // Eliminar (si mantienes soft delete; si lo retirarás, quita esta sección)
   const mDelete = useMutation({
     mutationFn: () => softDeleteVentana(id!),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['ventanas'] }); toast.success('Ventana eliminada'); router.back() },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['ventanas'] })
+      toast.success('Ventana eliminada')
+      // back seguro
+      // @ts-ignore
+      if (typeof router.canGoBack === 'function' && router.canGoBack()) router.back()
+      else router.replace('/admin/ventanas')
+    },
   })
-  const mRestore = useMutation({
+
+  // Restaurar cuando esté inactiva: simplemente setear isActive=true vía update
+  const mRestoreInactive = useMutation({
     mutationFn: () => restoreVentana(id!),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['ventanas'] }); toast.success('Ventana restaurada'); qVentana.refetch() },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['ventanas'] })
+      toast.success('Ventana restaurada')
+      qVentana.refetch()
+    },
+    onError: (e: any) => toast.error(e?.message || 'No fue posible restaurar'),
   })
 
   const onSave = () => {
@@ -94,16 +108,15 @@ export default function VentanaDetailScreen() {
     if (ok) mDelete.mutate()
   }
 
-  const onRestore = async () => {
+  const onRestoreInactive = async () => {
     const ok = await confirm({
       title: 'Restaurar ventana',
       description: `¿Restaurar la ventana “${qVentana.data?.name}”?`,
       okText: 'Restaurar',
     })
-    if (ok) mRestore.mutate()
+    if (ok) mRestoreInactive.mutate()
   }
 
-  const isDeleted = (qVentana.data as any)?.isDeleted === true
   const isActive = (values?.isActive ?? true) === true
 
   return (
@@ -114,7 +127,12 @@ export default function VentanaDetailScreen() {
           <XStack ai="center" gap="$2">
             <Button
               icon={ArrowLeft}
-              onPress={() => router.back()}
+              onPress={() => {
+                // back seguro
+                // @ts-ignore
+                if (typeof router.canGoBack === 'function' && router.canGoBack()) router.back()
+                else router.replace('/admin/ventanas')
+              }}
               bg="$background"
               hoverStyle={{ bg: '$backgroundHover', scale: 1.02 }}
               pressStyle={{ scale: 0.98 }}
@@ -124,21 +142,33 @@ export default function VentanaDetailScreen() {
 
             <XStack ai="center" gap="$2">
               <Text fontSize="$8" fontWeight="bold">{qVentana.data?.name ?? 'Ventana'}</Text>
-              {typeof isActive === 'boolean' && <ActiveBadge active={isActive} />}
+              <ActiveBadge active={isActive} />
               {(qVentana.isFetching || qBancas.isFetching) && <Spinner size="small" />}
             </XStack>
           </XStack>
 
           <XStack gap="$2" flexWrap="wrap">
-            {!isDeleted ? (
-              <Button icon={Trash2} onPress={onDelete} hoverStyle={{ bg: '$backgroundHover', scale: 1.02 }} pressStyle={{ scale: 0.98 }}>
-                <Text>Eliminar</Text>
+            {/* Si está inactiva, mostrar Restaurar */}
+            {!isActive ? (
+              <Button
+                icon={RotateCcw}
+                onPress={onRestoreInactive}
+                disabled={mRestoreInactive.isPending}
+              >
+                {mRestoreInactive.isPending ? <Spinner size="small" /> : <Text>Restaurar</Text>}
               </Button>
             ) : (
-              <Button icon={RotateCcw} onPress={onRestore} disabled={mRestore.isPending}>
-                {mRestore.isPending ? <Spinner size="small" /> : <Text>Restaurar</Text>}
+              // Si está activa, puedes dejar Eliminar (si mantienes soft delete)
+              <Button
+                icon={Trash2}
+                onPress={onDelete}
+                hoverStyle={{ bg: '$backgroundHover', scale: 1.02 }}
+                pressStyle={{ scale: 0.98 }}
+              >
+                <Text>Eliminar</Text>
               </Button>
             )}
+
             <Button icon={RefreshCw} onPress={() => { qVentana.refetch(); qBancas.refetch() }}>
               <Text>Refrescar</Text>
             </Button>
@@ -164,16 +194,14 @@ export default function VentanaDetailScreen() {
             <Text color="$error">No fue posible cargar la ventana.</Text>
           </Card>
         ) : (
-          <Toolbar>
-            <VentanaForm
-              values={values}
-              setField={setField}
-              bancas={qBancas.data ?? []}
-              loadingBancas={qBancas.isLoading}
-              errorBancas={qBancas.isError}
-              onRetryBancas={() => qBancas.refetch()}
-            />
-          </Toolbar>
+          <VentanaForm
+            values={values}
+            setField={setField}
+            bancas={qBancas.data ?? []}
+            loadingBancas={qBancas.isLoading}
+            errorBancas={qBancas.isError}
+            onRetryBancas={() => qBancas.refetch()}
+          />
         )}
 
         <ConfirmRoot />
