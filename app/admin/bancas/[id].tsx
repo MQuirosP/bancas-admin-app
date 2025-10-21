@@ -40,10 +40,16 @@ export default function BancaDetailScreen() {
   })
 
   const handleSubmit = async (values: BancaFormValues) => {
+    // Payload alineado a Create/UpdateBancaSchema
     const payload: Partial<Banca> = {
       name: values.name,
       code: values.code,
+      email: values.email,
+      address: values.address,
+      phone: values.phone,
       isActive: values.isActive,
+      defaultMinBet: values.defaultMinBet,
+      globalMaxPerNumber: values.globalMaxPerNumber,
       salesCutoffMinutes: values.salesCutoffMinutes,
     }
     await updateMutation.mutateAsync(payload)

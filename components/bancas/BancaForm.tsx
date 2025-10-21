@@ -1,34 +1,55 @@
 // components/bancas/BancaForm.tsx
 import React, { useEffect, useMemo, useState } from 'react'
-import { YStack, XStack, Text, Button, Input, Card, Switch, Spinner } from 'tamagui'
+import { YStack, XStack, Text, Button, Input, Card, Switch, Spinner, TextArea } from 'tamagui'
 import { z } from 'zod'
 import type { Banca } from '@/types/models.types'
 import { ApiErrorClass } from '@/lib/api.client'
 import { useToast } from '@/hooks/useToast'
+import { isDirty as isDirtyUtil } from '@/utils/forms/dirty' // usa tu helper
 
-// ✅ Zod con preprocess: acepta string o vacío y lo convierte a number | undefined
+// Acepta string/'' y retorna number | undefined | NaN
+const toNumberOrUndef = (v: unknown) => {
+  const s = typeof v === 'string' ? v.trim() : v
+  if (s === '' || s === undefined || s === null) return undefined
+  const n = Number(s)
+  return Number.isFinite(n) ? n : NaN
+}
+
+// Zod alineado al backend
 const bancaSchema = z.object({
-  name: z.string().trim().min(2, 'El nombre es requerido'),
-  code: z.string().trim().min(2, 'El código es requerido').transform((v) => v.toUpperCase()),
+  name: z.string().trim().min(2, 'El nombre es requerido').max(100, 'Máximo 100 caracteres'),
+  code: z.string().trim().min(2, 'El código es requerido').max(20, 'Máximo 20')
+    .transform((v) => v.toUpperCase()),
+  email: z.string().trim().toLowerCase().email('Email inválido').optional()
+    .or(z.literal('')).transform(v => v || undefined),
+  address: z.string().trim().max(200, 'Máximo 200 caracteres').optional()
+    .or(z.literal('')).transform(v => v || undefined),
+  phone: z.string().trim().max(20, 'Máximo 20 caracteres').optional()
+    .or(z.literal('')).transform(v => v || undefined),
   isActive: z.boolean().default(true),
-  salesCutoffMinutes: z.preprocess(
-    (v) => {
-      const s = typeof v === 'string' ? v.trim() : v
-      if (s === '' || s === undefined || s === null) return undefined
-      const n = Number(s)
-      return Number.isFinite(n) ? n : NaN
-    },
-    z.number().int().min(0, 'Debe ser un entero ≥ 0').max(600, 'Máximo 600').optional()
+  defaultMinBet: z.preprocess(toNumberOrUndef,
+    z.number().positive('Debe ser > 0').min(1, 'Mínimo 1').optional()
+  ),
+  globalMaxPerNumber: z.preprocess(toNumberOrUndef,
+    z.number().positive('Debe ser > 0').min(1, 'Mínimo 1').optional()
+  ),
+  salesCutoffMinutes: z.preprocess(toNumberOrUndef,
+    z.number().int('Debe ser entero').positive('Debe ser > 0').min(1, 'Mínimo 1').optional()
   ),
 })
 export type BancaFormValues = z.infer<typeof bancaSchema>
 
-// ✅ Estado de UI (todo string salvo boolean)
+// Strings en UI salvo boolean
 type BancaFormUI = {
   name: string
   code: string
+  email: string
+  address: string
+  phone: string
   isActive: boolean
-  salesCutoffMinutes: string // <- string en UI
+  defaultMinBet: string
+  globalMaxPerNumber: string
+  salesCutoffMinutes: string
 }
 
 type Props = {
@@ -40,28 +61,45 @@ type Props = {
 
 export const BancaForm: React.FC<Props> = ({ initial, submitting, onSubmit, onCancel }) => {
   const toast = useToast()
+  const isEditMode = !!initial?.id
 
   const initialUI: BancaFormUI = useMemo(() => ({
     name: initial?.name ?? '',
     code: (initial?.code ?? '').toString().toUpperCase(),
+    email: (initial as any)?.email ?? '',
+    address: (initial as any)?.address ?? '',
+    phone: (initial as any)?.phone ?? '',
     isActive: initial?.isActive ?? true,
-    salesCutoffMinutes:
-      initial?.salesCutoffMinutes !== undefined && initial?.salesCutoffMinutes !== null
-        ? String(initial.salesCutoffMinutes)
-        : '',
+    defaultMinBet: (initial as any)?.defaultMinBet != null ? String((initial as any).defaultMinBet) : '',
+    globalMaxPerNumber: (initial as any)?.globalMaxPerNumber != null ? String((initial as any).globalMaxPerNumber) : '',
+    salesCutoffMinutes: initial?.salesCutoffMinutes != null ? String(initial.salesCutoffMinutes) : '',
   }), [initial])
 
   const [values, setValues] = useState<BancaFormUI>(initialUI)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  // Habilita "Guardar" solo si los campos están OK
+  // Normalización comparable a payload final (para dirty-check)
+  const initialComparable = useMemo(() => ({
+    name: initialUI.name.trim(),
+    code: initialUI.code.trim().toUpperCase(),
+    email: initialUI.email.trim().toLowerCase() || undefined,
+    address: initialUI.address.trim() || undefined,
+    phone: initialUI.phone.trim() || undefined,
+    isActive: initialUI.isActive,
+    defaultMinBet: initialUI.defaultMinBet ? Number(initialUI.defaultMinBet) : undefined,
+    globalMaxPerNumber: initialUI.globalMaxPerNumber ? Number(initialUI.globalMaxPerNumber) : undefined,
+    salesCutoffMinutes: initialUI.salesCutoffMinutes ? Number(initialUI.salesCutoffMinutes) : undefined,
+  }), [initialUI])
+
   const canSubmit = useMemo(() => {
     if (!values.name || values.name.trim().length < 2) return false
     if (!values.code || values.code.trim().length < 2) return false
+    
+    const nums = [values.defaultMinBet, values.globalMaxPerNumber, values.salesCutoffMinutes]
 
-    const scm = values.salesCutoffMinutes?.trim()
-    if (scm && Number.isNaN(Number(scm))) return false
-
+    for (const s of nums) {
+      if (s && Number.isNaN(Number(s))) return false
+    }
     return true
   }, [values])
 
@@ -76,8 +114,12 @@ export const BancaForm: React.FC<Props> = ({ initial, submitting, onSubmit, onCa
 
   const handleSubmit = async () => {
     setErrors({})
-    // ✅ Valida con Zod (conversión incluida)
-    const parsed = bancaSchema.safeParse(values)
+
+    const parsed = bancaSchema.safeParse({
+      ...values,
+      code: values.code.toUpperCase(),
+      email: values.email.toLowerCase(),
+    })
     if (!parsed.success) {
       const fieldErrors: Record<string, string> = {}
       parsed.error.issues.forEach((i) => {
@@ -89,8 +131,26 @@ export const BancaForm: React.FC<Props> = ({ initial, submitting, onSubmit, onCa
       return
     }
 
+    if (isEditMode) {
+      const currentComparable = {
+        name: parsed.data.name,
+        code: parsed.data.code,
+        email: parsed.data.email,
+        address: parsed.data.address,
+        phone: parsed.data.phone,
+        isActive: parsed.data.isActive,
+        defaultMinBet: parsed.data.defaultMinBet,
+        globalMaxPerNumber: parsed.data.globalMaxPerNumber,
+        salesCutoffMinutes: parsed.data.salesCutoffMinutes,
+      }
+      if (!isDirtyUtil(initialComparable, currentComparable)) {
+        toast.info('No hay cambios para guardar')
+        return
+      }
+    }
+
     try {
-      await onSubmit(parsed.data) // parsed.data ya trae number | undefined
+      await onSubmit(parsed.data)
     } catch (e) {
       const err = e as ApiErrorClass
       if (err?.details?.length) {
@@ -107,6 +167,7 @@ export const BancaForm: React.FC<Props> = ({ initial, submitting, onSubmit, onCa
   return (
     <Card padding="$4">
       <YStack gap="$4">
+        {/* Nombre */}
         <YStack gap="$2">
           <Text fontSize="$4" fontWeight="500">Nombre *</Text>
           <Input
@@ -118,6 +179,7 @@ export const BancaForm: React.FC<Props> = ({ initial, submitting, onSubmit, onCa
           {!!errors.name && <Text color="$error" fontSize="$2">{errors.name}</Text>}
         </YStack>
 
+        {/* Código */}
         <YStack gap="$2">
           <Text fontSize="$4" fontWeight="500">Código *</Text>
           <Input
@@ -130,25 +192,92 @@ export const BancaForm: React.FC<Props> = ({ initial, submitting, onSubmit, onCa
           {!!errors.code && <Text color="$error" fontSize="$2">{errors.code}</Text>}
         </YStack>
 
+        {/* Email */}
         <YStack gap="$2">
-          <Text fontSize="$4" fontWeight="500">Minutos de Cutoff (opcional)</Text>
+          <Text fontSize="$4" fontWeight="500">Email (opcional)</Text>
           <Input
             size="$4"
-            placeholder="5"
-            keyboardType="number-pad"
-            value={values.salesCutoffMinutes}
-            onChangeText={(t) => setField('salesCutoffMinutes', t)} // <- ahora es string
+            placeholder="banca@dominio.com"
+            autoCapitalize="none"
+            keyboardType="email-address"
+            value={values.email}
+            onChangeText={(t) => setField('email', t)}
           />
-          {!!errors.salesCutoffMinutes && (
-            <Text color="$error" fontSize="$2">{errors.salesCutoffMinutes}</Text>
-          )}
-          {!errors.salesCutoffMinutes && (
-            <Text fontSize="$2" color="$gray11">
-              Minutos antes del sorteo para bloquear ventas
-            </Text>
-          )}
+          {!!errors.email && <Text color="$error" fontSize="$2">{errors.email}</Text>}
         </YStack>
 
+        {/* Dirección */}
+        <YStack gap="$2">
+          <Text fontSize="$4" fontWeight="500">Dirección (opcional)</Text>
+          <TextArea
+            size="$4"
+            rows={3}
+            placeholder="Dirección fiscal o comercial"
+            value={values.address}
+            onChangeText={(t) => setField('address', t)}
+          />
+          {!!errors.address && <Text color="$error" fontSize="$2">{errors.address}</Text>}
+        </YStack>
+
+        {/* Teléfono */}
+        <YStack gap="$2">
+          <Text fontSize="$4" fontWeight="500">Teléfono (opcional)</Text>
+          <Input
+            size="$4"
+            placeholder="(506) 8888-8888"
+            value={values.phone}
+            onChangeText={(t) => setField('phone', t)}
+          />
+          {!!errors.phone && <Text color="$error" fontSize="$2">{errors.phone}</Text>}
+        </YStack>
+
+        {/* Números */}
+        <XStack gap="$3" flexWrap="wrap">
+          <YStack f={1} minWidth={160} gap="$2">
+            <Text fontSize="$4" fontWeight="500">Apuesta mínima (opcional)</Text>
+            <Input
+              size="$4"
+              placeholder="1"
+              keyboardType="number-pad"
+              value={values.defaultMinBet}
+              onChangeText={(t) => setField('defaultMinBet', t)}
+            />
+            {!!errors.defaultMinBet && <Text color="$error" fontSize="$2">{errors.defaultMinBet}</Text>}
+          </YStack>
+
+          <YStack f={1} minWidth={160} gap="$2">
+            <Text fontSize="$4" fontWeight="500">Máximo por número (opcional)</Text>
+            <Input
+              size="$4"
+              placeholder="1000"
+              keyboardType="number-pad"
+              value={values.globalMaxPerNumber}
+              onChangeText={(t) => setField('globalMaxPerNumber', t)}
+            />
+            {!!errors.globalMaxPerNumber && <Text color="$error" fontSize="$2">{errors.globalMaxPerNumber}</Text>}
+          </YStack>
+
+          <YStack f={1} minWidth={160} gap="$2">
+            <Text fontSize="$4" fontWeight="500">Minutos de Cutoff (opcional)</Text>
+            <Input
+              size="$4"
+              placeholder="5"
+              keyboardType="number-pad"
+              value={values.salesCutoffMinutes}
+              onChangeText={(t) => setField('salesCutoffMinutes', t)}
+            />
+            {!!errors.salesCutoffMinutes && (
+              <Text color="$error" fontSize="$2">{errors.salesCutoffMinutes}</Text>
+            )}
+            {!errors.salesCutoffMinutes && (
+              <Text fontSize="$2" color="$gray11">
+                Minutos antes del sorteo para bloquear ventas (entero &gt; 0)
+              </Text>
+            )}
+          </YStack>
+        </XStack>
+
+        {/* Switch isActive */}
         <XStack gap="$3" alignItems="center">
           <Switch
             size="$2"
@@ -168,10 +297,10 @@ export const BancaForm: React.FC<Props> = ({ initial, submitting, onSubmit, onCa
               shadowOffset={{ width: 0, height: 2 }}
             />
           </Switch>
-
           <Text fontSize="$4">Activa</Text>
         </XStack>
 
+        {/* Acciones */}
         <XStack gap="$3" jc='flex-end' flexWrap='wrap' mt="$2">
           {onCancel && (
             <Button

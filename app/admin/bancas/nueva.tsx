@@ -14,10 +14,9 @@ export default function NuevaBancaScreen() {
 
   const createMutation = useMutation({
     mutationFn: (data: Partial<Banca>) => apiClient.post<Banca>('/bancas', data),
-    onSuccess: (res: any) => {
+    onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['bancas'] })
       toast.success('Banca creada correctamente')
-      // Navegación estandarizada al listado
       goToList('/admin/bancas')
     },
     onError: (error: ApiErrorClass) => {
@@ -28,10 +27,16 @@ export default function NuevaBancaScreen() {
   })
 
   const handleSubmit = async (values: BancaFormValues) => {
+    // Payload alineado a CreateBancaSchema
     const payload: Partial<Banca> = {
       name: values.name,
       code: values.code,
+      email: values.email,
+      address: values.address,
+      phone: values.phone,
       isActive: values.isActive,
+      defaultMinBet: values.defaultMinBet,
+      globalMaxPerNumber: values.globalMaxPerNumber,
       salesCutoffMinutes: values.salesCutoffMinutes,
     }
     await createMutation.mutateAsync(payload)
@@ -44,7 +49,6 @@ export default function NuevaBancaScreen() {
         <BancaForm
           onSubmit={handleSubmit}
           submitting={createMutation.isPending}
-          // Back seguro y consistente con el resto de módulos
           onCancel={() => safeBack('/admin/bancas')}
         />
       </YStack>

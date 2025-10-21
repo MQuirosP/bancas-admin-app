@@ -2,9 +2,16 @@ export interface Banca {
   id: string;
   name: string;
   code: string;
-  address: string;
+
+  // nuevos opcionales (según backend)
+  email?: string;
+  phone?: string;
+  address?: string;
+  defaultMinBet?: number;
+  globalMaxPerNumber?: number;
+
   isActive: boolean;
-  salesCutoffMinutes?: number;
+  salesCutoffMinutes?: number; // entero > 0
   createdAt: string;
   updatedAt: string;
 }
