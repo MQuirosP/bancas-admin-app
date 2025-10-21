@@ -5,7 +5,8 @@ import { z } from 'zod'
 import type { Banca } from '@/types/models.types'
 import { ApiErrorClass } from '@/lib/api.client'
 import { useToast } from '@/hooks/useToast'
-import { isDirty as isDirtyUtil } from '@/utils/forms/dirty' // usa tu helper
+import { isDirty as isDirtyUtil } from '@/utils/forms/dirty'
+import { formatPhoneCR } from "@/utils/format/phone";
 
 // Acepta string/'' y retorna number | undefined | NaN
 const toNumberOrUndef = (v: unknown) => {
@@ -25,7 +26,9 @@ const bancaSchema = z.object({
   address: z.string().trim().max(200, 'Máximo 200 caracteres').optional()
     .or(z.literal('')).transform(v => v || undefined),
   phone: z.string().trim().max(20, 'Máximo 20 caracteres').optional()
-    .or(z.literal('')).transform(v => v || undefined),
+    .or(z.literal(''))
+    .transform(v => (v?.trim() ? v : undefined))
+    .refine(v => !v || /^\(\d{3}\)\s?\d{4}-\d{4}$/.test(v), 'Formato de teléfono inválido'),
   isActive: z.boolean().default(true),
   defaultMinBet: z.preprocess(toNumberOrUndef,
     z.number().positive('Debe ser > 0').min(1, 'Mínimo 1').optional()
@@ -94,7 +97,7 @@ export const BancaForm: React.FC<Props> = ({ initial, submitting, onSubmit, onCa
   const canSubmit = useMemo(() => {
     if (!values.name || values.name.trim().length < 2) return false
     if (!values.code || values.code.trim().length < 2) return false
-    
+
     const nums = [values.defaultMinBet, values.globalMaxPerNumber, values.salesCutoffMinutes]
 
     for (const s of nums) {
@@ -225,8 +228,16 @@ export const BancaForm: React.FC<Props> = ({ initial, submitting, onSubmit, onCa
           <Input
             size="$4"
             placeholder="(506) 8888-8888"
+            keyboardType="phone-pad"
             value={values.phone}
-            onChangeText={(t) => setField('phone', t)}
+            onFocus={() => {
+              // si está vacío, “siembra” el prefijo 506 editable
+              if (!values.phone?.trim()) {
+                setField('phone', '(506) ')
+              }
+            }}
+            onChangeText={(t) => setField('phone', formatPhoneCR(t))}
+            editable={!submitting}
           />
           {!!errors.phone && <Text color="$error" fontSize="$2">{errors.phone}</Text>}
         </YStack>

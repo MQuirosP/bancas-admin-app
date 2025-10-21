@@ -5,6 +5,7 @@ import {
   Select, Sheet, Adapt, Button, Spinner
 } from 'tamagui'
 import { ChevronDown } from '@tamagui/lucide-icons'
+import { formatPhoneCR } from '../../utils/format/phone'
 
 export type VentanaFormValues = {
   bancaId: string
@@ -57,6 +58,7 @@ export default function VentanaForm({
     ...DEFAULTS,
     ...(initialValues ?? {}),
   })
+  const [errors, setErrors] = useState<Record<string, string>>({})
 
   const setField = <K extends keyof VentanaFormValues>(key: K, val: VentanaFormValues[K]) =>
     setValues((prev) => ({ ...prev, [key]: val }))
@@ -250,15 +252,24 @@ export default function VentanaForm({
               />
             </YStack>
 
-            <YStack flex={1} minWidth={240} gap="$1">
-              <Text fontWeight="600">Teléfono (opcional)</Text>
-              <Input
-                placeholder="Teléfono"
-                value={values.phone}
-                onChangeText={(t) => setField('phone', t)}
-                editable={!submitting}
-              />
-            </YStack>
+            <YStack gap="$2">
+  <Text fontSize="$4" fontWeight="500">Teléfono (opcional)</Text>
+  <Input
+    size="$4"
+    placeholder="(506) 8888-8888"
+    keyboardType="phone-pad"
+    value={values.phone}
+    onFocus={() => {
+      // si está vacío, “siembra” el prefijo 506 editable
+      if (!values.phone?.trim()) {
+        setField('phone', '(506) ')
+      }
+    }}
+    onChangeText={(t) => setField('phone', formatPhoneCR(t))}
+    editable={!submitting}
+  />
+  {!!errors.phone && <Text color="$error" fontSize="$2">{errors.phone}</Text>}
+</YStack>
           </XStack>
 
           <YStack gap="$1">
