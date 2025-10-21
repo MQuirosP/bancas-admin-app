@@ -1,61 +1,116 @@
 // components/usuarios/UserForm.tsx
 import React, { useEffect, useMemo, useState } from 'react'
 import {
-  YStack, XStack, Text, Button, Input, Card, Switch, Spinner,
-  Select, Sheet, Adapt
+  YStack,
+  XStack,
+  Text,
+  Button,
+  Input,
+  Card,
+  Switch,
+  Spinner,
+  Select,
+  Sheet,
+  Adapt,
 } from 'tamagui'
 import { z } from 'zod'
 import type { Usuario } from '@/types/models.types'
 import { useToast } from '@/hooks/useToast'
 import { FieldGroup, FieldLabel, FieldError } from '@/components/ui/Field'
 import { ChevronDown, X as XIcon } from '@tamagui/lucide-icons'
-import { isDirty as isDirtyUtil } from "../../utils/forms/dirty";
+import { isDirty as isDirtyUtil } from '@/utils/forms/dirty'
 
-const createSchema = z.object({
-  name: z.string().trim().min(2, 'El nombre es requerido'),
-  username: z.string().trim().min(3, 'El usuario debe tener al menos 3 caracteres'),
-  email: z.string().email('Correo inválido').optional(),
-  code: z.string().trim().min(2, 'Código muy corto').optional(),
-  role: z.enum(['ADMIN', 'VENTANA', 'VENDEDOR']),
-  ventanaId: z.string().trim().optional(),
-  isActive: z.boolean().optional(),
-  password: z.string().min(8, 'La contraseña debe tener al menos 8 caracteres'),
-}).superRefine((val, ctx) => {
-  if (val.role !== 'ADMIN') {
-    if (!val.ventanaId || val.ventanaId.trim().length === 0) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['ventanaId'], message: 'Selecciona una ventana' })
-    }
-  }
-})
+// ---------------- Schemas ----------------
 
-const editSchema = z.object({
-  name: z.string().trim().min(2, 'El nombre es requerido').optional(),
-  username: z.string().trim().min(3, 'El usuario debe tener al menos 3 caracteres').optional(),
-  email: z.string().email('Correo inválido').optional(),
-  // ⛔️ NO incluimos "code" en update porque el backend lo rechaza
-  role: z.enum(['ADMIN', 'VENTANA', 'VENDEDOR']).optional(),
-  ventanaId: z.string().trim().nullable().optional(),
-  isActive: z.boolean().optional(),
-  password: z.string().min(8, 'La contraseña debe tener al menos 8 caracteres').optional(),
-}).superRefine((val, ctx) => {
-  if (val.role && val.role !== 'ADMIN') {
-    if (!val.ventanaId || `${val.ventanaId}`.trim().length === 0) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['ventanaId'], message: 'Selecciona una ventana' })
+const createSchema = z
+  .object({
+    name: z.string().trim().min(2, 'El nombre es requerido').max(100, 'Máximo 100 caracteres'),
+    username: z
+      .string()
+      .trim()
+      .min(3, 'El usuario debe tener al menos 3 caracteres')
+      .max(100, 'Máximo 100 caracteres'),
+    email: z
+      .string()
+      .trim()
+      .toLowerCase()
+      .email('Correo inválido')
+      .optional()
+      .or(z.literal(''))
+      .transform((v) => (v?.trim() ? v : undefined)),
+    code: z
+      .string()
+      .trim()
+      .max(20, 'Máximo 20 caracteres')
+      .optional()
+      .or(z.literal(''))
+      .transform((v) => (v?.trim() ? v : undefined)),
+    role: z.enum(['ADMIN', 'VENTANA', 'VENDEDOR']),
+    ventanaId: z.string().trim().optional(),
+    isActive: z.boolean().default(true),
+    password: z.string().min(8, 'La contraseña debe tener al menos 8 caracteres'),
+  })
+  .superRefine((val, ctx) => {
+    if (val.role !== 'ADMIN') {
+      if (!val.ventanaId || val.ventanaId.trim().length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['ventanaId'],
+          message: 'Selecciona una ventana',
+        })
+      }
     }
-  }
-})
+  })
+
+const editSchema = z
+  .object({
+    name: z.string().trim().min(2, 'El nombre es requerido').max(100, 'Máximo 100 caracteres').optional(),
+    username: z
+      .string()
+      .trim()
+      .min(3, 'El usuario debe tener al menos 3 caracteres')
+      .max(100, 'Máximo 100 caracteres')
+      .optional(),
+    email: z
+      .string()
+      .trim()
+      .toLowerCase()
+      .email('Correo inválido')
+      .optional()
+      .or(z.literal(''))
+      .transform((v) => (v?.trim() ? v : undefined)),
+    // ⛔️ NO incluimos "code" en update porque el backend lo rechaza
+    role: z.enum(['ADMIN', 'VENTANA', 'VENDEDOR']).optional(),
+    // Para no-admin es requerida; para ADMIN debe ir null
+    ventanaId: z.string().trim().nullable().optional(),
+    isActive: z.boolean().optional(),
+    password: z.string().min(8, 'La contraseña debe tener al menos 8 caracteres').optional(),
+  })
+  .superRefine((val, ctx) => {
+    if (val.role && val.role !== 'ADMIN') {
+      if (!val.ventanaId || `${val.ventanaId}`.trim().length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['ventanaId'],
+          message: 'Selecciona una ventana',
+        })
+      }
+    }
+  })
 
 export type UserFormValues = z.input<typeof createSchema> | z.input<typeof editSchema>
+
+// ---------------- UI Types ----------------
 
 type UserFormUI = {
   name: string
   username: string
-  email?: string
-  code?: string
+  email: string
+  code: string
   role: 'ADMIN' | 'VENTANA' | 'VENDEDOR'
-  ventanaId?: string
-  isActive?: boolean
-  password?: string
+  ventanaId: string
+  isActive: boolean
+  password: string
 }
 
 type VentanaLite = { id: string; name: string }
@@ -78,7 +133,7 @@ type Props = {
 const normalizeUser = (v: UserFormUI) => ({
   name: (v.name ?? '').trim(),
   username: (v.username ?? '').trim(),
-  email: (v.email ?? '').trim(),
+  email: (v.email ?? '').trim().toLowerCase(),
   code: (v.code ?? '').trim(),
   role: v.role,
   ventanaId: v.role !== 'ADMIN' ? (v.ventanaId ?? '').trim() : '',
@@ -86,58 +141,68 @@ const normalizeUser = (v: UserFormUI) => ({
   // password no participa en dirty-check
 })
 
+// ---------------- Component ----------------
+
 const UserForm: React.FC<Props> = ({
-  mode, initial, submitting, onSubmit, onCancel, onDelete, onRestore,
-  ventanas = [], loadingVentanas, errorVentanas, onRetryVentanas,
+  mode,
+  initial,
+  submitting,
+  onSubmit,
+  onCancel,
+  onDelete,
+  onRestore,
+  ventanas = [],
+  loadingVentanas,
+  errorVentanas,
+  onRetryVentanas,
 }) => {
   const toast = useToast()
 
-  const initialUI: UserFormUI = useMemo(() => ({
-    name: initial?.name ?? '',
-    username: initial?.username ?? '',
-    email: initial?.email ?? '',
-    code: initial?.code ?? '',
-    role: (initial?.role as any) ?? 'VENDEDOR',
-    ventanaId: initial?.ventanaId ?? '',
-    isActive: initial?.isActive ?? true,
-    password: '',
-  }), [initial])
+  const initialUI: UserFormUI = useMemo(
+    () => ({
+      name: initial?.name ?? '',
+      username: initial?.username ?? '',
+      email: (initial?.email as string) ?? '',
+      code: (initial?.code as string) ?? '',
+      role: (initial?.role as any) ?? 'VENDEDOR',
+      ventanaId: (initial?.ventanaId as string) ?? '',
+      isActive: initial?.isActive ?? true,
+      password: '',
+    }),
+    [initial],
+  )
 
   const [values, setValues] = useState<UserFormUI>(initialUI)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  useEffect(() => { setValues(initialUI); setErrors({}) }, [initialUI])
+  useEffect(() => {
+    setValues(initialUI)
+    setErrors({})
+  }, [initialUI])
 
   const setField = <K extends keyof UserFormUI>(key: K, v: UserFormUI[K]) =>
     setValues((s) => ({ ...s, [key]: v }))
 
-  // ✅ AHORA sí dentro del componente
+  // Dirty solo para edición (pero NO deshabilita el botón; se chequea en submit)
   const isDirty = useMemo(() => {
     if (mode === 'create') return true
     return isDirtyUtil(values, initialUI, normalizeUser)
   }, [mode, values, initialUI])
 
-  // Habilita "Guardar" según modo y validaciones mínimas de UI
+  // Validación mínima para habilitar botón (alineado con Banca/Ventana)
   const canSubmit = useMemo(() => {
     if (!values.name || values.name.trim().length < 2) return false
     if (!values.username || values.username.trim().length < 3) return false
-
-    // Si no es ADMIN, ventana es obligatoria
     if (values.role !== 'ADMIN' && !values.ventanaId?.trim()) return false
 
-    // Email opcional: si viene, que tenga formato básico
+    // Email opcional: si viene, formato básico (la validación exacta la hace Zod)
     if (values.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email.trim())) return false
 
     if (mode === 'create') {
       if (!values.password || values.password.trim().length < 8) return false
-      return true
     }
-
-    // En edición, solo permitir si hay cambios
-    if (mode === 'edit' && !isDirty) return false
     return true
-  }, [values, mode, isDirty])
-
+  }, [values, mode])
 
   const handleSubmit = async () => {
     setErrors({})
@@ -146,13 +211,14 @@ const UserForm: React.FC<Props> = ({
       const raw = {
         name: values.name,
         username: values.username,
-        email: values.email?.trim() || undefined,
+        email: values.email?.trim().toLowerCase() || undefined,
         code: values.code?.trim() || undefined,
         role: values.role,
-        ventanaId: values.role !== 'ADMIN' ? (values.ventanaId?.trim() || undefined) : undefined,
+        ventanaId: values.role !== 'ADMIN' ? values.ventanaId?.trim() || undefined : undefined,
         isActive: values.isActive,
         password: values.password || '',
       }
+
       const parsed = createSchema.safeParse(raw)
       if (!parsed.success) {
         const fieldErrors: Record<string, string> = {}
@@ -164,6 +230,7 @@ const UserForm: React.FC<Props> = ({
         toast.error('Revisa los campos marcados')
         return
       }
+
       await onSubmit(parsed.data)
       return
     }
@@ -172,10 +239,10 @@ const UserForm: React.FC<Props> = ({
     const raw = {
       name: values.name || undefined,
       username: values.username || undefined,
-      email: values.email?.trim() || undefined,
+      email: values.email?.trim().toLowerCase() || undefined,
       // ⛔️ NO enviar code en update
       role: values.role || undefined,
-      ventanaId: values.role !== 'ADMIN' ? (values.ventanaId?.trim() || undefined) : null,
+      ventanaId: values.role !== 'ADMIN' ? values.ventanaId?.trim() || undefined : null,
       isActive: values.isActive,
       password: values.password?.trim() ? values.password : undefined,
     }
@@ -192,7 +259,12 @@ const UserForm: React.FC<Props> = ({
       return
     }
 
-    if (!isDirty) { toast.info('No hay cambios para guardar'); return }
+    // Bloqueo por no-dirty solo AQUÍ (el botón permanece habilitado)
+    if (!isDirty) {
+      toast.info?.('No hay cambios para guardar')
+      return
+    }
+
     await onSubmit(parsed.data)
   }
 
@@ -211,6 +283,7 @@ const UserForm: React.FC<Props> = ({
               />
               <FieldError message={errors.name} />
             </FieldGroup>
+
             <FieldGroup flex={1} minWidth={260}>
               <FieldLabel>Usuario</FieldLabel>
               <Input
@@ -255,11 +328,16 @@ const UserForm: React.FC<Props> = ({
               <FieldLabel>Rol</FieldLabel>
               <Select
                 value={values.role}
-                onValueChange={(val) => setField('role', val as any)}
+                onValueChange={(val) => {
+                  setField('role', val as any)
+                  // Limpia ventana si pasa a ADMIN para evitar falsos dirty
+                  if (val === 'ADMIN') setField('ventanaId', '')
+                }}
               >
                 <Select.Trigger bw={1} bc="$borderColor" px="$3" iconAfter={ChevronDown}>
                   <Select.Value placeholder="Selecciona rol" />
                 </Select.Trigger>
+
                 <Adapt when="sm">
                   <Sheet modal snapPoints={[50]} dismissOnSnapToBottom>
                     <Sheet.Frame ai="center" jc="center">
@@ -268,6 +346,7 @@ const UserForm: React.FC<Props> = ({
                     <Sheet.Overlay />
                   </Sheet>
                 </Adapt>
+
                 <Select.Content zIndex={1_000_000}>
                   <Select.ScrollUpButton />
                   <Select.Viewport>
@@ -299,7 +378,9 @@ const UserForm: React.FC<Props> = ({
                     disabled={!!loadingVentanas || !!errorVentanas}
                   >
                     <Select.Value
-                      placeholder={loadingVentanas ? 'Cargando…' : (errorVentanas ? 'Error' : 'Selecciona ventana')}
+                      placeholder={
+                        loadingVentanas ? 'Cargando…' : errorVentanas ? 'Error' : 'Selecciona ventana'
+                      }
                     />
                   </Select.Trigger>
 
@@ -366,7 +447,7 @@ const UserForm: React.FC<Props> = ({
                 Contraseña
               </FieldLabel>
               <Input
-                value={values.password || ''}
+                value={values.password}
                 onChangeText={(v) => setField('password', v)}
                 placeholder="******"
                 secureTextEntry

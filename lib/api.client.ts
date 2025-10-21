@@ -66,8 +66,8 @@ export class ApiClient {
   constructor(private baseURL: string = API_BASE_URL) {}
 
   public buildQueryString(params?: Record<string, any>) {
-  return buildQuery(params);
-}
+    return buildQuery(params);
+  }
 
   private async requestWithBody<T>(
     endpoint: string,
@@ -198,12 +198,27 @@ export class ApiClient {
       );
     }
 
-    return (data && data.data !== undefined ? data.data : data) as T;
+    // ✅ Si la API devuelve { success, data, meta }, no destripamos: devolvemos el objeto completo
+    if (data && typeof data === 'object') {
+      if ('data' in data && 'meta' in data) {
+        return data as T;
+      }
+      // Si devuelve { success, data } sin meta, devolvemos data “plano” como antes
+      if ('data' in data) {
+        return (data as any).data as T;
+      }
+    }
+
+    return data as T;
   }
 
   get<T>(endpoint: string, params?: Record<string, any>) {
     const qs = buildQuery(params);
-    return this.request<T>(`${endpoint}${qs}`, { method: 'GET' });
+    return this.request<T>(`${endpoint}${qs}`, {
+      method: 'GET',
+      // 👇 evita 304 y cuerpos vacíos en web
+      cache: 'no-store' as RequestCache,
+    });
   }
 
   post<T>(endpoint: string, body?: any) {

@@ -5,15 +5,16 @@ import {
   Select, Sheet, Adapt, Button, Spinner
 } from 'tamagui'
 import { ChevronDown } from '@tamagui/lucide-icons'
-import { formatPhoneCR } from '../../utils/format/phone'
+import { z } from 'zod'
+import { formatPhoneCR } from '@/utils/format/phone'
 
 export type VentanaFormValues = {
   bancaId: string
   name: string
-  code: string
-  email: string
-  phone: string
-  address: string
+  code?: string
+  email?: string
+  phone?: string
+  address?: string
   commissionMarginX: number | null
   isActive: boolean
 }
@@ -32,14 +33,55 @@ type Props = {
   initialValues?: Partial<VentanaFormValues>
 }
 
-const DEFAULTS: VentanaFormValues = {
+// ---------- helpers ----------
+const toNumberOrUndef = (v: unknown) => {
+  const s = typeof v === 'string' ? v.trim() : v
+  if (s === '' || s === undefined || s === null) return undefined
+  const n = Number(s)
+  return Number.isFinite(n) ? n : NaN
+}
+
+// Zod alineado al patrón de BancaForm (strings opcionales '' -> undefined)
+const ventanaSchema = z.object({
+  bancaId: z.string().min(1, 'Selecciona una banca'),
+  name: z.string().trim().min(2, 'El nombre es requerido').max(100, 'Máximo 100 caracteres'),
+  code: z.string().trim().max(20, 'Máximo 20 caracteres').optional().or(z.literal(''))
+    .transform(v => (v?.trim() ? v : undefined)),
+  email: z.string().trim().toLowerCase().email('Email inválido').optional().or(z.literal(''))
+    .transform(v => (v?.trim() ? v : undefined)),
+  phone: z.string().trim().max(20, 'Máximo 20 caracteres').optional().or(z.literal(''))
+    .transform(v => (v?.trim() ? v : undefined))
+    .refine(v => !v || /^\(\d{3}\)\s?\d{4}-\d{4}$/.test(v), 'Formato de teléfono inválido'),
+  address: z.string().trim().max(200, 'Máximo 200 caracteres').optional().or(z.literal(''))
+    .transform(v => (v?.trim() ? v : undefined)),
+  commissionMarginX: z.preprocess(
+    toNumberOrUndef,
+    // acepta 0..1 (e.g. 0.15). Si quieres quitar límite superior, quita .max(1)
+    z.number().min(0, 'Debe ser ≥ 0').max(1, 'Máximo 1.00').optional()
+  ),
+  isActive: z.boolean().default(true),
+})
+
+// ---------- UI state (igual patrón que BancaForm) ----------
+type VentanaFormUI = {
+  bancaId: string
+  name: string
+  code: string
+  email: string
+  phone: string
+  address: string
+  commissionMarginX: string // string en UI
+  isActive: boolean
+}
+
+const DEFAULTS_UI: VentanaFormUI = {
   bancaId: '',
   name: '',
   code: '',
   email: '',
   phone: '',
   address: '',
-  commissionMarginX: null,
+  commissionMarginX: '',
   isActive: true,
 }
 
@@ -53,14 +95,23 @@ export default function VentanaForm({
   onRetryBancas,
   initialValues,
 }: Props) {
-  // Estado interno estandarizado (como BancaForm)
-  const [values, setValues] = useState<VentanaFormValues>({
-    ...DEFAULTS,
-    ...(initialValues ?? {}),
-  })
+  const initialUI: VentanaFormUI = useMemo(() => ({
+    ...DEFAULTS_UI,
+    bancaId: initialValues?.bancaId ?? '',
+    name: initialValues?.name ?? '',
+    code: initialValues?.code ?? '',
+    email: initialValues?.email ?? '',
+    phone: initialValues?.phone ?? '',
+    address: initialValues?.address ?? '',
+    commissionMarginX:
+      initialValues?.commissionMarginX != null ? String(initialValues.commissionMarginX) : '',
+    isActive: initialValues?.isActive ?? true,
+  }), [initialValues])
+
+  const [values, setValues] = useState<VentanaFormUI>(initialUI)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  const setField = <K extends keyof VentanaFormValues>(key: K, val: VentanaFormValues[K]) =>
+  const setField = <K extends keyof VentanaFormUI>(key: K, val: VentanaFormUI[K]) =>
     setValues((prev) => ({ ...prev, [key]: val }))
 
   const firstBancaId = useMemo(() => (bancas?.[0]?.id ?? ''), [bancas])
@@ -72,34 +123,51 @@ export default function VentanaForm({
     }
   }, [firstBancaId, loadingBancas, errorBancas])
 
-  // Validación mínima (igual patrón que en pantallas "nueva")
+  // Validación mínima para habilitar botón (igual que BancaForm)
   const canSubmit = useMemo(() => {
     if (!values.bancaId) return false
     if (!values.name || values.name.trim().length < 2) return false
-    if (values.commissionMarginX != null && Number.isNaN(Number(values.commissionMarginX))) return false
+    if (values.commissionMarginX && Number.isNaN(Number(values.commissionMarginX))) return false
     return true
   }, [values])
 
   const handleSubmit = async () => {
-    if (!canSubmit) return
-    const payload: VentanaFormValues = {
-      bancaId: values.bancaId,
-      name: values.name.trim(),
-      code: values.code?.trim(),
-      email: values.email?.trim(),
-      phone: values.phone?.trim(),
-      address: values.address?.trim(),
-      commissionMarginX:
-        values.commissionMarginX == null || values.commissionMarginX === ('' as any)
-          ? null
-          : Number(values.commissionMarginX),
-      isActive: !!values.isActive,
+    setErrors({})
+
+    // Validación con Zod (y normalizaciones incluidas)
+    const parsed = ventanaSchema.safeParse({
+      ...values,
+      email: values.email.toLowerCase(),
+    })
+
+    if (!parsed.success) {
+      const fieldErrors: Record<string, string> = {}
+      parsed.error.issues.forEach((i) => {
+        const k = i.path[0]?.toString?.()
+        if (k) fieldErrors[k] = i.message
+      })
+      setErrors(fieldErrors)
+      return
     }
+
+    // Armar payload final según tu VentanaFormValues (commissionMarginX: number|null)
+    const data = parsed.data
+    const payload: VentanaFormValues = {
+      bancaId: data.bancaId,
+      name: data.name,
+      code: data.code,
+      email: data.email,
+      phone: data.phone,
+      address: data.address,
+      commissionMarginX:
+        data.commissionMarginX == null ? null : Number(data.commissionMarginX),
+      isActive: data.isActive,
+    }
+
     try {
       await onSubmit?.(payload)
-      
-    } catch (error) {
-      
+    } catch {
+      // puedes mapear errores de API a setErrors aquí si tu backend devuelve details
     }
   }
 
@@ -158,7 +226,6 @@ export default function VentanaForm({
                 />
               </Select.Trigger>
 
-              {/* Adapt para mobile */}
               <Adapt when="sm">
                 <Sheet modal snapPoints={[50]} dismissOnSnapToBottom>
                   <Sheet.Frame ai="center" jc="center">
@@ -188,8 +255,6 @@ export default function VentanaForm({
               </Select.Content>
             </Select>
 
-
-
             {loadingBancas && <Spinner size="small" />}
             {errorBancas && (
               <Button size="$2" onPress={onRetryBancas} disabled={submitting}>
@@ -211,6 +276,7 @@ export default function VentanaForm({
               onChangeText={(t) => setField('name', t)}
               editable={!submitting}
             />
+            {!!errors.name && <Text color="$error" fontSize="$2">{errors.name}</Text>}
           </YStack>
 
           <XStack gap="$3" flexWrap="wrap">
@@ -222,6 +288,7 @@ export default function VentanaForm({
                 onChangeText={(t) => setField('code', t)}
                 editable={!submitting}
               />
+              {!!errors.code && <Text color="$error" fontSize="$2">{errors.code}</Text>}
             </YStack>
 
             <YStack flex={1} minWidth={240} gap="$1">
@@ -229,13 +296,13 @@ export default function VentanaForm({
               <Input
                 placeholder="Ej. 0.15"
                 keyboardType="decimal-pad"
-                value={values.commissionMarginX == null ? '' : String(values.commissionMarginX)}
-                onChangeText={(t) => {
-                  const v = t.trim()
-                  setField('commissionMarginX', v === '' ? null : (Number(v) as any))
-                }}
+                value={values.commissionMarginX}
+                onChangeText={(t) => setField('commissionMarginX', t)}
                 editable={!submitting}
               />
+              {!!errors.commissionMarginX && (
+                <Text color="$error" fontSize="$2">{errors.commissionMarginX}</Text>
+              )}
             </YStack>
           </XStack>
 
@@ -250,26 +317,23 @@ export default function VentanaForm({
                 onChangeText={(t) => setField('email', t)}
                 editable={!submitting}
               />
+              {!!errors.email && <Text color="$error" fontSize="$2">{errors.email}</Text>}
             </YStack>
 
-            <YStack gap="$2">
-  <Text fontSize="$4" fontWeight="500">Teléfono (opcional)</Text>
-  <Input
-    size="$4"
-    placeholder="(506) 8888-8888"
-    keyboardType="phone-pad"
-    value={values.phone}
-    onFocus={() => {
-      // si está vacío, “siembra” el prefijo 506 editable
-      if (!values.phone?.trim()) {
-        setField('phone', '(506) ')
-      }
-    }}
-    onChangeText={(t) => setField('phone', formatPhoneCR(t))}
-    editable={!submitting}
-  />
-  {!!errors.phone && <Text color="$error" fontSize="$2">{errors.phone}</Text>}
-</YStack>
+            <YStack flex={1} minWidth={240} gap="$1">
+              <Text fontWeight="600">Teléfono (opcional)</Text>
+              <Input
+                placeholder="(506) 8888-8888"
+                keyboardType="phone-pad"
+                value={values.phone}
+                onFocus={() => {
+                  if (!values.phone?.trim()) setField('phone', '(506) ')
+                }}
+                onChangeText={(t) => setField('phone', formatPhoneCR(t))}
+                editable={!submitting}
+              />
+              {!!errors.phone && <Text color="$error" fontSize="$2">{errors.phone}</Text>}
+            </YStack>
           </XStack>
 
           <YStack gap="$1">
@@ -280,11 +344,12 @@ export default function VentanaForm({
               onChangeText={(t) => setField('address', t)}
               editable={!submitting}
             />
+            {!!errors.address && <Text color="$error" fontSize="$2">{errors.address}</Text>}
           </YStack>
         </YStack>
       </Card>
 
-      {/* Acciones (estándar como BancaForm) */}
+      {/* Acciones */}
       <XStack jc="flex-end" gap="$2" flexWrap="wrap">
         <Button
           minWidth={120}

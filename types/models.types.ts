@@ -65,27 +65,26 @@ export interface Loteria {
 }
 
 export enum SorteoStatus {
-  PENDING = 'PENDING',
+  SCHEDULED = 'SCHEDULED',
   OPEN = 'OPEN',
-  CLOSED = 'CLOSED',
   EVALUATED = 'EVALUATED',
+  CLOSED = 'CLOSED',
 }
 
 export interface Sorteo {
   id: string;
+  name: string;
   loteriaId: string;
   loteria?: Loteria;
-  date: string;
-  hour: string;
+  scheduledAt: string;           // ISO 8601
   status: SorteoStatus;
-  winningNumber?: string;
-  extraMultiplierId?: string;
-  extraMultiplier?: Multiplier;
-  extraOutcomeCode?: string;
-  openedAt?: string;
-  closedAt?: string;
-  evaluatedAt?: string;
+  winningNumber?: string | null; // "00".."99"
+  extraOutcomeCode?: string | null;
+  extraMultiplierId?: string | null;
+  extraMultiplierX?: number | null; // snapshot
+  // isDeleted: boolean;         // ❌ ignorado (deprecado)
   createdAt: string;
+  updatedAt: string;
 }
 
 export enum MultiplierKind {

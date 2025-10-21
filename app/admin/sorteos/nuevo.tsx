@@ -1,157 +1,245 @@
-import React, { useState } from 'react';
-import { YStack, XStack, Text, Button, Input, Card, ScrollView, Select } from 'tamagui';
-import { useRouter } from 'expo-router';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { apiClient, ApiErrorClass } from '../../../lib/api.client';
-import { Sorteo, Loteria } from '../../../types/models.types';
-import { Check, ChevronDown } from '@tamagui/lucide-icons';
+// app/admin/sorteos/nuevo.tsx
+import React, { useMemo, useState } from 'react'
+import {
+  YStack, XStack, Text, Card, Input, Button, Spinner,
+  Select, Sheet, Adapt, ScrollView, Separator
+} from 'tamagui'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useRouter } from 'expo-router'
+import { ChevronDown } from '@tamagui/lucide-icons'
+import { useToast } from '@/hooks/useToast'
+import { SorteosApi } from '@/lib/api.sorteos'
+import { LoteriasApi } from '@/lib/api.loterias'
+import { goToList, safeBack } from '@/lib/navigation'
+import { compact } from '@/utils/object'
+import type { Loteria } from '@/types/models.types'
+
+/** Utilidades tiempo (web) */
+function toLocalInputValue(d: Date | null) {
+  // datetime-local espera "YYYY-MM-DDTHH:mm" en hora local
+  if (!d) return ''
+  const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000)
+  return local.toISOString().slice(0, 16)
+}
+function fromLocalInputValue(v: string): Date | null {
+  // v en formato "YYYY-MM-DDTHH:mm" (local)
+  if (!v) return null
+  const d = new Date(v)
+  return isNaN(d.getTime()) ? null : d
+}
+function toISO(d: Date | null) {
+  return d ? d.toISOString() : ''
+}
 
 export default function NuevoSorteoScreen() {
-  const router = useRouter();
-  const queryClient = useQueryClient();
+  const router = useRouter()
+  const toast = useToast()
+  const qc = useQueryClient()
 
-  const [loteriaId, setLoteriaId] = useState('');
-  const [name, setName] = useState('');
-  const [scheduledAt, setScheduledAt] = useState('');
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const { data: lotResp, isLoading: loadingLoterias, isError: lotError, refetch: refetchLoterias } = useQuery({
+    queryKey: ['loterias', 'list', { page: 1, pageSize: 100 }],
+    queryFn: () => LoteriasApi.list({ page: 1, pageSize: 100 }),
+    staleTime: 60_000,
+  })
+  const loterias = useMemo<Loteria[]>(() => lotResp?.data ?? [], [lotResp])
 
-  // Cargar lista de loterías para el select
-  const { data: loteriasData } = useQuery({
-    queryKey: ['loterias'],
-    queryFn: () => apiClient.get<{ data: Loteria[] }>('/loterias'),
-  });
+  const [values, setValues] = useState({
+    name: '',
+    loteriaId: '',
+    scheduledAt: '', // ISO
+  })
+  const [errors, setErrors] = useState<Record<string, string>>({})
 
-  const loterias = loteriasData?.data || [];
+  // Estado de fecha (web)
+  const [dateValue, setDateValue] = useState<Date | null>(null)
 
-  const createMutation = useMutation({
-    mutationFn: (data: Partial<Sorteo>) => apiClient.post<Sorteo>('/sorteos', data),
+  const setField = <K extends keyof typeof values>(k: K, v: (typeof values)[K]) =>
+    setValues((s) => ({ ...s, [k]: v }))
+
+  const setDate = (d: Date | null) => {
+    setDateValue(d)
+    setField('scheduledAt', toISO(d))
+  }
+
+  const mCreate = useMutation({
+    mutationFn: () => {
+      const body = compact({
+        name: values.name.trim(),
+        loteriaId: values.loteriaId,
+        scheduledAt: values.scheduledAt,
+      })
+      return SorteosApi.create(body as any)
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['sorteos'] });
-      router.back();
+      qc.invalidateQueries({ queryKey: ['sorteos'] })
+      toast.success('Sorteo creado')
+      goToList('/admin/sorteos')
     },
-    onError: (error: ApiErrorClass) => {
-      if (error.details) {
-        const fieldErrors: Record<string, string> = {};
-        error.details.forEach((detail) => {
-          if (detail.field) {
-            fieldErrors[detail.field] = detail.message;
-          }
-        });
-        setErrors(fieldErrors);
-      }
-    },
-  });
+    onError: (e: any) => toast.error(e?.message || 'No fue posible crear'),
+  })
 
-  const handleSubmit = () => {
-    setErrors({});
-
-    const payload: any = {
-      loteriaId,
-      name,
-      scheduledAt: scheduledAt ? new Date(scheduledAt).toISOString() : undefined,
-    };
-
-    createMutation.mutate(payload);
-  };
+  const handleSave = () => {
+    setErrors({})
+    if (!values.name.trim()) { setErrors((e) => ({ ...e, name: 'Requerido' })); return }
+    if (!values.loteriaId)   { setErrors((e) => ({ ...e, loteriaId: 'Selecciona una lotería' })); return }
+    if (!values.scheduledAt) { setErrors((e) => ({ ...e, scheduledAt: 'Fecha/hora requerida' })); return }
+    mCreate.mutate()
+  }
 
   return (
     <ScrollView flex={1} backgroundColor="$background">
-      <YStack padding="$4" gap="$4" maxWidth={600} alignSelf="center" width="100%">
-        <Text fontSize="$8" fontWeight="bold" color="$color">
-          Nuevo Sorteo
-        </Text>
+      <YStack padding="$4" gap="$4" maxWidth={720} alignSelf="center" width="100%">
+        {/* Header */}
+        <XStack jc="space-between" ai="center" gap="$3" flexWrap="wrap">
+          <Text fontSize="$8" fontWeight="bold">Nuevo Sorteo</Text>
+          {loadingLoterias && <Spinner size="small" />}
+        </XStack>
 
-        <Card padding="$4">
-          <YStack gap="$4">
-            <YStack gap="$2">
-              <Text fontSize="$4" fontWeight="500">
-                Lotería *
-              </Text>
-              <Select value={loteriaId} onValueChange={setLoteriaId}>
-                <Select.Trigger width="100%" iconAfter={ChevronDown}>
-                  <Select.Value placeholder="Seleccione una lotería" />
+        <Card padding="$4" bg="$backgroundHover" borderColor="$borderColor" borderWidth={1}>
+          <YStack gap="$3">
+            {/* Nombre */}
+            <YStack gap="$1">
+              <Text fontWeight="600">Nombre *</Text>
+              <Input
+                value={values.name}
+                onChangeText={(t) => setField('name', t)}
+                placeholder="Nombre del sorteo"
+              />
+              {!!errors.name && <Text color="$error">{errors.name}</Text>}
+            </YStack>
+
+            {/* Lotería */}
+            <YStack gap="$1">
+              <Text fontWeight="600">Lotería *</Text>
+              <Select
+                value={values.loteriaId}
+                onValueChange={(v) => setField('loteriaId', v)}
+              >
+                <Select.Trigger
+                  bw={1}
+                  bc="$borderColor"
+                  bg="$background"
+                  px="$3"
+                  iconAfter={ChevronDown}
+                  disabled={!!loadingLoterias || !!lotError}
+                >
+                  <Select.Value
+                    placeholder={
+                      loadingLoterias
+                        ? 'Cargando…'
+                        : lotError
+                          ? 'Error — reintentar'
+                          : (loterias.length ? 'Selecciona lotería' : 'Sin loterías')
+                    }
+                  />
                 </Select.Trigger>
 
-                <Select.Content zIndex={200000}>
+                <Adapt when="sm">
+                  <Sheet modal snapPoints={[50]} dismissOnSnapToBottom>
+                    <Sheet.Frame ai="center" jc="center">
+                      <Adapt.Contents />
+                    </Sheet.Frame>
+                    <Sheet.Overlay />
+                  </Sheet>
+                </Adapt>
+
+                <Select.Content zIndex={1_000_000}>
                   <Select.ScrollUpButton />
                   <Select.Viewport>
-                    <Select.Group>
-                      {loterias.map((loteria, idx) => (
-                        <Select.Item key={loteria.id} index={idx} value={loteria.id}>
-                          <Select.ItemText>{loteria.name}</Select.ItemText>
-                          <Select.ItemIndicator marginLeft="auto">
-                            <Check size={16} />
-                          </Select.ItemIndicator>
-                        </Select.Item>
-                      ))}
-                    </Select.Group>
+                    {loterias.map((l, i) => (
+                      <Select.Item key={l.id} index={i} value={l.id}>
+                        <Select.ItemText>{l.name}</Select.ItemText>
+                      </Select.Item>
+                    ))}
                   </Select.Viewport>
                   <Select.ScrollDownButton />
                 </Select.Content>
               </Select>
-              {errors.loteriaId && (
-                <Text color="$error" fontSize="$2">
-                  {errors.loteriaId}
-                </Text>
+
+              {!!lotError && (
+                <XStack gap="$2" ai="center" mt="$2">
+                  <Button size="$2" onPress={() => refetchLoterias()}><Text>Reintentar</Text></Button>
+                </XStack>
               )}
+              {!!errors.loteriaId && <Text color="$error">{errors.loteriaId}</Text>}
             </YStack>
 
-            <YStack gap="$2">
-              <Text fontSize="$4" fontWeight="500">
-                Nombre *
-              </Text>
-              <Input
-                size="$4"
-                placeholder="Sorteo Tarde, Sorteo Noche, etc."
-                value={name}
-                onChangeText={setName}
-              />
-              <Text fontSize="$2" color="$textSecondary">
-                Máximo 100 caracteres
-              </Text>
-              {errors.name && (
-                <Text color="$error" fontSize="$2">
-                  {errors.name}
-                </Text>
-              )}
-            </YStack>
+            <Separator />
 
-            <YStack gap="$2">
-              <Text fontSize="$4" fontWeight="500">
-                Fecha y Hora Programada *
-              </Text>
-              <Input
-                size="$4"
-                placeholder="2024-10-17T15:00"
-                value={scheduledAt}
-                onChangeText={setScheduledAt}
-              />
+            {/* Programado para (WEB: input datetime-local nativo) */}
+            <YStack gap="$1">
+              <Text fontWeight="600">Programado para *</Text>
+
+              <XStack gap="$2" ai="center" flexWrap="wrap">
+                {/* Usamos un input HTML nativo para garantizar el picker en web */}
+                <input
+                  type="datetime-local"
+                  value={toLocalInputValue(dateValue)}
+                  onChange={(e) => setDate(fromLocalInputValue(e.currentTarget.value))}
+                  style={{
+                    // estilos acordes a tus tokens tamagui
+                    flex: 1,
+                    padding: '10px 12px',
+                    borderRadius: 8,
+                    border: '1px solid var(--borderColor)',
+                    background: 'var(--background)',
+                    color: 'var(--color)',
+                    outline: 'none',
+                  }}
+                />
+                <Button
+                  onPress={() => {
+                    // Si el usuario quiere escribir a mano ISO:
+                    const d = dateValue ?? null
+                    setField('scheduledAt', toISO(d))
+                  }}
+                  bg="$background"
+                  borderColor="$borderColor"
+                  borderWidth={1}
+                  hoverStyle={{ bg: '$backgroundHover' }}
+                  pressStyle={{ bg: '$backgroundPress' }}
+                >
+                  <Text>Usar esta fecha</Text>
+                </Button>
+              </XStack>
+
+              {/* Muestra lo que vamos a enviar */}
               <Text fontSize="$2" color="$textSecondary">
-                Formato: YYYY-MM-DDTHH:mm (ej: 2024-10-17T15:00)
+                ISO seleccionado: {values.scheduledAt || '—'}
               </Text>
-              {errors.scheduledAt && (
-                <Text color="$error" fontSize="$2">
-                  {errors.scheduledAt}
-                </Text>
-              )}
+
+              {!!errors.scheduledAt && <Text color="$error">{errors.scheduledAt}</Text>}
+              <Text color="$textSecondary">Al guardar, se envía el valor en ISO (UTC).</Text>
             </YStack>
           </YStack>
         </Card>
 
-        <XStack gap="$3">
-          <Button flex={1} backgroundColor="$red4" borderColor="$red8" borderWidth={1} onPress={() => router.back()}>
-            Cancelar
-          </Button>
+        {/* Acciones */}
+        <XStack gap="$3" jc="flex-end" flexWrap="wrap">
           <Button
-            flex={1}
-            backgroundColor="$blue4" borderColor="$blue8" borderWidth={1}
-            onPress={handleSubmit}
-            disabled={createMutation.isPending || !loteriaId || !name || !scheduledAt}
+            minWidth={120}
+            px="$4"
+            onPress={() => safeBack('/admin/sorteos')}
+            backgroundColor="$gray4"
+            borderColor="$gray8"
+            color="$background"
+            borderWidth={1}
+            hoverStyle={{ scale: 1.02 }}
+            pressStyle={{ scale: 0.98 }}
           >
-            {createMutation.isPending ? 'Creando...' : 'Crear Sorteo'}
+            <Text>Cancelar</Text>
+          </Button>
+
+          <Button
+            minWidth={120}
+            px="$4"
+            onPress={handleSave}
+            disabled={mCreate.isPending}
+          >
+            {mCreate.isPending ? <Spinner size="small" /> : <Text>Guardar</Text>}
           </Button>
         </XStack>
       </YStack>
     </ScrollView>
-  );
+  )
 }
