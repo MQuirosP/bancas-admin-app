@@ -93,7 +93,12 @@ export default function VentanaForm({
           : Number(values.commissionMarginX),
       isActive: !!values.isActive,
     }
-    await onSubmit?.(payload)
+    try {
+      await onSubmit?.(payload)
+      
+    } catch (error) {
+      
+    }
   }
 
   return (
@@ -271,11 +276,16 @@ export default function VentanaForm({
       {/* Acciones (estándar como BancaForm) */}
       <XStack jc="flex-end" gap="$2" flexWrap="wrap">
         <Button
-          bg="$background"
-          hoverStyle={{ bg: '$backgroundHover', scale: 1.02 }}
-          pressStyle={{ scale: 0.98 }}
+          minWidth={120}
+          px="$4"
           onPress={onCancel}
-          disabled={submitting}
+          disabled={!!submitting}
+          backgroundColor="$gray4"
+          borderColor="$gray8"
+          color="$background"
+          borderWidth={1}
+          hoverStyle={{ scale: 1.02 }}
+          pressStyle={{ scale: 0.98 }}
         >
           <Text>Cancelar</Text>
         </Button>
@@ -289,8 +299,8 @@ export default function VentanaForm({
           borderColor="$blue8"
           borderWidth={1}
           color="$background"
-          hoverStyle={{ bg: '$primaryHover', scale: 1.02 }}
-          pressStyle={{ bg: '$primaryPress', scale: 0.98 }}
+          hoverStyle={{ scale: 1.02 }}
+          pressStyle={{ scale: 0.98 }}
         >
           {submitting ? <Spinner size="small" /> : <Text>Guardar</Text>}
         </Button>
