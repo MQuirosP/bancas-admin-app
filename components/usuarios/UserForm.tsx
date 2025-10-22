@@ -138,8 +138,8 @@ const normalizeUser = (v: UserFormUI) => ({
   role: v.role,
   ventanaId: v.role !== 'ADMIN' ? (v.ventanaId ?? '').trim() : '',
   isActive: !!v.isActive,
-  // password no participa en dirty-check
-})
+  _hasPasswordChanged: v.password.trim().length > 0 ? 'YES' : 'NO',
+}) satisfies Record<string, any>;
 
 // ---------------- Component ----------------
 
@@ -232,6 +232,7 @@ const UserForm: React.FC<Props> = ({
       }
 
       await onSubmit(parsed.data)
+      setValues((s) => ({ ...s, password: '' })) // limpia contraseña tras submit
       return
     }
 
