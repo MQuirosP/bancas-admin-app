@@ -1,5 +1,6 @@
 // app/(auth)/login.tsx
 import React, { useEffect, useState } from 'react'
+import { useWindowDimensions } from 'react-native'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { YStack, XStack, Text, Input, Button, Spinner } from 'tamagui'
 import { Image } from 'expo-image'
@@ -16,6 +17,15 @@ export default function LoginScreen() {
   const router = useRouter()
   const { msg } = useLocalSearchParams<{ msg?: string }>()
   const { login } = useAuthStore()
+  const { width: ww, height: wh } = useWindowDimensions()
+
+  const isShort = wh < 700
+
+  const baseW = Math.min(Math.max(ww * 0.7, 240), 560)      // 240–560 px
+  const baseH = baseW / 2                                    // 2:1
+  const maxH = Math.min(wh * 0.25, 180)                      // 25% de alto o 180px, lo menor
+  const logoH = Math.min(baseH, maxH)
+  const logoW = logoH * 2
 
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
@@ -56,25 +66,33 @@ export default function LoginScreen() {
   }
 
   return (
-    <YStack flex={1} backgroundColor="$background" justifyContent="center" alignItems="center" padding="$6">
+    <YStack
+      flex={1}
+      backgroundColor="$background"
+      // si hay altura, centramos; si no, alineamos arriba
+      justifyContent={isShort ? 'flex-start' : 'center'}
+      alignItems="center"
+      padding="$6"
+      // un poco de respiro arriba en pantallas bajas
+      paddingTop={isShort ? '$6' : undefined}
+    >
       {/* Logo */}
       <YStack
-        width={128}
-        height={128}
-        $gtSm={{ width: 320, height: 160 }}
-        alignItems="center"
-        justifyContent="center"
-        marginBottom="$6"
-        borderRadius={24}
+        width={logoW}
+        height={logoH}
+        alignSelf="center"
+        borderRadius="$6"
         overflow="hidden"
         backgroundColor="$background"
         borderWidth={1}
         borderColor="$borderColor"
+        marginBottom="$6"
       >
         <Image
           source={require('../../assets/logo.png')}
-          style={{ width: '100%', height: '100%', borderRadius: 24 }}
-          contentFit="cover"
+          style={{ width: '100%', height: '100%' }}
+          // contiene sin recortar; siempre verás el logo completo
+          contentFit="contain"
           contentPosition="center"
           transition={150}
           accessibilityLabel="Logo de la app"
