@@ -7,7 +7,8 @@ import { safeBack, goToList } from '@/lib/navigation'
 import UserForm, { UserFormValues } from '@/components/usuarios/UserForm' // ✅ ruta absoluta correcta
 import { useVentanasInfinite } from '@/hooks/useVentanasInfinite'
 import { toCreateUserDTO } from '@/services/users.service'
-import { getErrorMessage, safe } from '../../../lib/errors'
+import { getErrorMessage } from '../../../lib/errors'
+import { safe } from '../../../utils/safe'
 
 export default function NuevoUsuarioScreen() {
   const toast = useToast()
