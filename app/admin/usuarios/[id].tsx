@@ -6,8 +6,9 @@ import { useUserQuery, useUpdateUser, useSoftDeleteUser, useRestoreUser } from '
 import UserForm, { UserFormValues } from '@/components/usuarios/UserForm'
 import { useToast } from '@/hooks/useToast'
 import { useVentanasInfinite } from '@/hooks/useVentanasInfinite'
-import { getErrorMessage,  } from '../../../lib/errors'
+import { getErrorMessage } from '../../../lib/errors'
 import { safeBack } from '../../../lib/navigation'
+import { safe } from '../../../utils/safe'
 
 export default function UsuarioDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
