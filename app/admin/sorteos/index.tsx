@@ -363,26 +363,72 @@ export default function SorteosListScreen() {
                         </Text>
 
                         {!!s.winningNumber && (
-                          <>
-                            <Text fontSize="$3" color="$textSecondary"> • </Text>
-                            <Text fontSize="$3" color="$textSecondary">
-                              <Text fontWeight="700">Ganador:</Text>{' '}
-                            </Text>
-                            <Text
-                              fontSize="$5"
-                              fontWeight="800"
-                              px="$2"
-                              py={2}
-                              br="$2"
-                              bg="$purple3"
-                              color="$purple12"
-                              bw={1}
-                              bc="$purple8"
-                            >
-                              {s.winningNumber}
-                            </Text>
-                          </>
-                        )}
+  <>
+    <Text fontSize="$3" color="$textSecondary"> • </Text>
+    <Text fontSize="$3" color="$textSecondary">
+      <Text fontWeight="700">Ganador:</Text>{' '}
+    </Text>
+    <Text
+      fontSize="$5"
+      fontWeight="800"
+      px="$2"
+      py={2}
+      br="$2"
+      bg="$purple3"
+      color="$purple12"
+      bw={1}
+      bc="$purple8"
+    >
+      {s.winningNumber}
+    </Text>
+
+    {(['EVALUATED','CLOSED'] as const).includes(s.status as any) && (() => {
+      const anyS = s as any
+
+      // Lee los campos según tu API
+      const x =
+        (typeof anyS.extraMultiplierX === 'number' ? anyS.extraMultiplierX : null) ??
+        (typeof anyS?.extraMultiplier?.valueX === 'number' ? anyS.extraMultiplier.valueX : null)
+
+      // Puedes priorizar el nombre del multiplicador; si no, usa el outcomeCode
+      const code: string | null =
+        (anyS.extraMultiplier?.name && String(anyS.extraMultiplier.name).trim()) ||
+        (anyS.extraOutcomeCode && String(anyS.extraOutcomeCode).trim()) ||
+        null
+
+      // Si no hay info extra, no mostramos nada
+      if (x == null && !code) return null
+
+      const parts: string[] = []
+      if (x != null) parts.push(`X ${x}`)
+      if (code) parts.push(code)
+      const label = parts.join(' · ')
+
+      return (
+        <>
+          <Text fontSize="$3" color="$textSecondary"> • </Text>
+          <Text fontSize="$3" color="$textSecondary">
+            <Text fontWeight="700">Reventado:</Text>{' '}
+          </Text>
+          <Text
+            fontSize="$4"
+            fontWeight="700"
+            px="$2"
+            py={2}
+            br="$2"
+            bg="$orange3"
+            color="$orange12"
+            bw={1}
+            bc="$orange8"
+          >
+            {label}
+          </Text>
+        </>
+      )
+    })()}
+  </>
+)}
+
                       </XStack>
                     </YStack>
 

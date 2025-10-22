@@ -1,6 +1,6 @@
 // app/admin/sorteos/[id].tsx
 import React, { useMemo, useState } from 'react'
-import { YStack, XStack, Text, Card, Button, Spinner, Separator, ScrollView } from 'tamagui'
+import { YStack, XStack, Text, Card, Button, Spinner, Separator, ScrollView, Sheet } from 'tamagui'
 import { useLocalSearchParams } from 'expo-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useToast } from '@/hooks/useToast'
@@ -17,8 +17,10 @@ import { safeBack } from '@/lib/navigation'
 import { Trash2, RotateCcw } from '@tamagui/lucide-icons'
 
 export default function SorteoDetailScreen() {
+  // ⚠️ TODOS los hooks deben ir arriba, antes de cualquier return condicional
   const { id: raw } = useLocalSearchParams<{ id?: string | string[] }>()
   const id = Array.isArray(raw) ? raw[0] : raw
+
   const toast = useToast()
   const qc = useQueryClient()
   const { confirm, ConfirmRoot } = useConfirm()
@@ -26,6 +28,7 @@ export default function SorteoDetailScreen() {
   const admin = isAdmin(user?.role!)
 
   const [showEvaluate, setShowEvaluate] = useState(false)
+  const [winnersOpen, setWinnersOpen] = useState(false)
 
   // Sorteo
   const { data, isLoading, isError, refetch } = useQuery({
@@ -109,6 +112,7 @@ export default function SorteoDetailScreen() {
     if (ok) mRestore.mutate()
   }
 
+  // Returns condicionales DESPUÉS de declarar todos los hooks
   if (!id) {
     return (
       <ScrollView flex={1} backgroundColor="$background">
@@ -167,7 +171,6 @@ export default function SorteoDetailScreen() {
 
           {admin && (
             <XStack gap="$2" flexWrap="wrap">
-              {/* Abrir solo desde SCHEDULED */}
               {s.status === 'SCHEDULED' && (
                 <Button
                   backgroundColor="$blue4"
@@ -189,7 +192,6 @@ export default function SorteoDetailScreen() {
                 </Button>
               )}
 
-              {/* Evaluar solo en OPEN */}
               {s.status === 'OPEN' && (
                 <Button
                   backgroundColor="$green4"
@@ -202,7 +204,6 @@ export default function SorteoDetailScreen() {
                 </Button>
               )}
 
-              {/* Cerrar solo en OPEN */}
               {s.status === 'OPEN' && (
                 <Button
                   onPress={async () => {
@@ -226,7 +227,6 @@ export default function SorteoDetailScreen() {
                 </Button>
               )}
 
-              {/* Eliminar solo si NO está evaluado ni cerrado */}
               {!isDeleted && !isEvaluatedOrClosed && (
                 <Button
                   backgroundColor="$red4"
@@ -240,7 +240,6 @@ export default function SorteoDetailScreen() {
                 </Button>
               )}
 
-              {/* Restaurar si está eliminado */}
               {isDeleted && (
                 <Button icon={RotateCcw} onPress={() => askRestore(s)} disabled={mRestore.isPending}>
                   {mRestore.isPending ? <Spinner size="small" /> : <Text>Restaurar</Text>}
@@ -250,7 +249,7 @@ export default function SorteoDetailScreen() {
           )}
         </XStack>
 
-        {/* Edición directa al entrar (solo si no es final ni eliminado); sino, solo lectura */}
+        {/* Edit o detalle */}
         {!isEvaluatedOrClosed && !isDeleted ? (
           <SorteoForm
             mode="edit"
@@ -262,28 +261,148 @@ export default function SorteoDetailScreen() {
           />
         ) : (
           <Card padding="$4" bg="$backgroundHover" borderColor="$borderColor" borderWidth={1}>
-            <YStack gap="$3">
+            <YStack gap="$4">
+              {/* Header detalle + botones */}
               <XStack jc="space-between" ai="center" fw="wrap" gap="$2">
                 <Text fontSize="$6" fontWeight="700">Detalle del sorteo</Text>
-                <Button
-                  onPress={() => safeBack('/admin/sorteos')}
-                  bg="$background"
-                  borderColor="$borderColor"
-                  borderWidth={1}
-                  hoverStyle={{ bg: '$backgroundHover', scale: 1.02 }}
-                  pressStyle={{ scale: 0.98 }}
-                >
-                  <Text>Volver</Text>
-                </Button>
+                <XStack gap="$2" fw="wrap">
+                  <Button
+                    onPress={() => setWinnersOpen(true)}
+                    bg="$purple4"
+                    borderColor="$purple8"
+                    hoverStyle={{ bg: '$purple5' }}
+                    pressStyle={{ scale: 0.98 }}
+                  >
+                    <Text>Ver tickets ganadores</Text>
+                  </Button>
+
+                  <Button
+                    onPress={() => safeBack('/admin/sorteos')}
+                    bg="$background"
+                    borderColor="$borderColor"
+                    borderWidth={1}
+                    hoverStyle={{ bg: '$backgroundHover' }}
+                    pressStyle={{ scale: 0.98 }}
+                  >
+                    <Text>Volver</Text>
+                  </Button>
+                </XStack>
               </XStack>
 
-              <YStack gap="$2">
-                <Text color="$textSecondary">Lotería: {s.loteria?.name ?? s.loteriaId}</Text>
-                <Text color="$textSecondary">Programado: {new Date(s.scheduledAt as any).toLocaleString()}</Text>
-                <Text color="$textSecondary">Estado: {s.status}</Text>
-                {!!s.winningNumber && <Text color="$textSecondary">Ganador: {s.winningNumber}</Text>}
-                {!!s.extraOutcomeCode && <Text color="$textSecondary">Código extra: {s.extraOutcomeCode}</Text>}
+              {/* Estilo vertical */}
+              <YStack gap="$3">
+                <XStack gap="$2" ai="center" fw="wrap">
+                  <Text color="$textSecondary" fontWeight="700" minWidth={110}>Lotería:</Text>
+                  <Text color="$textPrimary">{s.loteria?.name ?? s.loteriaId}</Text>
+                </XStack>
+
+                <XStack gap="$2" ai="center" fw="wrap">
+                  <Text color="$textSecondary" fontWeight="700" minWidth={110}>Programado:</Text>
+                  <Text color="$textPrimary">{new Date(s.scheduledAt as any).toLocaleString()}</Text>
+                </XStack>
+
+                <XStack gap="$2" ai="center" fw="wrap">
+                  <Text color="$textSecondary" fontWeight="700" minWidth={110}>Estado:</Text>
+                  <Text
+                    px="$2"
+                    py={2}
+                    br="$2"
+                    bw={1}
+                    fontWeight="700"
+                    bg={
+                      s.status === 'OPEN' ? '$green3' :
+                      s.status === 'SCHEDULED' ? '$blue3' :
+                      s.status === 'EVALUATED' ? '$yellow3' :
+                      '$gray3'
+                    }
+                    color={
+                      s.status === 'OPEN' ? '$green12' :
+                      s.status === 'SCHEDULED' ? '$blue12' :
+                      s.status === 'EVALUATED' ? '$yellow12' :
+                      '$gray12'
+                    }
+                    borderColor={
+                      s.status === 'OPEN' ? '$green8' :
+                      s.status === 'SCHEDULED' ? '$blue8' :
+                      s.status === 'EVALUATED' ? '$yellow8' :
+                      '$gray8'
+                    }
+                  >
+                    {s.status}
+                  </Text>
+                </XStack>
+
+                {!!s.winningNumber && (
+                  <XStack gap="$2" ai="center" fw="wrap">
+                    <Text color="$textSecondary" fontWeight="700" minWidth={110}>Ganador:</Text>
+                    <Text
+                      fontSize="$5"
+                      fontWeight="800"
+                      px="$2"
+                      py={2}
+                      br="$2"
+                      bg="$purple3"
+                      color="$purple12"
+                      bw={1}
+                      bc="$purple8"
+                    >
+                      {s.winningNumber}
+                    </Text>
+                  </XStack>
+                )}
+
+                {(['EVALUATED', 'CLOSED'] as const).includes(s.status as any) && (() => {
+                  const anyS = s as any
+                  const x =
+                    (typeof anyS.extraMultiplierX === 'number' ? anyS.extraMultiplierX : null) ??
+                    (typeof anyS?.extraMultiplier?.valueX === 'number' ? anyS.extraMultiplier.valueX : null)
+
+                  const code: string | null =
+                    (anyS.extraMultiplier?.name && String(anyS.extraMultiplier.name).trim()) ||
+                    (anyS.extraOutcomeCode && String(anyS.extraOutcomeCode).trim()) ||
+                    null
+
+                  if (x == null && !code) return null
+
+                  const parts: string[] = []
+                  if (x != null) parts.push(`X ${x}`)
+                  if (code) parts.push(code)
+                  const label = parts.join(' · ')
+
+                  return (
+                    <XStack gap="$2" ai="center" fw="wrap">
+                      <Text color="$textSecondary" fontWeight="700" minWidth={110}>Reventado:</Text>
+                      <Text
+                        fontSize="$4"
+                        fontWeight="700"
+                        px="$2"
+                        py={2}
+                        br="$2"
+                        bg="$orange3"
+                        color="$orange12"
+                        bw={1}
+                        bc="$orange8"
+                      >
+                        {label}
+                      </Text>
+                    </XStack>
+                  )
+                })()}
               </YStack>
+
+              {/* Sheet/Modal ganadores (placeholder) */}
+              <Sheet modal open={winnersOpen} onOpenChange={setWinnersOpen} snapPoints={[85]}>
+                <Sheet.Overlay />
+                <Sheet.Frame p="$4" ai="stretch" gap="$3">
+                  <XStack jc="space-between" ai="center">
+                    <Text fontSize="$6" fontWeight="700">Tickets ganadores</Text>
+                    <Button size="$2" onPress={() => setWinnersOpen(false)}>
+                      <Text>Cerrar</Text>
+                    </Button>
+                  </XStack>
+                  <Text color="$textSecondary">Próximamente…</Text>
+                </Sheet.Frame>
+              </Sheet>
             </YStack>
           </Card>
         )}
@@ -303,10 +422,6 @@ export default function SorteoDetailScreen() {
         )}
 
         <Separator />
-        {/* <Button onPress={() => safeBack('/admin/sorteos')} bg="$background" borderColor="$borderColor" borderWidth={1} maxWidth={180}>
-          <Text>Volver</Text>
-        </Button> */}
-
         <ConfirmRoot />
       </YStack>
     </ScrollView>
