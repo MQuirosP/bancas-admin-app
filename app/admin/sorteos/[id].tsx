@@ -1,13 +1,14 @@
 // app/admin/sorteos/[id].tsx
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { YStack, XStack, Text, Card, Button, Spinner, Separator, ScrollView } from 'tamagui'
 import { useLocalSearchParams } from 'expo-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useToast } from '@/hooks/useToast'
 import { useConfirm } from '@/components/ui/Confirm'
 import { SorteosApi } from '@/lib/api.sorteos'
-import type { Sorteo } from '@/types/models.types'
+import type { Loteria, Sorteo } from '@/types/models.types'
 import SorteoEvaluateModal from '@/components/sorteos/SorteoEvaluateModal'
+import SorteoForm, { SorteoFormValues } from '@/components/sorteos/SorteoForm'
 import ActiveBadge from '@/components/ui/ActiveBadge'
 import { useAuth } from '@/hooks/useAuth'
 import { isAdmin } from '@/utils/role'
@@ -22,7 +23,11 @@ export default function SorteoDetailScreen() {
   const qc = useQueryClient()
   const { confirm, ConfirmRoot } = useConfirm()
   const { user } = useAuth()
+  const admin = isAdmin(user?.role!)
 
+  const [showEvaluate, setShowEvaluate] = useState(false)
+
+  // Sorteo
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['sorteos', id],
     enabled: !!id,
@@ -30,10 +35,19 @@ export default function SorteoDetailScreen() {
     staleTime: 30_000,
   })
 
+  // Loterías para el form (select)
+  const { data: lotResp, isFetching: lotFetching } = useQuery({
+    queryKey: ['loterias', 'select'],
+    queryFn: () => apiClient.get<any>('/loterias'),
+    staleTime: 60_000,
+  })
+  const loterias: Pick<Loteria, 'id' | 'name'>[] = useMemo(() => {
+    if (!lotResp) return []
+    const arr = Array.isArray(lotResp) ? lotResp : (lotResp?.data ?? [])
+    return (arr ?? []).map((l: any) => ({ id: l.id, name: l.name }))
+  }, [lotResp])
 
-  const admin = isAdmin(user?.role!)
-  const [showEvaluate, setShowEvaluate] = useState(false)
-
+  // Mutaciones abrir/cerrar/eliminar/restaurar
   const mOpen = useMutation({
     mutationFn: () => SorteosApi.open(id!),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['sorteos'] }); toast.success('Sorteo abierto'); refetch() },
@@ -61,6 +75,39 @@ export default function SorteoDetailScreen() {
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['sorteos'] }); toast.success('Sorteo restaurado'); refetch() },
     onError: (e: any) => toast.error(e?.message || 'No fue posible restaurar'),
   })
+
+  // Mutación actualizar sorteo
+  const mUpdate = useMutation({
+    mutationFn: (body: SorteoFormValues) => apiClient.put(`/sorteos/${id}`, body),
+    onSuccess: (updated: any) => {
+      const s: Sorteo = Array.isArray(updated) ? (updated as any)[0] : (updated?.data ?? updated)
+      qc.invalidateQueries({ queryKey: ['sorteos'] })
+      qc.setQueryData(['sorteos', id], s || updated)
+      toast.success('Sorteo actualizado')
+      refetch()
+    },
+    onError: (e: any) => toast.error(e?.message || 'No fue posible guardar cambios'),
+  })
+
+  const askDelete = async (s: Sorteo) => {
+    const ok = await confirm({
+      title: 'Confirmar eliminación',
+      description: `¿Eliminar el sorteo “${s.name}”?`,
+      okText: 'Eliminar',
+      cancelText: 'Cancelar',
+    })
+    if (ok) mDelete.mutate()
+  }
+
+  const askRestore = async (s: Sorteo) => {
+    const ok = await confirm({
+      title: 'Restaurar sorteo',
+      description: `¿Restaurar “${s.name}”?`,
+      okText: 'Restaurar',
+      cancelText: 'Cancelar',
+    })
+    if (ok) mRestore.mutate()
+  }
 
   if (!id) {
     return (
@@ -105,36 +152,17 @@ export default function SorteoDetailScreen() {
   const isDeleted = (s as any).isDeleted === true
   const flag = (s as any).isActive
   const rowActive = flag === undefined ? (s.status === 'OPEN' || s.status === 'SCHEDULED') : flag === true
-
-  const askDelete = async () => {
-    const ok = await confirm({
-      title: 'Confirmar eliminación',
-      description: `¿Eliminar el sorteo “${s.name}”?`,
-      okText: 'Eliminar',
-      cancelText: 'Cancelar',
-    })
-    if (ok) mDelete.mutate()
-  }
-
-  const askRestore = async () => {
-    const ok = await confirm({
-      title: 'Restaurar sorteo',
-      description: `¿Restaurar “${s.name}”?`,
-      okText: 'Restaurar',
-      cancelText: 'Cancelar',
-    })
-    if (ok) mRestore.mutate()
-  }
-
   const isEvaluatedOrClosed = s.status === 'EVALUATED' || s.status === 'CLOSED'
 
   return (
     <ScrollView flex={1} backgroundColor="$background">
       <YStack padding="$4" gap="$4" maxWidth={820} alignSelf="center" width="100%">
+        {/* Header */}
         <XStack jc="space-between" ai="center" gap="$2" flexWrap="wrap">
           <XStack ai="center" gap="$2">
             <Text fontSize="$8" fontWeight="bold">{s.name}</Text>
             <ActiveBadge active={rowActive} />
+            {(isLoading || lotFetching) && <Spinner size="small" />}
           </XStack>
 
           {admin && (
@@ -174,7 +202,7 @@ export default function SorteoDetailScreen() {
                 </Button>
               )}
 
-              {/* Cerrar solo en OPEN (ya no en EVALUATED) */}
+              {/* Cerrar solo en OPEN */}
               {s.status === 'OPEN' && (
                 <Button
                   onPress={async () => {
@@ -206,48 +234,45 @@ export default function SorteoDetailScreen() {
                   icon={Trash2}
                   hoverStyle={{ backgroundColor: '$red5', scale: 1.02 }}
                   pressStyle={{ scale: 0.98 }}
-                  onPress={askDelete}
+                  onPress={() => askDelete(s)}
                 >
                   <Text>Eliminar</Text>
                 </Button>
               )}
 
-              {/* Restaurar (si tienes endpoint), solo si está eliminado */}
+              {/* Restaurar si está eliminado */}
               {isDeleted && (
-                <Button icon={RotateCcw} onPress={askRestore} disabled={mRestore.isPending}>
+                <Button icon={RotateCcw} onPress={() => askRestore(s)} disabled={mRestore.isPending}>
                   {mRestore.isPending ? <Spinner size="small" /> : <Text>Restaurar</Text>}
-                </Button>
-              )}
-
-              {/* Ver tickets (verde) para EVALUATED / CLOSED */}
-              {isEvaluatedOrClosed && (
-                <Button
-                  backgroundColor="$green4"
-                  borderColor="$green8"
-                  hoverStyle={{ backgroundColor: '$green5', scale: 1.02 }}
-                  pressStyle={{ scale: 0.98 }}
-                  onPress={() => {
-                    // placeholder sin lógica (ajusta la ruta cuando la tengas)
-                    // safeBack('/admin/sorteos') // o navegar a /admin/sorteos/[id]/tickets
-                  }}
-                >
-                  <Text>Ver tickets</Text>
                 </Button>
               )}
             </XStack>
           )}
         </XStack>
 
-        <Card padding="$4" bg="$backgroundHover" borderColor="$borderColor" borderWidth={1}>
-          <YStack gap="$2">
-            <Text color="$textSecondary">Lotería: {s.loteria?.name ?? s.loteriaId}</Text>
-            <Text color="$textSecondary">Programado: {new Date(s.scheduledAt as any).toLocaleString()}</Text>
-            <Text color="$textSecondary">Estado: {s.status}</Text>
-            {!!s.winningNumber && <Text color="$textSecondary">Ganador: {s.winningNumber}</Text>}
-            {!!s.extraOutcomeCode && <Text color="$textSecondary">Código extra: {s.extraOutcomeCode}</Text>}
-          </YStack>
-        </Card>
+        {/* Edición directa al entrar (solo si no es final ni eliminado); sino, solo lectura */}
+        {!isEvaluatedOrClosed && !isDeleted ? (
+          <SorteoForm
+            mode="edit"
+            initial={s}
+            loterias={loterias}
+            submitting={mUpdate.isPending}
+            onSubmit={(vals) => mUpdate.mutate(vals)}
+            onCancel={() => safeBack('/admin/sorteos')}
+          />
+        ) : (
+          <Card padding="$4" bg="$backgroundHover" borderColor="$borderColor" borderWidth={1}>
+            <YStack gap="$2">
+              <Text color="$textSecondary">Lotería: {s.loteria?.name ?? s.loteriaId}</Text>
+              <Text color="$textSecondary">Programado: {new Date(s.scheduledAt as any).toLocaleString()}</Text>
+              <Text color="$textSecondary">Estado: {s.status}</Text>
+              {!!s.winningNumber && <Text color="$textSecondary">Ganador: {s.winningNumber}</Text>}
+              {!!s.extraOutcomeCode && <Text color="$textSecondary">Código extra: {s.extraOutcomeCode}</Text>}
+            </YStack>
+          </Card>
+        )}
 
+        {/* Modal evaluar */}
         {showEvaluate && s.status === 'OPEN' && admin && (
           <SorteoEvaluateModal
             sorteoId={s.id}
@@ -259,7 +284,6 @@ export default function SorteoDetailScreen() {
               refetch()
             }}
           />
-
         )}
 
         <Separator />
