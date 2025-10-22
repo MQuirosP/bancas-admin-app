@@ -225,9 +225,11 @@ export default function BancasListScreen() {
                       {!deleted ? (
                         <Button
                           icon={Trash2}
+                          backgroundColor="$red3"
+                          color="$red11"
+                          hoverStyle={{ bg: '$red4' }}
+                          pressStyle={{ bg: '$red5', scale: 0.98 }}
                           onPress={(e: any) => { e?.stopPropagation?.(); askDelete(banca); }}
-                          hoverStyle={{ bg: '$backgroundHover' }}
-                          pressStyle={{ scale: 0.98 }}
                         >
                           <Text>Eliminar</Text>
                         </Button>

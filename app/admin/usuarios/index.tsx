@@ -350,10 +350,12 @@ export default function UsuariosListScreen() {
                     <XStack gap="$2">
                       {!u.isDeleted ? (
                         <Button
+                          backgroundColor={'$red4'}
+                        color={'$red11'}
+                        hoverStyle={{ backgroundColor: '$red5' }}
+                        pressStyle={{ backgroundColor: '$red6', scale: 0.98 }}
                           icon={Trash2}
                           onPress={(e: any) => { e?.stopPropagation?.(); confirmDelete(u) }}
-                          hoverStyle={{ bg: '$backgroundHover', scale: 1.02 }}
-                          pressStyle={{ scale: 0.98 }}
                         >
                           <Text>Eliminar</Text>
                         </Button>

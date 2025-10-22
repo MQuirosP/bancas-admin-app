@@ -12,16 +12,16 @@ const extra = ((Constants as any)?.expoConfig?.extra ??
   (Constants as any)?.manifest?.extra ??
   {}) as Extra;
 
-const API_BASE_URL =
-  process.env.EXPO_PUBLIC_API_BASE_URL ??
-  extra.EXPO_PUBLIC_API_BASE_URL ??
-  extra.apiBaseUrl ??
-  'https://backend-bancas.onrender.com/api/v1';
 // const API_BASE_URL =
 //   process.env.EXPO_PUBLIC_API_BASE_URL ??
 //   extra.EXPO_PUBLIC_API_BASE_URL ??
 //   extra.apiBaseUrl ??
-//   'http://localhost:3000/api/v1';
+//   'https://backend-bancas.onrender.com/api/v1';
+const API_BASE_URL =
+  process.env.EXPO_PUBLIC_API_BASE_URL ??
+  extra.EXPO_PUBLIC_API_BASE_URL ??
+  extra.apiBaseUrl ??
+  'http://localhost:3000/api/v1';
 
 export const buildQueryString = buildQuery; // alias público
 

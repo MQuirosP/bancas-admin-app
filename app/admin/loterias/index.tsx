@@ -205,7 +205,13 @@ export default function LoteriasListScreen() {
 
                     <XStack gap="$2">
                       {!deleted ? (
-                        <Button icon={Trash2} onPress={(e:any) => { e?.stopPropagation?.(); askDelete(lot) }}>
+                        <Button 
+                        backgroundColor={'$red4'}
+                        color={'$red11'}
+                        hoverStyle={{ backgroundColor: '$red5' }}
+                        pressStyle={{ backgroundColor: '$red6', scale: 0.98 }}
+                        icon={Trash2} 
+                        onPress={(e:any) => { e?.stopPropagation?.(); askDelete(lot) }}>
                           <Text>Eliminar</Text>
                         </Button>
                       ) : (
