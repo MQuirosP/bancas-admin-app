@@ -107,7 +107,11 @@ export default function SorteosListScreen() {
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState<Status | undefined>(undefined)
-  const [activeOnly, setActiveOnly] = useState(true) // ON por defecto
+
+  // 🔁 Filtro local de “Activos”:
+  // ON  -> muestra solo activos
+  // OFF -> muestra solo inactivos
+  const [activeOnly, setActiveOnly] = useState(true)
 
   const { data, isLoading, isFetching, isError, refetch } = useQuery<ApiListResponse<Sorteo>>({
     queryKey: ['sorteos', 'list', { page, pageSize, search, status }],
@@ -124,20 +128,28 @@ export default function SorteosListScreen() {
 
   const baseRows = useMemo(() => data?.data ?? [], [data])
 
-  // Filtro por estado (frontend) + activos
+  // Helper para saber si un sorteo está "activo" a efectos de UI
+  const isRowActive = (s: Sorteo) => {
+    const flag = (s as any).isActive
+    // si BE no manda isActive, inferimos por estado
+    const inferred = s.status === 'OPEN' || s.status === 'SCHEDULED'
+    return flag === undefined ? inferred : flag === true
+  }
+
+  // Filtro por estado (frontend) + activos/inactivos (frontend)
   const rows = useMemo(() => {
-    const filteredByStatus =
-      status ? baseRows.filter(r => r.status === status) : baseRows
+    const byStatus = status ? baseRows.filter(r => r.status === status) : baseRows
+    // Cuando activeOnly === true -> solo activos
+    // Cuando activeOnly === false -> solo inactivos
+    const byActiveFlag = byStatus.filter(s => activeOnly ? isRowActive(s) : !isRowActive(s))
 
-    if (!activeOnly) return filteredByStatus
-
-    // Activo: usa isActive si existe, si no, infiere por estado
-    return filteredByStatus.filter((s) => {
-      const flag = (s as any).isActive
-      const inferred = s.status === 'OPEN' || s.status === 'SCHEDULED'
-      return flag === undefined ? inferred : flag === true
-    })
-  }, [baseRows, status, activeOnly])
+    if (!search.trim()) return byActiveFlag
+    const q = search.trim().toLowerCase()
+    return byActiveFlag.filter(s =>
+      (s.name ?? '').toLowerCase().includes(q) ||
+      (s.loteria?.name ?? s.loteriaId ?? '').toLowerCase().includes(q)
+    )
+  }, [baseRows, status, activeOnly, search])
 
   const meta = data?.meta
 
@@ -146,7 +158,7 @@ export default function SorteosListScreen() {
     setSearchInput('')
     setSearch('')
     setStatus(undefined)
-    setActiveOnly(true)
+    setActiveOnly(true) // vuelve a activos
     setPage(1)
   }
 
@@ -257,22 +269,24 @@ export default function SorteosListScreen() {
               <Separator vertical />
 
               <XStack ai="center" gap="$2" minWidth={180}>
-                <Text fontSize="$3" >Estado:</Text>
+                <Text fontSize="$3">Estado:</Text>
                 <StatusSelect value={status} onChange={setStatus} />
               </XStack>
 
-              {/* 👇 ESPACIADOR FLEX: empuja el bloque de "Activos" hacia la derecha */}
+              {/* Empuja el switch a la derecha */}
               <XStack flex={1} />
 
               <Separator vertical />
 
-              {/* Bloque "Activos" más a la derecha y con margen extra */}
-              <XStack ai="center" gap="$2" minWidth={200} ml="$4">
+              {/* Switch Activos (ON = activos, OFF = inactivos) */}
+              <XStack ai="center" gap="$2" minWidth={220} ml="$4">
                 <FilterSwitch
-                  label="Activos:"
+                  label={`Activos:`}
                   checked={activeOnly}
                   onCheckedChange={(v) => { setActiveOnly(!!v); setPage(1) }}
                 />
+                <Text color="$textSecondary" fontSize="$2">
+                </Text>
               </XStack>
 
               <Separator vertical />
@@ -298,16 +312,15 @@ export default function SorteosListScreen() {
         ) : (rows?.length ?? 0) === 0 ? (
           <Card padding="$6" ai="center" jc="center" elevate borderColor="$borderColor" borderWidth={1}>
             <Text fontSize="$5" fontWeight="600">Sin resultados</Text>
-            <Text color="$textSecondary">Ajusta filtros o crea un sorteo.</Text>
+            <Text color="$textSecondary">
+              {activeOnly ? 'No hay sorteos activos con los filtros aplicados.' : 'No hay sorteos inactivos con los filtros aplicados.'}
+            </Text>
           </Card>
         ) : (
           <YStack gap="$2">
             {rows.map((s) => {
               const isDeleted = (s as any).isDeleted === true
-              const activeFlag = (s as any).isActive
-              const rowActive = activeFlag === undefined ? (s.status === 'OPEN' || s.status === 'SCHEDULED') : activeFlag === true
-
-              // 👇 NUEVO: estados finales
+              const rowActive = isRowActive(s)
               const isFinal = s.status === 'EVALUATED' || s.status === 'CLOSED'
 
               return (
@@ -327,7 +340,7 @@ export default function SorteosListScreen() {
                         <Text fontSize="$3" color="$textSecondary">— {s.loteria?.name ?? s.loteriaId}</Text>
                         <ActiveBadge active={rowActive} />
                       </XStack>
-                      {/* Detalles compactos */}
+
                       <XStack ai="center" gap="$2" fw="wrap">
                         <Text fontSize="$3" color="$textSecondary">
                           Programado: {new Date(s.scheduledAt as any).toLocaleString()}
@@ -335,23 +348,21 @@ export default function SorteosListScreen() {
 
                         <Text fontSize="$3" color="$textSecondary"> • </Text>
 
-                        {/* Estado (label y valor en negrita; valor con un toque de color) */}
                         <Text fontSize="$3" color="$textSecondary">
                           <Text fontWeight="700">Estado:</Text>{' '}
                           <Text
                             fontWeight="700"
                             color={
                               s.status === 'OPEN' ? '$green11' :
-                                s.status === 'SCHEDULED' ? '$blue11' :
-                                  s.status === 'EVALUATED' ? '$yellow11' :
-                                    '$gray11'
+                              s.status === 'SCHEDULED' ? '$blue11' :
+                              s.status === 'EVALUATED' ? '$yellow11' :
+                              '$gray11'
                             }
                           >
                             {s.status}
                           </Text>
                         </Text>
 
-                        {/* Ganador (label en negrita y número muy destacado) */}
                         {!!s.winningNumber && (
                           <>
                             <Text fontSize="$3" color="$textSecondary"> • </Text>
@@ -374,12 +385,10 @@ export default function SorteosListScreen() {
                           </>
                         )}
                       </XStack>
-
                     </YStack>
 
                     {admin && (
                       <XStack gap="$2" fw="wrap">
-                        {/* Abrir: solo si está SCHEDULED */}
                         {s.status === 'SCHEDULED' && (
                           <Button
                             size="$2"
@@ -403,7 +412,6 @@ export default function SorteosListScreen() {
                           </Button>
                         )}
 
-                        {/* Cerrar: solo si está OPEN (ya NO si está EVALUATED) */}
                         {s.status === 'OPEN' && (
                           <Button
                             size="$2"
@@ -429,7 +437,6 @@ export default function SorteosListScreen() {
                           </Button>
                         )}
 
-                        {/* Eliminar: oculto en estados finales */}
                         {!isFinal ? (
                           !isDeleted ? (
                             <Button
@@ -459,7 +466,6 @@ export default function SorteosListScreen() {
                 </Card>
               )
             })}
-
           </YStack>
         )}
 

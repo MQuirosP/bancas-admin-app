@@ -22,7 +22,7 @@ export default function MultipliersListScreen() {
   const [search, setSearch] = useState('')
   const [loteriaId, setLoteriaId] = useState<string | undefined>(undefined)
   const [kind, setKind] = useState<'NUMERO' | 'REVENTADO' | undefined>(undefined)
-  const [activeOnly, setActiveOnly] = useState(true) // front-only, ON por defecto
+  const [activeOnly, setActiveOnly] = useState(true) // FRONT-ONLY: ON por defecto
 
   // Loterías (normaliza array vs {data})
   const { data: lotData, isFetching: lotFetching } = useQuery({
@@ -42,15 +42,22 @@ export default function MultipliersListScreen() {
     staleTime: 60_000,
   })
 
-  // Normaliza payload y aplica filtros FRONT: activos + búsqueda por nombre
+  // Helpers estado activo/inactivo
+  const isActive = (m: any) => (m?.isActive ?? true) === true
+  const isInactive = (m: any) => (m?.isActive ?? true) === false
+
+  // Normaliza payload y aplica filtros FRONT:
+  // - activosOnly = true  => solo activos
+  // - activosOnly = false => solo inactivos
   const rows = useMemo<LoteriaMultiplier[]>(() => {
     const payload = data as any
     const base: LoteriaMultiplier[] = Array.isArray(payload) ? payload : (payload?.data ?? [])
-    const afterActive = activeOnly ? base.filter(m => (m as any)?.isActive !== false) : base
 
-    if (!search) return afterActive
+    const byActive = activeOnly ? base.filter(isActive) : base.filter(isInactive)
+
+    if (!search) return byActive
     const q = search.toLowerCase()
-    return afterActive.filter(m => (m.name ?? '').toLowerCase().includes(q))
+    return byActive.filter(m => (m.name ?? '').toLowerCase().includes(q))
   }, [data, activeOnly, search])
 
   const handleSearch = () => setSearch(searchInput.trim())
@@ -59,7 +66,7 @@ export default function MultipliersListScreen() {
     setSearch('')
     setKind(undefined)
     setLoteriaId(undefined)
-    setActiveOnly(true)
+    setActiveOnly(true) // vuelve a activas
   }
 
   return (
@@ -240,7 +247,7 @@ export default function MultipliersListScreen() {
               <Button
                 onPress={clearFilters}
                 backgroundColor={'$gray4'}
-                borderColor={"$gray8"}
+                borderColor={'$gray8'}
                 borderWidth={1}
                 hoverStyle={{ backgroundColor: '$gray5' }}
                 pressStyle={{ scale: 0.98 }}
@@ -261,7 +268,9 @@ export default function MultipliersListScreen() {
         ) : rows.length === 0 ? (
           <Card padding="$6" ai="center" jc="center" borderColor="$borderColor" borderWidth={1}>
             <Text fontSize="$5" fontWeight="600">Sin resultados</Text>
-            <Text color="$textSecondary">Ajusta filtros o crea uno nuevo.</Text>
+            <Text color="$textSecondary">
+              {activeOnly ? 'No hay multiplicadores activos con los filtros aplicados.' : 'No hay multiplicadores inactivos con los filtros aplicados.'}
+            </Text>
           </Card>
         ) : (
           <YStack gap="$2">

@@ -13,7 +13,7 @@ import ActiveBadge from '@/components/ui/ActiveBadge'
 import { useConfirm } from '@/components/ui/Confirm'
 import FilterSwitch from '@/components/ui/FilterSwitch'
 
-type ListParams = { page: number; pageSize: number; search?: string; isDeleted?: boolean } // 👈 sin isActive (front-only)
+type ListParams = { page: number; pageSize: number; search?: string } // ← sin isActive ni isDeleted
 
 async function fetchLoterias(params: ListParams): Promise<{ data: Loteria[]; meta: { page:number; pageSize:number; total:number; totalPages:number } }> {
   const res = await apiClient.get<any>('/loterias', params)
@@ -33,12 +33,11 @@ export default function LoteriasListScreen() {
   const [pageSize] = useState(20)
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
-  const [isDeleted, setIsDeleted] = useState<boolean | undefined>(undefined)
 
-  // Front-only: por defecto TRUE
+  // Front-only: Activas ON por defecto (ON = activas, OFF = inactivas)
   const [activeOnly, setActiveOnly] = useState(true)
 
-  const params: ListParams = { page, pageSize, search, isDeleted }
+  const params: ListParams = { page, pageSize, search }
 
   const { data, isLoading, isFetching, isError, refetch } = useQuery({
     queryKey: ['loterias', 'list', params],
@@ -49,11 +48,16 @@ export default function LoteriasListScreen() {
 
   const baseRows = useMemo(() => data?.data ?? [], [data])
 
-  // 👇 Filtro Activas en frontend
+  // Helper: estado activo por flag, default true si no viene
+  const isRowActive = (l: Loteria) => ((l as any).isActive ?? true) === true
+
+  // Filtro local: ON → activas, OFF → inactivas
   const rows = useMemo(() => {
-    if (!activeOnly) return baseRows
-    return baseRows.filter(l => ((l as any).isActive ?? true) === true)
-  }, [baseRows, activeOnly])
+    const byActive = baseRows.filter(l => (activeOnly ? isRowActive(l) : !isRowActive(l)))
+    if (!search.trim()) return byActive
+    const q = search.trim().toLowerCase()
+    return byActive.filter(l => (l.name ?? '').toLowerCase().includes(q))
+  }, [baseRows, activeOnly, search])
 
   const meta = data?.meta
 
@@ -73,8 +77,7 @@ export default function LoteriasListScreen() {
   const clearFilters = () => {
     setSearchInput('')
     setSearch('')
-    setIsDeleted(undefined)
-    setActiveOnly(true) // vuelve a true
+    setActiveOnly(true) // vuelve a activas
     setPage(1)
   }
 
@@ -110,6 +113,7 @@ export default function LoteriasListScreen() {
         <Toolbar>
           <YStack gap="$3">
             <XStack gap="$2" ai="center" flexWrap="wrap">
+              {/* Buscar */}
               <XStack flex={1} position="relative" ai="center">
                 <Input
                   flex={1}
@@ -124,17 +128,17 @@ export default function LoteriasListScreen() {
                   focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
                 />
                 {searchInput.length > 0 && (
-                  <Button 
-                    size="$2" 
-                    circular 
+                  <Button
+                    size="$2"
+                    circular
                     icon={X}
-                    position="absolute" 
+                    position="absolute"
                     onPress={() => setSearchInput('')}
                     aria-label='Limpiar búsqueda'
                     right="$2"
                     alignSelf='center'
                     variant='outlined'
-                   />
+                  />
                 )}
               </XStack>
 
@@ -142,26 +146,19 @@ export default function LoteriasListScreen() {
 
               <Separator vertical />
 
-              {/* Espaciador para empujar switches a la derecha si hay poco espacio */}
+              {/* Empuja el switch a la derecha */}
               <XStack flex={1} />
 
               {/* Front-only: Activas (default true) */}
-              <XStack ai="center" gap="$2" minWidth={200} ml="$2">
+              <XStack ai="center" gap="$2" minWidth={220} ml="$2">
                 <FilterSwitch
                   label="Activas:"
                   checked={activeOnly}
                   onCheckedChange={(v) => { setActiveOnly(!!v); setPage(1) }}
                 />
+                <Text color="$textSecondary" fontSize="$2">
+                </Text>
               </XStack>
-
-              <Separator vertical />
-
-              {/* Backend: Eliminadas */}
-              <FilterSwitch
-                label="Eliminadas:"
-                checked={!!isDeleted}
-                onCheckedChange={(v) => { setIsDeleted(v || undefined); setPage(1) }}
-              />
 
               <Separator vertical />
               <Button icon={RefreshCw} onPress={() => { setPage(1); refetch() }}><Text>Refrescar</Text></Button>
@@ -177,7 +174,9 @@ export default function LoteriasListScreen() {
         ) : (rows?.length ?? 0) === 0 ? (
           <Card padding="$6" ai="center" jc="center" borderColor="$borderColor" borderWidth={1}>
             <Text fontSize="$5" fontWeight="600">Sin resultados</Text>
-            <Text color="$textSecondary">Crea una nueva lotería.</Text>
+            <Text color="$textSecondary">
+              {activeOnly ? 'No hay loterías activas con los filtros aplicados.' : 'No hay loterías inactivas con los filtros aplicados.'}
+            </Text>
           </Card>
         ) : (
           <YStack gap="$2">
@@ -205,13 +204,14 @@ export default function LoteriasListScreen() {
 
                     <XStack gap="$2">
                       {!deleted ? (
-                        <Button 
-                        backgroundColor={'$red4'}
-                        color={'$red11'}
-                        hoverStyle={{ backgroundColor: '$red5' }}
-                        pressStyle={{ backgroundColor: '$red6', scale: 0.98 }}
-                        icon={Trash2} 
-                        onPress={(e:any) => { e?.stopPropagation?.(); askDelete(lot) }}>
+                        <Button
+                          backgroundColor={'$red4'}
+                          color={'$red11'}
+                          hoverStyle={{ backgroundColor: '$red5' }}
+                          pressStyle={{ backgroundColor: '$red6', scale: 0.98 }}
+                          icon={Trash2}
+                          onPress={(e:any) => { e?.stopPropagation?.(); askDelete(lot) }}
+                        >
                           <Text>Eliminar</Text>
                         </Button>
                       ) : (
