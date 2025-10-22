@@ -14,7 +14,7 @@ import { goToList, safeBack } from '@/lib/navigation'
 import { compact } from '@/utils/object'
 import type { Loteria } from '@/types/models.types'
 
-/** Utilidades tiempo (web) */
+/** ─────────────────────── Utilidades tiempo (web) ─────────────────────── **/
 function toLocalInputValue(d: Date | null) {
   // datetime-local espera "YYYY-MM-DDTHH:mm" en hora local
   if (!d) return ''
@@ -29,6 +29,42 @@ function fromLocalInputValue(v: string): Date | null {
 }
 function toISO(d: Date | null) {
   return d ? d.toISOString() : ''
+}
+
+/** ─────────────── Picker web compacto: ocupa 100% de su columna ─────────────── **/
+function DateTimeLocalCompact({
+  value,
+  onChange,
+}: {
+  value: string
+  onChange: (nextLocal: string) => void
+}) {
+  return (
+    <XStack
+      borderWidth={1}
+      borderColor="$borderColor"
+      borderRadius="$3"
+      backgroundColor="$background"
+      hoverStyle={{ backgroundColor: '$backgroundHover' }}
+      px="$3"
+      py={10}
+      width="100%"
+    >
+      <input
+        type="datetime-local"
+        value={value}
+        onChange={(e) => onChange(e.currentTarget.value)}
+        style={{
+          width: '100%',
+          border: 'none',
+          background: 'transparent',
+          color: 'inherit',
+          outline: 'none',
+          WebkitAppearance: 'none',
+        }}
+      />
+    </XStack>
+  )
 }
 
 export default function NuevoSorteoScreen() {
@@ -46,11 +82,11 @@ export default function NuevoSorteoScreen() {
   const [values, setValues] = useState({
     name: '',
     loteriaId: '',
-    scheduledAt: '', // ISO
+    scheduledAt: '', // ISO (UTC) que se enviará al BE
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  // Estado de fecha (web)
+  // Estado de fecha (web) para el control visual; de aquí derivamos el ISO
   const [dateValue, setDateValue] = useState<Date | null>(null)
 
   const setField = <K extends keyof typeof values>(k: K, v: (typeof values)[K]) =>
@@ -80,9 +116,20 @@ export default function NuevoSorteoScreen() {
 
   const handleSave = () => {
     setErrors({})
-    if (!values.name.trim()) { setErrors((e) => ({ ...e, name: 'Requerido' })); return }
-    if (!values.loteriaId)   { setErrors((e) => ({ ...e, loteriaId: 'Selecciona una lotería' })); return }
-    if (!values.scheduledAt) { setErrors((e) => ({ ...e, scheduledAt: 'Fecha/hora requerida' })); return }
+
+    if (!values.name.trim()) {
+      setErrors((e) => ({ ...e, name: 'Requerido' }))
+      return
+    }
+    if (!values.loteriaId) {
+      setErrors((e) => ({ ...e, loteriaId: 'Selecciona una lotería' }))
+      return
+    }
+    if (!values.scheduledAt) {
+      setErrors((e) => ({ ...e, scheduledAt: 'Fecha/hora requerida' }))
+      return
+    }
+
     mCreate.mutate()
   }
 
@@ -96,116 +143,116 @@ export default function NuevoSorteoScreen() {
         </XStack>
 
         <Card padding="$4" bg="$backgroundHover" borderColor="$borderColor" borderWidth={1}>
-          <YStack gap="$3">
-            {/* Nombre */}
-            <YStack gap="$1">
-              <Text fontWeight="600">Nombre *</Text>
-              <Input
-                value={values.name}
-                onChangeText={(t) => setField('name', t)}
-                placeholder="Nombre del sorteo"
-              />
-              {!!errors.name && <Text color="$error">{errors.name}</Text>}
-            </YStack>
+          <YStack gap="$4">
+            {/* ─────────────── Fila 1: Nombre + Lotería ─────────────── */}
+            <XStack gap="$3" fw="wrap" ai="flex-start" jc="space-between">
+              {/* Columna: Nombre */}
+              <YStack gap="$1" flex={1} minWidth={260} maxWidth={360}>
+                <Text fontWeight="600">Nombre *</Text>
+                <Input
+                  width="100%"
+                  value={values.name}
+                  onChangeText={(t) => setField('name', t)}
+                  placeholder="Nombre del sorteo"
+                />
+                {!!errors.name && <Text color="$error">{errors.name}</Text>}
+              </YStack>
 
-            {/* Lotería */}
-            <YStack gap="$1">
-              <Text fontWeight="600">Lotería *</Text>
-              <Select
-                value={values.loteriaId}
-                onValueChange={(v) => setField('loteriaId', v)}
-              >
-                <Select.Trigger
-                  bw={1}
-                  bc="$borderColor"
-                  bg="$background"
-                  px="$3"
-                  iconAfter={ChevronDown}
-                  disabled={!!loadingLoterias || !!lotError}
+              {/* Columna: Lotería */}
+              <YStack gap="$1" flex={1} minWidth={260} maxWidth={360}>
+                <Text fontWeight="600">Lotería *</Text>
+                <Select
+                  value={values.loteriaId}
+                  onValueChange={(v) => setField('loteriaId', v)}
                 >
-                  <Select.Value
-                    placeholder={
-                      loadingLoterias
-                        ? 'Cargando…'
-                        : lotError
-                          ? 'Error — reintentar'
-                          : (loterias.length ? 'Selecciona lotería' : 'Sin loterías')
-                    }
-                  />
-                </Select.Trigger>
+                  <Select.Trigger
+                    width="100%"
+                    bw={1}
+                    bc="$borderColor"
+                    bg="$background"
+                    px="$3"
+                    iconAfter={ChevronDown}
+                    disabled={!!loadingLoterias || !!lotError}
+                  >
+                    <Select.Value
+                      placeholder={
+                        loadingLoterias
+                          ? 'Cargando…'
+                          : lotError
+                            ? 'Error — reintentar'
+                            : (loterias.length ? 'Selecciona lotería' : 'Sin loterías')
+                      }
+                    />
+                  </Select.Trigger>
 
-                <Adapt when="sm">
-                  <Sheet modal snapPoints={[50]} dismissOnSnapToBottom>
-                    <Sheet.Frame ai="center" jc="center">
-                      <Adapt.Contents />
-                    </Sheet.Frame>
-                    <Sheet.Overlay />
-                  </Sheet>
-                </Adapt>
+                  <Adapt when="sm">
+                    <Sheet modal snapPoints={[50]} dismissOnSnapToBottom>
+                      <Sheet.Frame ai="center" jc="center">
+                        <Adapt.Contents />
+                      </Sheet.Frame>
+                      <Sheet.Overlay />
+                    </Sheet>
+                  </Adapt>
 
-                <Select.Content zIndex={1_000_000}>
-                  <Select.ScrollUpButton />
-                  <Select.Viewport>
-                    {loterias.map((l, i) => (
-                      <Select.Item key={l.id} index={i} value={l.id}>
-                        <Select.ItemText>{l.name}</Select.ItemText>
-                      </Select.Item>
-                    ))}
-                  </Select.Viewport>
-                  <Select.ScrollDownButton />
-                </Select.Content>
-              </Select>
+                  <Select.Content zIndex={1_000_000}>
+                    <Select.ScrollUpButton />
+                    <Select.Viewport>
+                      {loterias.map((l, i) => (
+                        <Select.Item key={l.id} index={i} value={l.id}>
+                          <Select.ItemText>{l.name}</Select.ItemText>
+                        </Select.Item>
+                      ))}
+                    </Select.Viewport>
+                    <Select.ScrollDownButton />
+                  </Select.Content>
+                </Select>
 
-              {!!lotError && (
-                <XStack gap="$2" ai="center" mt="$2">
-                  <Button size="$2" onPress={() => refetchLoterias()}><Text>Reintentar</Text></Button>
-                </XStack>
-              )}
-              {!!errors.loteriaId && <Text color="$error">{errors.loteriaId}</Text>}
-            </YStack>
+                {!!lotError && (
+                  <XStack gap="$2" ai="center" mt="$2">
+                    <Button size="$2" onPress={() => refetchLoterias()}><Text>Reintentar</Text></Button>
+                  </XStack>
+                )}
+                {!!errors.loteriaId && <Text color="$error">{errors.loteriaId}</Text>}
+              </YStack>
+            </XStack>
 
             <Separator />
 
-            {/* Programado para (WEB: input datetime-local nativo) */}
+            {/* ───── Fila 2: Programado para + Botón (pegados, no a la derecha) ───── */}
             <YStack gap="$1">
               <Text fontWeight="600">Programado para *</Text>
 
-              <XStack gap="$2" ai="center" flexWrap="wrap">
-                {/* Usamos un input HTML nativo para garantizar el picker en web */}
-                <input
-                  type="datetime-local"
-                  value={toLocalInputValue(dateValue)}
-                  onChange={(e) => setDate(fromLocalInputValue(e.currentTarget.value))}
-                  style={{
-                    // estilos acordes a tus tokens tamagui
-                    flex: 1,
-                    padding: '10px 12px',
-                    borderRadius: 8,
-                    border: '1px solid var(--borderColor)',
-                    background: 'var(--background)',
-                    color: 'var(--color)',
-                    outline: 'none',
-                  }}
-                />
-                <Button
-                  onPress={() => {
-                    // Si el usuario quiere escribir a mano ISO:
-                    const d = dateValue ?? null
-                    setField('scheduledAt', toISO(d))
-                  }}
-                  bg="$background"
-                  borderColor="$borderColor"
-                  borderWidth={1}
-                  hoverStyle={{ bg: '$backgroundHover' }}
-                  pressStyle={{ bg: '$backgroundPress' }}
-                >
-                  <Text>Usar esta fecha</Text>
-                </Button>
+              <XStack gap="$3" ai="center" fw="wrap" jc="flex-start">
+                {/* Columna: Picker datetime */}
+                <YStack flex={1} minWidth={260} maxWidth={360}>
+                  <DateTimeLocalCompact
+                    value={toLocalInputValue(dateValue)}
+                    onChange={(rawLocal) => setDate(fromLocalInputValue(rawLocal))}
+                  />
+                </YStack>
+
+                {/* Columna: Botón acción (ancho fijo y pegado al picker) */}
+                <YStack width={160}>
+                  <Button
+                    width="100%"
+                    onPress={() => {
+                      const now = new Date()
+                      setDate(now)
+                    }}
+                    bg="$background"
+                    borderColor="$borderColor"
+                    borderWidth={1}
+                    hoverStyle={{ bg: '$backgroundHover' }}
+                    pressStyle={{ bg: '$backgroundPress' }}
+                  >
+                    <Text>Usar ahora</Text>
+                  </Button>
+                </YStack>
               </XStack>
 
-              {/* Muestra lo que vamos a enviar */}
+              {/* Mostrar lo que se enviará */}
               <Text fontSize="$2" color="$textSecondary">
-                ISO seleccionado: {values.scheduledAt || '—'}
+                ISO a enviar: {values.scheduledAt || '—'}
               </Text>
 
               {!!errors.scheduledAt && <Text color="$error">{errors.scheduledAt}</Text>}
@@ -230,7 +277,7 @@ export default function NuevoSorteoScreen() {
             <Text>Cancelar</Text>
           </Button>
 
-          <Button
+        <Button
             minWidth={120}
             px="$4"
             onPress={handleSave}

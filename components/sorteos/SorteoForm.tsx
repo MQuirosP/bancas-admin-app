@@ -286,8 +286,8 @@ const schema = z.object({
   name: z.string().trim().min(1, 'Nombre requerido').max(100, 'Máximo 100'),
   loteriaId: z.string().uuid('Lotería inválida'),
   scheduledAt: z.string().trim().min(10, 'Fecha/hora requerida'),
-  extraMultiplierId: z.string().uuid().optional().or(z.literal('').transform(() => undefined)),
-  extraOutcomeCode: z.string().trim().max(20).optional().or(z.literal('').transform(() => undefined)),
+  // extraMultiplierId: z.string().uuid().optional().or(z.literal('').transform(() => undefined)),
+  // extraOutcomeCode: z.string().trim().max(20).optional().or(z.literal('').transform(() => undefined)),
 })
 export type SorteoFormValues = z.infer<typeof schema>
 
@@ -422,7 +422,7 @@ export default function SorteoForm({ mode, initial, loterias, submitting, onSubm
             minWidth={260}
           />
 
-          <YStack gap="$2" minWidth={260} flex={1}>
+          {/* <YStack gap="$2" minWidth={260} flex={1}>
             <Text fontWeight="600">Multiplicador extra (opcional)</Text>
             <Select
               value={values.extraMultiplierId || ''}
@@ -466,7 +466,7 @@ export default function SorteoForm({ mode, initial, loterias, submitting, onSubm
             <Text color="$textSecondary" fontSize="$2">
               Si aplica “reventado”, selecciona el multiplicador correspondiente.
             </Text>
-          </YStack>
+          </YStack> */}
         </XStack>
 
         {/* Acciones */}

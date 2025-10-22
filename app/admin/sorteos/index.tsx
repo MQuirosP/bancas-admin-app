@@ -221,9 +221,8 @@ export default function SorteosListScreen() {
               icon={Plus}
               onPress={() => router.push('/admin/sorteos/nuevo')}
               bg="$primary"
-              hoverStyle={{ bg: '$primaryHover', scale: 1.02 }}
+              hoverStyle={{ bg: '$primaryHover' }}
               pressStyle={{ bg: '$primaryPress', scale: 0.98 }}
-              color="$background"
             >
               <Text>Nuevo Sorteo</Text>
             </Button>

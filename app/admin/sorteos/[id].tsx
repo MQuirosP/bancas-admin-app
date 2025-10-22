@@ -262,12 +262,28 @@ export default function SorteoDetailScreen() {
           />
         ) : (
           <Card padding="$4" bg="$backgroundHover" borderColor="$borderColor" borderWidth={1}>
-            <YStack gap="$2">
-              <Text color="$textSecondary">Lotería: {s.loteria?.name ?? s.loteriaId}</Text>
-              <Text color="$textSecondary">Programado: {new Date(s.scheduledAt as any).toLocaleString()}</Text>
-              <Text color="$textSecondary">Estado: {s.status}</Text>
-              {!!s.winningNumber && <Text color="$textSecondary">Ganador: {s.winningNumber}</Text>}
-              {!!s.extraOutcomeCode && <Text color="$textSecondary">Código extra: {s.extraOutcomeCode}</Text>}
+            <YStack gap="$3">
+              <XStack jc="space-between" ai="center" fw="wrap" gap="$2">
+                <Text fontSize="$6" fontWeight="700">Detalle del sorteo</Text>
+                <Button
+                  onPress={() => safeBack('/admin/sorteos')}
+                  bg="$background"
+                  borderColor="$borderColor"
+                  borderWidth={1}
+                  hoverStyle={{ bg: '$backgroundHover', scale: 1.02 }}
+                  pressStyle={{ scale: 0.98 }}
+                >
+                  <Text>Volver</Text>
+                </Button>
+              </XStack>
+
+              <YStack gap="$2">
+                <Text color="$textSecondary">Lotería: {s.loteria?.name ?? s.loteriaId}</Text>
+                <Text color="$textSecondary">Programado: {new Date(s.scheduledAt as any).toLocaleString()}</Text>
+                <Text color="$textSecondary">Estado: {s.status}</Text>
+                {!!s.winningNumber && <Text color="$textSecondary">Ganador: {s.winningNumber}</Text>}
+                {!!s.extraOutcomeCode && <Text color="$textSecondary">Código extra: {s.extraOutcomeCode}</Text>}
+              </YStack>
             </YStack>
           </Card>
         )}
@@ -287,9 +303,9 @@ export default function SorteoDetailScreen() {
         )}
 
         <Separator />
-        <Button onPress={() => safeBack('/admin/sorteos')} bg="$background" borderColor="$borderColor" borderWidth={1} maxWidth={180}>
+        {/* <Button onPress={() => safeBack('/admin/sorteos')} bg="$background" borderColor="$borderColor" borderWidth={1} maxWidth={180}>
           <Text>Volver</Text>
-        </Button>
+        </Button> */}
 
         <ConfirmRoot />
       </YStack>
