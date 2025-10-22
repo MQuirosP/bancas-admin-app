@@ -37,8 +37,8 @@ export default function MultipliersListScreen() {
 
   // Multiplicadores (el BE puede filtrar por search/loteria/kind; isActive se filtra en front)
   const { data, isLoading, isFetching, isError, refetch } = useQuery({
-    queryKey: ['multipliers', 'list', { search, loteriaId, kind }],
-    queryFn: () => MultipliersApi.list({ search, loteriaId, kind }),
+    queryKey: ['multipliers', 'list', { loteriaId, kind }],
+    queryFn: () => MultipliersApi.list({ loteriaId, kind }),
     staleTime: 60_000,
   })
 
