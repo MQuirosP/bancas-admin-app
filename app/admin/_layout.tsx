@@ -1,29 +1,40 @@
-import React from 'react';
-import { Stack, Redirect } from 'expo-router';
-import { YStack, Text } from 'tamagui';
-import { useAuthStore } from '../../store/auth.store';
+// app/admin/_layout.tsx
+import React from 'react'
+import { Stack, Redirect, router } from 'expo-router'
+import { YStack, Text } from 'tamagui'
+import { useAuthStore } from '../../store/auth.store'
+import { setAuthExpiredHandler } from '../../lib/api.client'
 
 export default function AdminLayout() {
-  const { user, isAuthenticated, isHydrating } = useAuthStore();
+  const { user, isAuthenticated, isHydrating, clearAuth } = useAuthStore()
 
-  // 1) Durante hidratación o si aún no sabemos, muestra un loader (no null)
+  // Handler global para expiración durante la navegación
+  React.useEffect(() => {
+    setAuthExpiredHandler(async (msg: string) => {
+      try { await clearAuth() } catch {}
+      router.replace({ pathname: '/(auth)/login', params: { msg } })
+    })
+    return () => setAuthExpiredHandler(null)
+  }, [clearAuth])
+
+  // 1) Durante hidratación
   if (isHydrating) {
     return (
       <YStack f={1} ai="center" jc="center" bg="$background">
         <Text color="$gray11">Preparando sesión…</Text>
       </YStack>
-    );
+    )
   }
 
-  // 2) Si no hay sesión, fuera de aquí
+  // 2) Sin sesión => fuera
   if (!isAuthenticated) {
-    return <Redirect href="/(auth)/login" />;
+    return <Redirect href="/(auth)/login?msg=Inicia%20sesión%20para%20continuar." />
   }
 
   // 3) Si no es ADMIN, mándalo a su home real
   if (user?.role !== 'ADMIN') {
-    const home = user?.role === 'VENTANA' ? '/ventana' : '/vendedor';
-    return <Redirect href={home} />;
+    const home = user?.role === 'VENTANA' ? '/ventana' : '/vendedor'
+    return <Redirect href={home} />
   }
 
   // 4) Rol correcto => renderiza el Stack
@@ -56,5 +67,5 @@ export default function AdminLayout() {
         <Stack.Screen name="ventanas/nueva" />
       </Stack>
     </YStack>
-  );
+  )
 }

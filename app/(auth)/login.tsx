@@ -1,89 +1,63 @@
 // app/(auth)/login.tsx
-import React, { useState } from 'react';
-import { useRouter } from 'expo-router';
-import { YStack, XStack, Text, Input, Button, Spinner } from 'tamagui';
-import { Image } from 'expo-image';
-import { User, Lock, ArrowRight } from '@tamagui/lucide-icons';
-import { z } from 'zod';
-import { useAuthStore } from '../../store/auth.store';
+import React, { useEffect, useState } from 'react'
+import { useRouter, useLocalSearchParams } from 'expo-router'
+import { YStack, XStack, Text, Input, Button, Spinner } from 'tamagui'
+import { Image } from 'expo-image'
+import { User, Lock, ArrowRight } from '@tamagui/lucide-icons'
+import { z } from 'zod'
+import { useAuthStore } from '../../store/auth.store'
 
 const loginSchema = z.object({
   username: z.string().min(3, 'El usuario debe tener al menos 3 caracteres'),
   password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
-});
+})
 
 export default function LoginScreen() {
-  const router = useRouter();
-  const { login, user } = useAuthStore();
-  
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<{ username?: string; password?: string; general?: string }>({});
+  const router = useRouter()
+  const { msg } = useLocalSearchParams<{ msg?: string }>()
+  const { login } = useAuthStore()
+
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [errors, setErrors] = useState<{ username?: string; password?: string; general?: string }>({})
+
+  // Mostrar mensaje que llega por redirect (sesión expirada, etc.)
+  useEffect(() => {
+    if (msg) setErrors((e) => ({ ...e, general: String(msg) }))
+  }, [msg])
 
   const handleLogin = async () => {
     try {
-      // Validar campos
-      const validated = loginSchema.parse({ username, password });
-      setErrors({});
-      
-      setLoading(true);
-      console.log('🔐 Iniciando login...');
-      
-      // Llamar a login del store
-      await login(validated.username, validated.password);
-      
-      // Obtener el rol del usuario desde el store actualizado
-      const currentUser = useAuthStore.getState().user;
-      console.log('✅ Login exitoso, rol:', currentUser?.role);
-      
-      // Redirigir según el rol
-      if (currentUser?.role === 'ADMIN') {
-        console.log('📍 Redirigiendo a /admin');
-        router.replace('/admin');
-      } else if (currentUser?.role === 'VENTANA') {
-        console.log('📍 Redirigiendo a /ventana');
-        router.replace('/ventana');
-      } else if (currentUser?.role === 'VENDEDOR') {
-        console.log('📍 Redirigiendo a /vendedor');
-        router.replace('/vendedor');
-      } else {
-        // Fallback al dashboard genérico
-        console.log('📍 Redirigiendo a /(dashboard)');
-        router.replace('/(dashboard)');
-      }
-      
+      const validated = loginSchema.parse({ username, password })
+      setErrors({})
+      setLoading(true)
+
+      await login(validated.username, validated.password)
+
+      const currentUser = useAuthStore.getState().user
+      if (currentUser?.role === 'ADMIN') router.replace('/admin')
+      else if (currentUser?.role === 'VENTANA') router.replace('/ventana')
+      else if (currentUser?.role === 'VENDEDOR') router.replace('/vendedor')
+      else router.replace('/(dashboard)')
     } catch (error: any) {
-      console.error('❌ Error en login:', error);
-      
       if (error instanceof z.ZodError) {
-        const fieldErrors: { username?: string; password?: string } = {};
+        const fieldErrors: { username?: string; password?: string } = {}
         error.errors.forEach((err) => {
-          if (err.path[0]) {
-            fieldErrors[err.path[0] as 'username' | 'password'] = err.message;
-          }
-        });
-        setErrors(fieldErrors);
+          if (err.path[0]) fieldErrors[err.path[0] as 'username' | 'password'] = err.message
+        })
+        setErrors(fieldErrors)
       } else {
-        // Error de autenticación del backend
-        setErrors({
-          general: error?.message || 'Error al iniciar sesión. Verifica tus credenciales.',
-        });
+        setErrors({ general: error?.message || 'Error al iniciar sesión. Verifica tus credenciales.' })
       }
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
-    <YStack
-      flex={1}
-      backgroundColor="$background"
-      justifyContent="center"
-      alignItems="center"
-      padding="$6"
-    >
-      {/* Logo / Imagen */}
+    <YStack flex={1} backgroundColor="$background" justifyContent="center" alignItems="center" padding="$6">
+      {/* Logo */}
       <YStack
         width={128}
         height={128}
@@ -107,50 +81,27 @@ export default function LoginScreen() {
         />
       </YStack>
 
-      {/* Título */}
-      <Text
-        fontSize="$9"
-        fontWeight="700"
-        color="$textPrimary"
-        marginBottom="$2"
-        textAlign="center"
-      >
+      <Text fontSize="$9" fontWeight="700" color="$textPrimary" marginBottom="$2" textAlign="center">
         Bienvenido
       </Text>
-
-      {/* Subtítulo */}
-      <Text
-        fontSize="$5"
-        color="$textSecondary"
-        marginBottom="$2"
-        textAlign="center"
-      >
+      <Text fontSize="$5" color="$textSecondary" marginBottom="$2" textAlign="center">
         Ingresa tus credenciales para continuar
       </Text>
 
       {/* Error general */}
       {errors.general && (
-        <YStack
-          backgroundColor="$red2"
-          padding="$3"
-          borderRadius="$4"
-          marginBottom="$4"
-          width="100%"
-          maxWidth={400}
-        >
+        <YStack backgroundColor="$red2" padding="$3" borderRadius="$4" marginBottom="$4" width="100%" maxWidth={400}>
           <Text fontSize="$3" color="$red10" textAlign="center">
             {errors.general}
           </Text>
         </YStack>
       )}
 
-      {/* Formulario */}
+      {/* Form */}
       <YStack width="100%" maxWidth={400} gap="$2">
-        {/* Campo Username */}
+        {/* Usuario */}
         <YStack gap="$2">
-          <Text fontSize="$4" fontWeight="600" color="$textPrimary">
-            Usuario
-          </Text>
+          <Text fontSize="$4" fontWeight="600" color="$textPrimary">Usuario</Text>
           <XStack
             backgroundColor="$backgroundHover"
             borderRadius="$4"
@@ -175,18 +126,12 @@ export default function LoginScreen() {
               autoCapitalize="none"
             />
           </XStack>
-          {errors.username && (
-            <Text fontSize="$3" color="$red10">
-              {errors.username}
-            </Text>
-          )}
+          {errors.username && <Text fontSize="$3" color="$red10">{errors.username}</Text>}
         </YStack>
 
-        {/* Campo Password */}
+        {/* Contraseña */}
         <YStack gap="$2">
-          <Text fontSize="$4" fontWeight="600" color="$textPrimary">
-            Contraseña
-          </Text>
+          <Text fontSize="$4" fontWeight="600" color="$textPrimary">Contraseña</Text>
           <XStack
             backgroundColor="$backgroundHover"
             borderRadius="$4"
@@ -211,11 +156,7 @@ export default function LoginScreen() {
               color="$textPrimary"
             />
           </XStack>
-          {errors.password && (
-            <Text fontSize="$3" color="$red10">
-              {errors.password}
-            </Text>
-          )}
+          {errors.password && <Text fontSize="$3" color="$red10">{errors.password}</Text>}
         </YStack>
 
         {/* Botón Login */}
@@ -229,23 +170,15 @@ export default function LoginScreen() {
           onPress={handleLogin}
           disabled={loading}
           marginTop="$4"
-          pressStyle={{
-            backgroundColor: '$primary',
-            opacity: 0.8,
-          }}
-          hoverStyle={{
-            backgroundColor: '$primary',
-            opacity: 0.9,
-          }}
+          pressStyle={{ backgroundColor: '$primary', opacity: 0.8 }}
+          hoverStyle={{ backgroundColor: '$primary', opacity: 0.9 }}
         >
           <XStack gap="$2" alignItems="center">
             {loading ? (
               <Spinner size="small" color="white" />
             ) : (
               <>
-                <Text color="white" fontWeight="600" fontSize="$5">
-                  Iniciar Sesión
-                </Text>
+                <Text color="white" fontWeight="600" fontSize="$5">Iniciar Sesión</Text>
                 <ArrowRight size={20} color="white" />
               </>
             )}
@@ -253,18 +186,10 @@ export default function LoginScreen() {
         </Button>
       </YStack>
 
-      {/* Link de ayuda */}
-      <Text
-        fontSize="$3"
-        color="$textTertiary"
-        marginTop="$6"
-        textAlign="center"
-      >
+      <Text fontSize="$3" color="$textTertiary" marginTop="$6" textAlign="center">
         ¿Olvidaste tu contraseña?{' '}
-        <Text color="$primary" fontWeight="600">
-          Contacta al administrador
-        </Text>
+        <Text color="$primary" fontWeight="600">Contacta al administrador</Text>
       </Text>
     </YStack>
-  );
+  )
 }
