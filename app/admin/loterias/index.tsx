@@ -206,7 +206,7 @@ export default function LoteriasListScreen() {
                       {!deleted ? (
                         <Button
                           backgroundColor={'$red4'}
-                          color={'$red11'}
+                          borderColor={'$red8'}
                           hoverStyle={{ backgroundColor: '$red5' }}
                           pressStyle={{ backgroundColor: '$red6', scale: 0.98 }}
                           icon={Trash2}

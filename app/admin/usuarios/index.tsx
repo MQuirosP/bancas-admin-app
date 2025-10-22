@@ -351,9 +351,9 @@ export default function UsuariosListScreen() {
                       {!u.isDeleted ? (
                         <Button
                           backgroundColor={'$red4'}
-                        color={'$red11'}
-                        hoverStyle={{ backgroundColor: '$red5' }}
-                        pressStyle={{ backgroundColor: '$red6', scale: 0.98 }}
+                          borderColor={'$red8'}
+                          hoverStyle={{ backgroundColor: '$red5' }}
+                          pressStyle={{ backgroundColor: '$red6', scale: 0.98 }}
                           icon={Trash2}
                           onPress={(e: any) => { e?.stopPropagation?.(); confirmDelete(u) }}
                         >

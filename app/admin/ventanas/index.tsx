@@ -198,9 +198,11 @@ export default function VentanasListScreen() {
                     <XStack gap="$2">
                       {active ? (
                         <Button
+                          backgroundColor={'$red4'}
+                          borderColor={'$red8'}
                           icon={Trash2}
                           onPress={(e: any) => { e?.stopPropagation?.(); askDelete(v) }}
-                          hoverStyle={{ bg: '$backgroundHover', scale: 1.02 }}
+                          hoverStyle={{ backgroundColor: '$red5' }}
                           pressStyle={{ scale: 0.98 }}
                         >
                           <Text>Eliminar</Text>

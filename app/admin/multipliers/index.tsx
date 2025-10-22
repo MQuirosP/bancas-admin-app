@@ -300,7 +300,7 @@ export default function MultipliersListScreen() {
                     <XStack gap="$2">
                       {/* Eliminar (rojo) - placeholder de acción */}
                       <Button
-                        size="$2"
+                        // size="$2"
                         icon={Trash2}
                         backgroundColor={'$red4'}
                         borderColor={'$red8'}

@@ -2,6 +2,7 @@
 import Constants from 'expo-constants';
 import { getAccessToken, getRefreshToken, setAccessToken, clearTokens } from './auth.token';
 import { ApiError } from '../types/api.types';
+import { parseAPIError, AuthenticationError, ErrorCode } from './errors';
 
 type Extra = {
   EXPO_PUBLIC_API_BASE_URL?: string;

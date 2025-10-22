@@ -226,8 +226,8 @@ export default function BancasListScreen() {
                         <Button
                           icon={Trash2}
                           backgroundColor="$red3"
-                          color="$red11"
-                          hoverStyle={{ bg: '$red4' }}
+                          borderColor="$red8"
+                          hoverStyle={{ backgroundColor: '$red5' }}
                           pressStyle={{ bg: '$red5', scale: 0.98 }}
                           onPress={(e: any) => { e?.stopPropagation?.(); askDelete(banca); }}
                         >
