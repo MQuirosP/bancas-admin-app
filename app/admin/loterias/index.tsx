@@ -13,7 +13,7 @@ import ActiveBadge from '@/components/ui/ActiveBadge'
 import { useConfirm } from '@/components/ui/Confirm'
 import FilterSwitch from '@/components/ui/FilterSwitch'
 
-type ListParams = { page: number; pageSize: number; search?: string; isDeleted?: boolean; isActive?: boolean }
+type ListParams = { page: number; pageSize: number; search?: string; isDeleted?: boolean } // 👈 sin isActive (front-only)
 
 async function fetchLoterias(params: ListParams): Promise<{ data: Loteria[]; meta: { page:number; pageSize:number; total:number; totalPages:number } }> {
   const res = await apiClient.get<any>('/loterias', params)
@@ -34,9 +34,11 @@ export default function LoteriasListScreen() {
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
   const [isDeleted, setIsDeleted] = useState<boolean | undefined>(undefined)
-  const [isActive, setIsActive] = useState<boolean | undefined>(undefined)
 
-  const params: ListParams = { page, pageSize, search, isDeleted, isActive }
+  // Front-only: por defecto TRUE
+  const [activeOnly, setActiveOnly] = useState(true)
+
+  const params: ListParams = { page, pageSize, search, isDeleted }
 
   const { data, isLoading, isFetching, isError, refetch } = useQuery({
     queryKey: ['loterias', 'list', params],
@@ -45,7 +47,14 @@ export default function LoteriasListScreen() {
     staleTime: 60_000,
   })
 
-  const rows = useMemo(() => data?.data ?? [], [data])
+  const baseRows = useMemo(() => data?.data ?? [], [data])
+
+  // 👇 Filtro Activas en frontend
+  const rows = useMemo(() => {
+    if (!activeOnly) return baseRows
+    return baseRows.filter(l => ((l as any).isActive ?? true) === true)
+  }, [baseRows, activeOnly])
+
   const meta = data?.meta
 
   const softDelete = useMutation({
@@ -61,7 +70,13 @@ export default function LoteriasListScreen() {
   })
 
   const handleSearch = () => { setPage(1); setSearch(searchInput.trim()) }
-  const clearFilters = () => { setSearchInput(''); setSearch(''); setIsDeleted(undefined); setIsActive(undefined); setPage(1) }
+  const clearFilters = () => {
+    setSearchInput('')
+    setSearch('')
+    setIsDeleted(undefined)
+    setActiveOnly(true) // vuelve a true
+    setPage(1)
+  }
 
   const askDelete = async (lot: Loteria) => {
     const ok = await confirm({ title: 'Confirmar eliminación', description: `¿Eliminar ${lot.name}?`, okText: 'Eliminar' })
@@ -124,19 +139,28 @@ export default function LoteriasListScreen() {
               </XStack>
 
               <Button icon={Search} onPress={handleSearch}><Text>Buscar</Text></Button>
+
               <Separator vertical />
 
-              {/* 🔁 Switches con estilo consistente */}
-              {/* <FilterSwitch
-                label="Activas:"
-                checked={!!isActive}
-                onCheckedChange={(v) => setIsActive(v || undefined)}
-              />
-              <Separator vertical /> */}
+              {/* Espaciador para empujar switches a la derecha si hay poco espacio */}
+              <XStack flex={1} />
+
+              {/* Front-only: Activas (default true) */}
+              <XStack ai="center" gap="$2" minWidth={200} ml="$2">
+                <FilterSwitch
+                  label="Activas:"
+                  checked={activeOnly}
+                  onCheckedChange={(v) => { setActiveOnly(!!v); setPage(1) }}
+                />
+              </XStack>
+
+              <Separator vertical />
+
+              {/* Backend: Eliminadas */}
               <FilterSwitch
                 label="Eliminadas:"
                 checked={!!isDeleted}
-                onCheckedChange={(v) => setIsDeleted(v || undefined)}
+                onCheckedChange={(v) => { setIsDeleted(v || undefined); setPage(1) }}
               />
 
               <Separator vertical />
