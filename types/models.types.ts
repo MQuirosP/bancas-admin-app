@@ -106,6 +106,7 @@ export interface Multiplier {
 }
 
 export interface RestrictionRule {
+  isActive: any;
   id: string;
   bancaId?: string;
   ventanaId?: string;
