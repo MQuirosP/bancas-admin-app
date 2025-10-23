@@ -112,7 +112,7 @@ export default function RestrictionsListScreen() {
             hoverStyle={{ backgroundColor: '$blue5' }}
             onPress={() => router.push('/admin/restrictions/nueva')}
           >
-            Nueva Regla
+            Agregar
           </Button>
         </XStack>
 
@@ -269,6 +269,7 @@ export default function RestrictionsListScreen() {
                           backgroundColor="$red4"
                           borderColor="$red8"
                           borderWidth={1}
+                          pressStyle={{ scale: 0.98}}
                           hoverStyle={{ backgroundColor: '$red5' }}
                           onPress={(e: any) => {
                             e?.stopPropagation?.()
@@ -276,7 +277,7 @@ export default function RestrictionsListScreen() {
                           }}
                           disabled={delMut.isPending}
                         >
-                          Desactivar
+                          Eliminar
                         </Button>
                       )}
                     </XStack>

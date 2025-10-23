@@ -45,8 +45,14 @@ export default function MisTicketsScreen() {
           <Text fontSize="$8" fontWeight="bold" color="$color">
             Mis Tiquetes de Hoy
           </Text>
-          <Button icon={Plus} onPress={() => router.push('/vendedor/tickets/nuevo')}>
-            <Text>Nuevo Tiquete</Text>
+          <Button
+            icon={Plus}
+            onPress={() => router.push('/vendedor/tickets/nuevo')}
+            bg="$primary"
+            hoverStyle={{ scale: 1.02 }}
+            pressStyle={{ bg: '$primaryPress', scale: 0.98 }}
+          >
+            <Text>Agregar</Text>
           </Button>
         </XStack>
 

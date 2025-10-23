@@ -1,16 +1,15 @@
 // components/restrictions/RestrictionRulesForm.tsx
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import {
-  YStack, XStack, Text, Input, Button, Card, Select, Separator, Spinner,
+  YStack, XStack, Text, Input, Button, Card, Select, Separator,
 } from 'tamagui'
+import { Platform } from 'react-native'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Check, ChevronDown } from '@tamagui/lucide-icons'
 import { apiClient } from '@/lib/api.client'
 import { useToast } from '@/hooks/useToast'
-import {
-  createRestriction,
-  updateRestriction,
-} from '@/lib/api.restrictions'
+import { createRestriction, updateRestriction } from '@/lib/api.restrictions'
+import { safeBack } from '@/lib/navigation'
 import type { RestrictionRule, Banca, Ventana, Usuario } from '@/types/models.types'
 
 type RuleType = 'amount' | 'cutoff'
@@ -28,6 +27,7 @@ type FieldErrors = Record<string, string>
 
 const v = (s?: string | number | null) => (s == null ? '' : String(s))
 const isEmpty = (s?: string) => !s || s.trim() === ''
+const pad = (n: number) => String(n).padStart(2, '0')
 
 function toDateInputValue(d?: string | Date | null) {
   if (!d) return ''
@@ -35,6 +35,209 @@ function toDateInputValue(d?: string | Date | null) {
   if (isNaN(dt.getTime())) return ''
   return dt.toISOString().slice(0, 10)
 }
+
+// RN DateTimePicker solo en nativo
+const RNDateTimePicker =
+  Platform.OS !== 'web'
+    ? require('@react-native-community/datetimepicker').default
+    : null
+
+const toYMD = (d: Date) =>
+  new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()))
+    .toISOString()
+    .slice(0, 10)
+
+const clampHour = (h: number) => Math.max(0, Math.min(23, Math.floor(h)))
+
+/* ====================== Botón Fecha (web/nativo) ====================== */
+function DateButtonField({
+  value,
+  onChange,
+  placeholder = 'Seleccionar fecha',
+}: { value: string; onChange: (s: string) => void; placeholder?: string }) {
+  const [show, setShow] = useState(false)
+  const webInputRef = useRef<HTMLInputElement | null>(null)
+
+  if (Platform.OS === 'web') {
+    return (
+      <YStack gap="$1" width="100%">
+        {/* input oculto para invocar picker nativo */}
+        <input
+          ref={webInputRef}
+          type="date"
+          value={value}
+          onChange={(e) => onChange((e.target as HTMLInputElement).value)}
+          style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', width: 0, height: 0 }}
+        />
+        <Button
+          height={36}
+          px="$3"
+          bg="$background"
+          bw={1}
+          bc="$borderColor"
+          hoverStyle={{ bg: '$backgroundHover' }}
+          onPress={() => {
+            const el = webInputRef.current
+            // Algunos navegadores soportan showPicker()
+            // @ts-ignore
+            if (el?.showPicker) { /* eslint-disable-line */
+              // @ts-ignore
+              el.showPicker()
+            } else {
+              el?.click()
+              el?.focus()
+            }
+          }}
+        >
+          <Text>Fecha</Text>
+        </Button>
+        <Text fontSize="$2" color="$textSecondary">
+          {value || placeholder}
+        </Text>
+      </YStack>
+    )
+  }
+
+  const current = value ? new Date(value + 'T00:00:00.000Z') : new Date()
+  return (
+    <YStack gap="$1" width="100%">
+      <Button
+        height={36}
+        px="$3"
+        bg="$background"
+        bw={1}
+        bc="$borderColor"
+        hoverStyle={{ bg: '$backgroundHover' }}
+        onPress={() => setShow(true)}
+      >
+        <Text>Fecha</Text>
+      </Button>
+      <Text fontSize="$2" color="$textSecondary">
+        {value || placeholder}
+      </Text>
+
+      {show && RNDateTimePicker && (
+        <RNDateTimePicker
+          value={current}
+          mode="date"
+          display="default"
+          onChange={(_e: any, selected?: Date) => {
+            setShow(false)
+            if (selected) onChange(toYMD(selected))
+          }}
+        />
+      )}
+    </YStack>
+  )
+}
+
+/* ====================== Botón Hora (web/nativo) ====================== */
+function TimeButtonField({
+  value,         // HH (string 0..23)
+  onChange,      // recibe HH (string 0..23)
+  placeholder = 'Seleccionar hora',
+}: { value: string; onChange: (s: string) => void; placeholder?: string }) {
+  const [show, setShow] = useState(false)
+  const webInputRef = useRef<HTMLInputElement | null>(null)
+
+  if (Platform.OS === 'web') {
+    // guardamos HH:MM local sólo para mostrar; al padre se le pasa sólo HH
+    const [local, setLocal] = useState<string>(value !== '' ? `${pad(clampHour(Number(value)))}:00` : '')
+
+    useEffect(() => {
+      setLocal(value !== '' ? `${pad(clampHour(Number(value)))}:00` : '')
+    }, [value])
+
+    return (
+      <YStack gap="$1" width="100%">
+        {/* input oculto para invocar picker nativo */}
+        <input
+          ref={webInputRef}
+          type="time"
+          step={3600} // seleccionar por horas
+          value={local}
+          onChange={(e) => {
+            const raw = (e.target as HTMLInputElement).value // "HH:MM"
+            setLocal(raw)
+            const hh = (raw?.split?.(':')?.[0] ?? '').trim()
+            if (!hh) onChange('')
+            else onChange(String(clampHour(Number(hh))))
+          }}
+          style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', width: 0, height: 0 }}
+        />
+        <Button
+          height={36}
+          px="$3"
+          bg="$background"
+          bw={1}
+          bc="$borderColor"
+          hoverStyle={{ bg: '$backgroundHover' }}
+          onPress={() => {
+            const el = webInputRef.current
+            // @ts-ignore
+            if (el?.showPicker) { /* eslint-disable-line */
+              // @ts-ignore
+              el.showPicker()
+            } else {
+              el?.click()
+              el?.focus()
+            }
+          }}
+        >
+          <Text>Hora</Text>
+        </Button>
+        <Text fontSize="$2" color="$textSecondary">
+          {local || placeholder}
+        </Text>
+      </YStack>
+    )
+  }
+
+  // Nativo
+  const now = new Date()
+  const base = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+    value ? clampHour(Number(value)) : now.getHours(),
+    0,
+    0
+  )
+
+  return (
+    <YStack gap="$1" width="100%">
+      <Button
+        height={36}
+        px="$3"
+        bg="$background"
+        bw={1}
+        bc="$borderColor"
+        hoverStyle={{ bg: '$backgroundHover' }}
+        onPress={() => setShow(true)}
+      >
+        <Text>Hora</Text>
+      </Button>
+      <Text fontSize="$2" color="$textSecondary">
+        {value !== '' ? `${pad(clampHour(Number(value)))}:00` : placeholder}
+      </Text>
+
+      {show && RNDateTimePicker && (
+        <RNDateTimePicker
+          value={base}
+          mode="time"
+          is24Hour
+          display="default"
+          onChange={(_e: any, selected?: Date) => {
+            setShow(false)
+            if (selected) onChange(String(clampHour(selected.getHours())))
+          }}
+        />
+      )}
+    </YStack>
+  )
+}
+
+/* ============================ Componente ============================ */
 
 export default function RestrictionRulesForm({
   mode,
@@ -122,16 +325,9 @@ export default function RestrictionRulesForm({
       toast.success('Restricción creada')
       onSuccess?.(res.data as unknown as RestrictionRule)
       // reset
-      setBancaId('')
-      setVentanaId('')
-      setUserId('')
-      setNumber('')
-      setMaxAmount('')
-      setMaxTotal('')
-      setSalesCutoffMinutes('')
-      setAppliesToDate('')
-      setAppliesToHour('')
-      setErrors({})
+      setBancaId(''); setVentanaId(''); setUserId('')
+      setNumber(''); setMaxAmount(''); setMaxTotal(''); setSalesCutoffMinutes('')
+      setAppliesToDate(''); setAppliesToHour(''); setErrors({})
     },
     onError: (err: any) => {
       const fieldErrors: FieldErrors = {}
@@ -180,15 +376,15 @@ export default function RestrictionRulesForm({
     }
 
     if (ruleType === 'cutoff') {
-      if (!isEmpty(number)) e['number'] = 'Para cutoff, number debe omitirse.'
-      if (!isEmpty(maxAmount)) e['maxAmount'] = 'Para cutoff, no use montos.'
-      if (!isEmpty(maxTotal)) e['maxTotal'] = 'Para cutoff, no use montos.'
+      if (!isEmpty(number)) e['number'] = 'Para corte, number debe omitirse.'
+      if (!isEmpty(maxAmount)) e['maxAmount'] = 'Para corte, no use montos.'
+      if (!isEmpty(maxTotal)) e['maxTotal'] = 'Para corte, no use montos.'
       const vInt = parseInt(salesCutoffMinutes || '', 10)
       if (isNaN(vInt) || vInt < 0 || vInt > 30)
         e['salesCutoffMinutes'] = 'Ingrese minutos (0-30).'
     } else {
       if (isEmpty(maxAmount) && isEmpty(maxTotal)) {
-        e['(root)'] = 'Defina al menos maxAmount o maxTotal.'
+        e['(root)'] = 'Defina al menos Monto por jugada o Monto total.'
       } else {
         if (!isEmpty(maxAmount) && Number(maxAmount) <= 0) e['maxAmount'] = 'Debe ser > 0'
         if (!isEmpty(maxTotal) && Number(maxTotal) <= 0) e['maxTotal'] = 'Debe ser > 0'
@@ -196,7 +392,7 @@ export default function RestrictionRulesForm({
       if (!isEmpty(number) && !/^\d{1,3}$/.test(number)) {
         e['number'] = 'number debe ser 0..999 (1-3 dígitos).'
       }
-      if (!isEmpty(salesCutoffMinutes)) e['salesCutoffMinutes'] = 'No puede enviar cutoff con montos.'
+      if (!isEmpty(salesCutoffMinutes)) e['salesCutoffMinutes'] = 'No puede enviar corte con montos.'
     }
 
     if (!isEmpty(appliesToHour)) {
@@ -235,27 +431,31 @@ export default function RestrictionRulesForm({
     else updateMut.mutate(payload)
   }
 
-  // UI helpers para “toggle” de tipo sin usar variant="default"
   const amtActive = ruleType === 'amount'
   const cutActive = ruleType === 'cutoff'
 
+  const handleCancel = () => {
+    if (onCancel) onCancel()
+    else safeBack('/admin/restrictions')
+  }
+
   return (
-    <YStack gap="$4" maxWidth={640} alignSelf="center" width="100%">
-      <Card padding="$4" borderColor="$borderColor" borderWidth={1}>
-        <YStack gap="$4">
+    <YStack gap="$3" maxWidth={640} alignSelf="center" width="100%">
+      <Card padding="$3" borderColor="$borderColor" borderWidth={1}>
+        <YStack gap="$3">
           <Text fontSize="$6" fontWeight="700">
             {mode === 'create' ? 'Nueva Restricción' : 'Editar Restricción'}
           </Text>
 
           {/* Alcance */}
-          <YStack gap="$3">
+          <YStack gap="$2">
             <Text fontSize="$5" fontWeight="600">Alcance (al menos uno)</Text>
 
-            <XStack gap="$3" flexWrap="wrap">
-              <YStack gap="$2" minWidth={220}>
+            <XStack gap="$2" flexWrap="wrap" ai="flex-end">
+              <YStack gap="$1" minWidth={220} maxWidth={240} width="100%">
                 <Text fontWeight="500">Banca</Text>
                 <Select value={bancaId} onValueChange={setBancaId}>
-                  <Select.Trigger iconAfter={ChevronDown} width={220} br="$4" bw={1} bc="$borderColor" bg="$background">
+                  <Select.Trigger iconAfter={ChevronDown} width="100%" height={34} br="$3" bw={1} bc="$borderColor" bg="$background">
                     <Select.Value placeholder="(Ninguna)" />
                   </Select.Trigger>
                   <Select.Content zIndex={200000}>
@@ -277,10 +477,10 @@ export default function RestrictionRulesForm({
                 </Select>
               </YStack>
 
-              <YStack gap="$2" minWidth={220}>
+              <YStack gap="$1" minWidth={220} maxWidth={240} width="100%">
                 <Text fontWeight="500">Ventana</Text>
                 <Select value={ventanaId} onValueChange={setVentanaId}>
-                  <Select.Trigger iconAfter={ChevronDown} width={220} br="$4" bw={1} bc="$borderColor" bg="$background">
+                  <Select.Trigger iconAfter={ChevronDown} width="100%" height={34} br="$3" bw={1} bc="$borderColor" bg="$background">
                     <Select.Value placeholder="(Ninguna)" />
                   </Select.Trigger>
                   <Select.Content zIndex={200000}>
@@ -302,10 +502,10 @@ export default function RestrictionRulesForm({
                 </Select>
               </YStack>
 
-              <YStack gap="$2" minWidth={260}>
+              <YStack gap="$1" minWidth={260} maxWidth={300} width="100%">
                 <Text fontWeight="500">Usuario</Text>
                 <Select value={userId} onValueChange={setUserId}>
-                  <Select.Trigger iconAfter={ChevronDown} width={260} br="$4" bw={1} bc="$borderColor" bg="$background">
+                  <Select.Trigger iconAfter={ChevronDown} width="100%" height={34} br="$3" bw={1} bc="$borderColor" bg="$background">
                     <Select.Value placeholder="(Ninguno)" />
                   </Select.Trigger>
                   <Select.Content zIndex={200000}>
@@ -335,39 +535,42 @@ export default function RestrictionRulesForm({
 
           <Separator />
 
-          {/* Tipo de regla (toggle estilado) */}
-          <YStack gap="$3">
+          {/* Tipo */}
+          <YStack gap="$2">
             <Text fontSize="$5" fontWeight="600">Tipo de Regla</Text>
             <XStack gap="$2" flexWrap="wrap">
               <Button
-                size="$3"
+                size="$2"
+                height={34}
                 onPress={() => switchType('amount')}
-                backgroundColor={amtActive ? '$primary' : '$background'}
-                color={amtActive ? '$background' : '$color'}
+                backgroundColor={ruleType === 'amount' ? '$primary' : '$background'}
+                color={ruleType === 'amount' ? '$background' : '$color'}
                 borderWidth={1}
-                borderColor={amtActive ? '$primaryHover' : '$borderColor'}
+                borderColor={ruleType === 'amount' ? '$primaryHover' : '$borderColor'}
               >
                 Montos
               </Button>
               <Button
-                size="$3"
+                size="$2"
+                height={34}
                 onPress={() => switchType('cutoff')}
-                backgroundColor={cutActive ? '$primary' : '$background'}
-                color={cutActive ? '$background' : '$color'}
+                backgroundColor={ruleType === 'cutoff' ? '$primary' : '$background'}
+                color={ruleType === 'cutoff' ? '$background' : '$color'}
                 borderWidth={1}
-                borderColor={cutActive ? '$primaryHover' : '$borderColor'}
+                borderColor={ruleType === 'cutoff' ? '$primaryHover' : '$borderColor'}
               >
-                Cutoff
+                Corte
               </Button>
             </XStack>
           </YStack>
 
           {/* Campos según tipo */}
           {ruleType === 'amount' ? (
-            <YStack gap="$3">
-              <YStack gap="$2">
+            <YStack gap="$2">
+              <YStack gap="$1" minWidth={200} maxWidth={220} width="100%">
                 <Text fontWeight="500">Número (0..999, opcional)</Text>
                 <Input
+                  height={34}
                   value={number}
                   onChangeText={setNumber}
                   placeholder="23"
@@ -377,10 +580,11 @@ export default function RestrictionRulesForm({
                 {errors.number && <Text color="$error" fontSize="$2">{errors.number}</Text>}
               </YStack>
 
-              <XStack gap="$3" flexWrap="wrap">
-                <YStack gap="$2" minWidth={220}>
+              <XStack gap="$2" flexWrap="wrap">
+                <YStack gap="$1" minWidth={200} maxWidth={220} width="100%">
                   <Text fontWeight="500">Monto Máximo por Jugada</Text>
                   <Input
+                    height={34}
                     value={maxAmount}
                     onChangeText={setMaxAmount}
                     placeholder="1000"
@@ -389,9 +593,10 @@ export default function RestrictionRulesForm({
                   {errors.maxAmount && <Text color="$error" fontSize="$2">{errors.maxAmount}</Text>}
                 </YStack>
 
-                <YStack gap="$2" minWidth={220}>
+                <YStack gap="$1" minWidth={200} maxWidth={220} width="100%">
                   <Text fontWeight="500">Monto Máximo Total</Text>
                   <Input
+                    height={34}
                     value={maxTotal}
                     onChangeText={setMaxTotal}
                     placeholder="5000"
@@ -402,10 +607,11 @@ export default function RestrictionRulesForm({
               </XStack>
             </YStack>
           ) : (
-            <YStack gap="$3">
-              <YStack gap="$2" maxWidth={220}>
-                <Text fontWeight="500">Minutos de Cutoff (0-30)</Text>
+            <YStack gap="$2">
+              <YStack gap="$1" minWidth={200} maxWidth={220} width="100%">
+                <Text fontWeight="500">Minutos para Corte (0-30)</Text>
                 <Input
+                  height={34}
                   value={salesCutoffMinutes}
                   onChangeText={setSalesCutoffMinutes}
                   placeholder="5"
@@ -421,57 +627,67 @@ export default function RestrictionRulesForm({
 
           <Separator />
 
-          {/* Ventana temporal (opcional) */}
-          <YStack gap="$3">
+          {/* Ventana temporal */}
+          <YStack gap="$2">
             <Text fontSize="$5" fontWeight="600">Ventana Temporal (opcional)</Text>
 
-            <XStack gap="$3" flexWrap="wrap">
-              <YStack gap="$2" minWidth={220}>
-                <Text fontWeight="500">Fecha (YYYY-MM-DD)</Text>
-                <Input
+            <XStack gap="$6" flexWrap="wrap" ai="flex-start">
+              <YStack gap="$1" minWidth={140} maxWidth={160} width="100%">
+                <Text fontWeight="500">Fecha</Text>
+                <DateButtonField
                   value={appliesToDate}
-                  onChangeText={setAppliesToDate}
-                  placeholder="2025-05-20"
+                  onChange={setAppliesToDate}
                 />
               </YStack>
 
-              <YStack gap="$2" minWidth={220}>
-                <Text fontWeight="500">Hora (0..23)</Text>
-                <Input
+              <YStack gap="$1" minWidth={140} maxWidth={160} width="100%">
+                <Text fontWeight="500">Hora</Text>
+                <TimeButtonField
                   value={appliesToHour}
-                  onChangeText={setAppliesToHour}
-                  placeholder="13"
-                  keyboardType="number-pad"
-                  maxLength={2}
+                  onChange={setAppliesToHour}
                 />
-                {errors.appliesToHour && (
-                  <Text color="$error" fontSize="$2">{errors.appliesToHour}</Text>
-                )}
               </YStack>
             </XStack>
+
+            {/* Resumen compacto debajo */}
+            <Text fontSize="$2" color="$textSecondary">
+              Seleccionado: {appliesToDate || '—'} {appliesToHour !== '' ? `${pad(clampHour(Number(appliesToHour)))}:00` : ''}
+            </Text>
+
+            {errors.appliesToHour && (
+              <Text color="$error" fontSize="$2">{errors.appliesToHour}</Text>
+            )}
           </YStack>
         </YStack>
       </Card>
 
-      <XStack gap="$3" ai="center">
+      <XStack gap="$2" ai="center" jc="flex-end">
         <Button
-          flex={1}
+          height={36}
+          px="$4"
+          minWidth={120}
           backgroundColor="$red4"
+          hoverStyle={{ backgroundColor: '$red5' }}
+          pressStyle={{ scale: 0.98 }}
           borderColor="$red8"
           borderWidth={1}
-          onPress={onCancel}
+          onPress={handleCancel}
         >
           Cancelar
         </Button>
         <Button
-          flex={1}
+          height={36}
+          px="$4"
+          minWidth={120}
           backgroundColor="$blue4"
+          hoverStyle={{ backgroundColor: '$blue5' }}
+          pressStyle={{ scale: 0.98 }}
           borderColor="$blue8"
           borderWidth={1}
           onPress={handleSubmit}
           disabled={isSubmitting}
         >
-          {isSubmitting ? 'Guardando...' : (submitLabel ?? (mode === 'create' ? 'Crear Restricción' : 'Guardar Cambios'))}
+          {isSubmitting ? 'Guardando...' : (submitLabel ?? (mode === 'create' ? 'Guardar' : 'Guardar Cambios'))}
         </Button>
       </XStack>
     </YStack>

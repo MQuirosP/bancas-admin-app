@@ -13,8 +13,14 @@ export default function TicketsListScreen() {
           <Text fontSize="$8" fontWeight="bold" color="$color">
             Tickets
           </Text>
-          <Button icon={Plus} onPress={() => router.push('/admin/tickets/nuevo')}>
-            Nuevo Ticket
+          <Button
+            icon={Plus}
+            onPress={() => router.push('/admin/tickets/nuevo')}
+            bg="$primary"
+            hoverStyle={{ scale: 1.02 }}
+            pressStyle={{ bg: '$primaryPress', scale: 0.98 }}
+          >
+            Agregar
           </Button>
         </XStack>
         <Text color="$textSecondary">

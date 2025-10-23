@@ -1,5 +1,5 @@
 // app/admin/sorteos/nuevo.tsx
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useState, useEffect, useRef } from 'react'
 import {
   YStack, XStack, Text, Card, Input, Button, Spinner,
   Select, Sheet, Adapt, ScrollView, Separator
@@ -13,57 +13,105 @@ import { LoteriasApi } from '@/lib/api.loterias'
 import { goToList, safeBack } from '@/lib/navigation'
 import { compact } from '@/utils/object'
 import type { Loteria } from '@/types/models.types'
+import { Platform } from 'react-native'
 
-/** ─────────────────────── Utilidades tiempo (web) ─────────────────────── **/
-function toLocalInputValue(d: Date | null) {
-  // datetime-local espera "YYYY-MM-DDTHH:mm" en hora local
-  if (!d) return ''
-  const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000)
-  return local.toISOString().slice(0, 16)
-}
-function fromLocalInputValue(v: string): Date | null {
-  // v en formato "YYYY-MM-DDTHH:mm" (local)
-  if (!v) return null
-  const d = new Date(v)
-  return isNaN(d.getTime()) ? null : d
-}
-function toISO(d: Date | null) {
-  return d ? d.toISOString() : ''
+/** ─────────────── Utilidades fecha/hora (local ⇄ ISO) ─────────────── **/
+function pad(n: number) { return String(n).padStart(2, '0') }
+
+function splitLocalFromISO(iso?: string) {
+  if (!iso) return { date: '', time: '' }
+  const d = new Date(iso)
+  if (isNaN(d.getTime())) return { date: '', time: '' }
+  const date = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+  const time = `${pad(d.getHours())}:${pad(d.getMinutes())}`
+  return { date, time }
 }
 
-/** ─────────────── Picker web compacto: ocupa 100% de su columna ─────────────── **/
-function DateTimeLocalCompact({
+function joinLocalToISO(date: string, time: string) {
+  if (!date) return ''
+  const v = `${date}T${time || '00:00'}`
+  const d = new Date(v) // interpreta en hora local
+  if (isNaN(d.getTime())) return ''
+  d.setSeconds(0, 0)
+  return d.toISOString()
+}
+
+/** ─────────────── Botones Fecha/Hora (web) con input oculto ─────────────── **/
+function WebDateButton({
   value,
   onChange,
-}: {
-  value: string
-  onChange: (nextLocal: string) => void
-}) {
+  placeholder = 'Seleccionar fecha',
+}: { value: string; onChange: (v: string) => void; placeholder?: string }) {
+  const ref = useRef<HTMLInputElement | null>(null)
   return (
-    <XStack
-      borderWidth={1}
-      borderColor="$borderColor"
-      borderRadius="$3"
-      backgroundColor="$background"
-      hoverStyle={{ backgroundColor: '$backgroundHover' }}
-      px="$3"
-      py={10}
-      width="100%"
-    >
+    <YStack gap="$1" width={160}>
       <input
-        type="datetime-local"
+        ref={ref}
+        type="date"
         value={value}
         onChange={(e) => onChange(e.currentTarget.value)}
-        style={{
-          width: '100%',
-          border: 'none',
-          background: 'transparent',
-          color: 'inherit',
-          outline: 'none',
-          WebkitAppearance: 'none',
-        }}
+        style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', width: 0, height: 0 }}
       />
-    </XStack>
+      <Button
+        height={36}
+        px="$3"
+        bg="$background"
+        bw={1}
+        bc="$borderColor"
+        hoverStyle={{ bg: '$backgroundHover' }}
+        onPress={() => {
+          const el = ref.current
+          // @ts-ignore
+          if (el?.showPicker) el.showPicker(); else { el?.click(); el?.focus() }
+        }}
+      >
+        <Text>Fecha</Text>
+      </Button>
+      <Text fontSize="$2" color="$textSecondary">{value || placeholder}</Text>
+    </YStack>
+  )
+}
+
+function WebTimeButton({
+  value,
+  onChange,
+  placeholder = 'Seleccionar hora',
+}: { value: string; onChange: (v: string) => void; placeholder?: string }) {
+  const ref = useRef<HTMLInputElement | null>(null)
+  const [local, setLocal] = useState(value)
+  useEffect(() => { setLocal(value) }, [value])
+
+  return (
+    <YStack gap="$1" width={120}>
+      <input
+        ref={ref}
+        type="time"
+        step={60}
+        value={local}
+        onChange={(e) => {
+          const raw = e.currentTarget.value // "HH:MM"
+          setLocal(raw)
+          onChange(raw)
+        }}
+        style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', width: 0, height: 0 }}
+      />
+      <Button
+        height={36}
+        px="$3"
+        bg="$background"
+        bw={1}
+        bc="$borderColor"
+        hoverStyle={{ bg: '$backgroundHover' }}
+        onPress={() => {
+          const el = ref.current
+          // @ts-ignore
+          if (el?.showPicker) el.showPicker(); else { el?.click(); el?.focus() }
+        }}
+      >
+        <Text>Hora</Text>
+      </Button>
+      <Text fontSize="$2" color="$textSecondary">{local || placeholder}</Text>
+    </YStack>
   )
 }
 
@@ -86,15 +134,22 @@ export default function NuevoSorteoScreen() {
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  // Estado de fecha (web) para el control visual; de aquí derivamos el ISO
-  const [dateValue, setDateValue] = useState<Date | null>(null)
+  // Estados locales separados (fecha / hora)
+  const init = splitLocalFromISO(values.scheduledAt)
+  const [dateLocal, setDateLocal] = useState(init.date)
+  const [timeLocal, setTimeLocal] = useState(init.time)
+
+  useEffect(() => {
+    const { date, time } = splitLocalFromISO(values.scheduledAt)
+    setDateLocal(date)
+    setTimeLocal(time)
+  }, [values.scheduledAt])
 
   const setField = <K extends keyof typeof values>(k: K, v: (typeof values)[K]) =>
     setValues((s) => ({ ...s, [k]: v }))
 
-  const setDate = (d: Date | null) => {
-    setDateValue(d)
-    setField('scheduledAt', toISO(d))
+  const updateISOFromLocal = (date: string, time: string) => {
+    setValues(s => ({ ...s, scheduledAt: joinLocalToISO(date, time) }))
   }
 
   const mCreate = useMutation({
@@ -116,26 +171,29 @@ export default function NuevoSorteoScreen() {
 
   const handleSave = () => {
     setErrors({})
-
-    if (!values.name.trim()) {
-      setErrors((e) => ({ ...e, name: 'Requerido' }))
-      return
-    }
-    if (!values.loteriaId) {
-      setErrors((e) => ({ ...e, loteriaId: 'Selecciona una lotería' }))
-      return
-    }
-    if (!values.scheduledAt) {
-      setErrors((e) => ({ ...e, scheduledAt: 'Fecha/hora requerida' }))
-      return
-    }
-
+    if (!values.name.trim()) { setErrors(e => ({ ...e, name: 'Requerido' })); return }
+    if (!values.loteriaId) { setErrors(e => ({ ...e, loteriaId: 'Selecciona una lotería' })); return }
+    if (!values.scheduledAt) { setErrors(e => ({ ...e, scheduledAt: 'Fecha/hora requerida' })); return }
     mCreate.mutate()
   }
+
+  // Native pickers (solo si no es web)
+  const DateTimePicker = Platform.OS !== 'web'
+    ? require('@react-native-community/datetimepicker').default
+    : null
+  const [openDate, setOpenDate] = useState(false)
+  const [openTime, setOpenTime] = useState(false)
+
+  const now = new Date()
+  const nativeCurrent = useMemo(() => {
+    const d = values.scheduledAt ? new Date(values.scheduledAt) : now
+    return isNaN(d.getTime()) ? now : d
+  }, [values.scheduledAt])
 
   return (
     <ScrollView flex={1} backgroundColor="$background">
       <YStack padding="$4" gap="$4" maxWidth={720} alignSelf="center" width="100%">
+
         {/* Header */}
         <XStack jc="space-between" ai="center" gap="$3" flexWrap="wrap">
           <Text fontSize="$8" fontWeight="bold">Nuevo Sorteo</Text>
@@ -144,9 +202,10 @@ export default function NuevoSorteoScreen() {
 
         <Card padding="$4" bg="$backgroundHover" borderColor="$borderColor" borderWidth={1}>
           <YStack gap="$4">
+
             {/* ─────────────── Fila 1: Nombre + Lotería ─────────────── */}
             <XStack gap="$3" fw="wrap" ai="flex-start" jc="space-between">
-              {/* Columna: Nombre */}
+              {/* Nombre */}
               <YStack gap="$1" flex={1} minWidth={260} maxWidth={360}>
                 <Text fontWeight="600">Nombre *</Text>
                 <Input
@@ -158,7 +217,7 @@ export default function NuevoSorteoScreen() {
                 {!!errors.name && <Text color="$error">{errors.name}</Text>}
               </YStack>
 
-              {/* Columna: Lotería */}
+              {/* Lotería */}
               <YStack gap="$1" flex={1} minWidth={260} maxWidth={360}>
                 <Text fontWeight="600">Lotería *</Text>
                 <Select
@@ -218,45 +277,92 @@ export default function NuevoSorteoScreen() {
 
             <Separator />
 
-            {/* ───── Fila 2: Programado para + Botón (pegados, no a la derecha) ───── */}
-            <YStack gap="$1">
+            {/* ───── Fila 2: Programado para (Fecha + Hora con botones) ───── */}
+            <YStack gap="$2">
               <Text fontWeight="600">Programado para *</Text>
 
-              <XStack gap="$3" ai="center" fw="wrap" jc="flex-start">
-                {/* Columna: Picker datetime */}
-                <YStack flex={1} minWidth={260} maxWidth={360}>
-                  <DateTimeLocalCompact
-                    value={toLocalInputValue(dateValue)}
-                    onChange={(rawLocal) => setDate(fromLocalInputValue(rawLocal))}
+              {Platform.OS === 'web' ? (
+                <XStack gap="$4" ai="flex-start" fw="wrap" jc="flex-start">
+                  <WebDateButton
+                    value={dateLocal}
+                    onChange={(d) => { setDateLocal(d); updateISOFromLocal(d, timeLocal) }}
                   />
-                </YStack>
+                  <WebTimeButton
+                    value={timeLocal}
+                    onChange={(t) => { setTimeLocal(t); updateISOFromLocal(dateLocal, t) }}
+                  />
+                </XStack>
+              ) : (
+                <>
+                  <XStack gap="$4" ai="flex-start" fw="wrap" jc="flex-start">
+                    {/* Fecha (nativo) */}
+                    <YStack gap="$1" width={160}>
+                      <Button
+                        height={36}
+                        px="$3"
+                        onPress={() => setOpenDate(true)}
+                        bg="$background"
+                        bw={1}
+                        bc="$borderColor"
+                        hoverStyle={{ bg: '$backgroundHover' }}
+                      >
+                        <Text>Fecha</Text>
+                      </Button>
+                      <Text fontSize="$2" color="$textSecondary">{dateLocal || 'Seleccionar fecha'}</Text>
+                    </YStack>
 
-                {/* Columna: Botón acción (ancho fijo y pegado al picker) */}
-                <YStack width={160}>
-                  <Button
-                    width="100%"
-                    onPress={() => {
-                      const now = new Date()
-                      setDate(now)
-                    }}
-                    bg="$background"
-                    borderColor="$borderColor"
-                    borderWidth={1}
-                    hoverStyle={{ bg: '$backgroundHover' }}
-                    pressStyle={{ bg: '$backgroundPress' }}
-                  >
-                    <Text>Usar ahora</Text>
-                  </Button>
-                </YStack>
-              </XStack>
+                    {/* Hora (nativo) */}
+                    <YStack gap="$1" width={120}>
+                      <Button
+                        height={36}
+                        px="$3"
+                        onPress={() => setOpenTime(true)}
+                        bg="$background"
+                        bw={1}
+                        bc="$borderColor"
+                        hoverStyle={{ bg: '$backgroundHover' }}
+                      >
+                        <Text>Hora</Text>
+                      </Button>
+                      <Text fontSize="$2" color="$textSecondary">{timeLocal || 'Seleccionar hora'}</Text>
+                    </YStack>
+                  </XStack>
+
+                  {DateTimePicker && openDate && (
+                    <DateTimePicker
+                      value={nativeCurrent}
+                      mode="date"
+                      display="default"
+                      onChange={(_e: any, selected?: Date) => {
+                        setOpenDate(false)
+                        if (!selected) return
+                        const d = `${selected.getFullYear()}-${pad(selected.getMonth() + 1)}-${pad(selected.getDate())}`
+                        setDateLocal(d); updateISOFromLocal(d, timeLocal)
+                      }}
+                    />
+                  )}
+
+                  {DateTimePicker && openTime && (
+                    <DateTimePicker
+                      value={nativeCurrent}
+                      mode="time"
+                      is24Hour
+                      display="default"
+                      onChange={(_e: any, selected?: Date) => {
+                        setOpenTime(false)
+                        if (!selected) return
+                        const t = `${pad(selected.getHours())}:${pad(selected.getMinutes())}`
+                        setTimeLocal(t); updateISOFromLocal(dateLocal, t)
+                      }}
+                    />
+                  )}
+                </>
+              )}
 
               {/* Mostrar lo que se enviará */}
               <Text fontSize="$2" color="$textSecondary">
-                ISO a enviar: {values.scheduledAt || '—'}
+                Fecha seleccionada: {values.scheduledAt || '—'}
               </Text>
-
-              {!!errors.scheduledAt && <Text color="$error">{errors.scheduledAt}</Text>}
-              <Text color="$textSecondary">Al guardar, se envía el valor en ISO (UTC).</Text>
             </YStack>
           </YStack>
         </Card>
@@ -269,7 +375,6 @@ export default function NuevoSorteoScreen() {
             onPress={() => safeBack('/admin/sorteos')}
             backgroundColor="$gray4"
             borderColor="$gray8"
-            color="$background"
             borderWidth={1}
             hoverStyle={{ scale: 1.02 }}
             pressStyle={{ scale: 0.98 }}
@@ -277,11 +382,14 @@ export default function NuevoSorteoScreen() {
             <Text>Cancelar</Text>
           </Button>
 
-        <Button
+          <Button
             minWidth={120}
             px="$4"
             onPress={handleSave}
             disabled={mCreate.isPending}
+            bg="$blue4"
+            borderColor="$blue8"
+            borderWidth={1}
           >
             {mCreate.isPending ? <Spinner size="small" /> : <Text>Guardar</Text>}
           </Button>

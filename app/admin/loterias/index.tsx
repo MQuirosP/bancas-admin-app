@@ -102,11 +102,10 @@ export default function LoteriasListScreen() {
             icon={Plus}
             onPress={() => router.push('/admin/loterias/nueva')}
             bg="$primary"
-            hoverStyle={{ bg: '$primaryHover', scale: 1.02}}
+            hoverStyle={{ scale: 1.02}}
             pressStyle={{ bg: '$primaryPress', scale: 0.98}}
-            color="$background"
           >
-            <Text>Nueva Lotería</Text>
+            <Text>Agregar</Text>
           </Button>
         </XStack>
 

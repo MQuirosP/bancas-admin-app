@@ -211,11 +211,10 @@ export default function UsuariosListScreen() {
             icon={Plus}
             onPress={() => router.push('/admin/usuarios/nuevo')}
             bg="$primary"
-            hoverStyle={{ bg: '$primaryHover', scale: 1.02 }}
+            hoverStyle={{ bg: '$primaryHover' }}
             pressStyle={{ bg: '$primaryPress', scale: 0.98 }}
-            color="$background"
           >
-            <Text>Nuevo Usuario</Text>
+            <Text>Agregar</Text>
           </Button>
         </XStack>
 

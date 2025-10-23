@@ -224,7 +224,7 @@ export default function SorteosListScreen() {
               hoverStyle={{ bg: '$primaryHover' }}
               pressStyle={{ bg: '$primaryPress', scale: 0.98 }}
             >
-              <Text>Nuevo Sorteo</Text>
+              <Text>Agregar</Text>
             </Button>
           )}
         </XStack>

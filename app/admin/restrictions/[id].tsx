@@ -21,9 +21,9 @@ function resolveEntityLabel(r: AnyRule, key: 'banca' | 'ventana' | 'user') {
   const fromNested =
     key === 'user'
       ? // para usuario priorizo name, luego username
-        (nested?.name && String(nested.name).trim()) ||
-        (nested?.username && String(nested.username).trim()) ||
-        ''
+      (nested?.name && String(nested.name).trim()) ||
+      (nested?.username && String(nested.username).trim()) ||
+      ''
       : pickNameOrCode(nested?.name, nested?.code)
   if (fromNested) return fromNested
 
@@ -33,8 +33,8 @@ function resolveEntityLabel(r: AnyRule, key: 'banca' | 'ventana' | 'user') {
   const fromFlat =
     key === 'user'
       ? (nameField && String(nameField).trim()) ||
-        (r?.[`${key}Username`] && String(r?.[`${key}Username`]).trim()) ||
-        ''
+      (r?.[`${key}Username`] && String(r?.[`${key}Username`]).trim()) ||
+      ''
       : pickNameOrCode(nameField, codeField)
   if (fromFlat) return fromFlat
 
@@ -106,11 +106,21 @@ export default function RestrictionDetailScreen() {
 
           {!!rule && (
             <XStack gap="$2">
-              {rule.isActive && (
+              {/* Solo un botón de navegación */}
+              <XStack jc="flex-end">
+                <Button 
+                onPress={safeBack}
+                background={'$gray4'}
+                borderColor={'$gray8'}
+                hoverStyle={{ backgroundColor: '$gray5' }}
+                pressStyle={{ scale: 0.98}}
+                >Volver</Button>
+              </XStack>
+              {/* {rule.isActive && (
                 <Button onPress={() => router.push(`/admin/restrictions/${id}/edit`)}>
                   Editar
                 </Button>
-              )}
+              )} */}
               {!rule.isActive ? (
                 <Button
                   onPress={() => restoreMut.mutate()}
@@ -123,11 +133,12 @@ export default function RestrictionDetailScreen() {
                   backgroundColor="$red4"
                   borderColor="$red8"
                   borderWidth={1}
+                  pressStyle={{ scale: 0.98 }}
                   onPress={() => delMut.mutate()}
                   disabled={delMut.isPending}
                   hoverStyle={{ backgroundColor: '$red5' }}
                 >
-                  Desactivar
+                  Eliminar
                 </Button>
               )}
             </XStack>
@@ -209,10 +220,7 @@ export default function RestrictionDetailScreen() {
           </Card>
         )}
 
-        {/* Solo un botón de navegación */}
-        <XStack jc="flex-end">
-          <Button onPress={safeBack}>Volver</Button>
-        </XStack>
+
       </YStack>
     </ScrollView>
   )

@@ -383,7 +383,14 @@ export default function NuevoTicketScreen() {
               <Text fontSize="$5" fontWeight="600">
                 Jugadas
               </Text>
-              <Button size="$3" icon={Plus} onPress={addJugada}>
+              <Button
+                size="$3"
+                icon={Plus}
+                onPress={addJugada}
+                bg="$primary"
+                hoverStyle={{ scale: 1.02 }}
+                pressStyle={{ bg: '$primaryPress', scale: 0.98 }}
+              >
                 <Text>Agregar</Text>
               </Button>
             </XStack>

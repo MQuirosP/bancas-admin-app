@@ -88,11 +88,10 @@ export default function VentanasListScreen() {
             icon={Plus}
             onPress={() => router.push('/admin/ventanas/nueva')}
             bg="$primary"
-            hoverStyle={{ bg: '$primaryHover', scale: 1.02 }}
+            hoverStyle={{ bg: '$primaryHover' }}
             pressStyle={{ bg: '$primaryPress', scale: 0.98 }}
-            color="$background"
           >
-            <Text>Nueva Ventana</Text>
+            <Text>Agregar</Text>
           </Button>
         </XStack>
 
