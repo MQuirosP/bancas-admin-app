@@ -1,6 +1,6 @@
 import React from 'react';
-import { ScrollView, RefreshControl } from 'react-native';
-import { YStack, XStack, Text, Spinner, Card } from 'tamagui';
+import { RefreshControl } from 'react-native';
+import { YStack, XStack, Text, Spinner, Card, ScrollView } from 'tamagui';
 import {
   Ticket as TicketIcon,
   DollarSign,
@@ -49,7 +49,7 @@ export default function DashboardVentanaScreen() {
 
   return (
     <ScrollView
-      style={{ flex: 1, backgroundColor: '$background' }}
+      flex={1} backgroundColor='$background'
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
       <YStack padding="$4" gap="$4">

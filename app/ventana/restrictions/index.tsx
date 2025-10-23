@@ -10,7 +10,7 @@ export default function VentanaRestrictionsScreen() {
   });
 
   return (
-    <ScrollView>
+    <ScrollView flex={1} backgroundColor="$background">
       <YStack padding="$4" gap="$4">
         <Text fontSize="$8" fontWeight="bold" color="$color">
           Restricciones

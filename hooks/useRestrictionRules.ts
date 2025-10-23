@@ -10,14 +10,14 @@ import type {
 
 /**
  * Hook para obtener reglas de restricción
- * GET /restriction-rules
+ * GET /restrictions
  */
 export function useRestrictionRulesQuery(params?: RestrictionRulesQueryParams) {
   return useQuery({
     queryKey: queryKeys.restrictionRules.list(params),
     queryFn: async () => {
       const queryString = params ? apiClient.buildQueryString(params) : '';
-      return apiClient.get<RestrictionRule[]>(`/restriction-rules${queryString}`);
+      return apiClient.get<RestrictionRule[]>(`/restrictions${queryString}`);
     },
     enabled: true,
   });
@@ -35,7 +35,7 @@ export function useActiveBancaRulesQuery(bancaId?: string) {
         bancaId,
         includeDeleted: false,
       });
-      return apiClient.get<RestrictionRule[]>(`/restriction-rules${queryString}`);
+      return apiClient.get<RestrictionRule[]>(`/restrictions${queryString}`);
     },
     enabled: !!bancaId,
   });
@@ -96,14 +96,14 @@ export function useCutoffCalculation(
 
 /**
  * Hook para crear regla de restricción (ADMIN)
- * POST /restriction-rules
+ * POST /restrictions
  */
 export function useCreateRestrictionRule() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (data: CreateRestrictionRuleRequest) =>
-      apiClient.post<RestrictionRule>('/restriction-rules', data),
+      apiClient.post<RestrictionRule>('/restrictions', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.restrictionRules.all });
     },

@@ -53,10 +53,10 @@ export const queryKeys = {
   
   // Restriction Rules
   restrictionRules: {
-    all: ['restriction-rules'] as const,
-    list: (params?: any) => ['restriction-rules', 'list', params] as const,
+    all: ['restrictions'] as const,
+    list: (params?: any) => ['restrictions', 'list', params] as const,
     byNumber: (number: string, lotteryId?: string) => 
-      ['restriction-rules', 'number', number, lotteryId] as const,
+      ['restrictions', 'number', number, lotteryId] as const,
   },
   
   // Multipliers

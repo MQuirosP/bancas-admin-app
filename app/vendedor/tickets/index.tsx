@@ -6,33 +6,47 @@ import { Plus, Ticket as TicketIcon } from '@tamagui/lucide-icons';
 import { ticketsService } from '../../../services/tickets.service';
 import { formatCurrency } from '../../../utils/formatters';
 
+type ListResp<T> = T[] | { data: T[]; meta?: any };
+function toArray<T>(payload: ListResp<T> | undefined | null): T[] {
+  if (!payload) return [];
+  return Array.isArray(payload) ? payload : Array.isArray(payload.data) ? payload.data : [];
+}
+
+function formatScheduledAtISO(d: any) {
+  if (!d) return { label: '' };
+  const dt = new Date(d as any);
+  return { label: dt.toLocaleString() };
+}
+
 export default function MisTicketsScreen() {
   const router = useRouter();
 
-  const { data: tickets, isLoading } = useQuery({
+  const { data: ticketsResp, isLoading } = useQuery({
     queryKey: ['tickets', 'mine', 'today'],
-    queryFn: () => ticketsService.getMine('today'),
+    queryFn: () => ticketsService.getMine('today') as Promise<ListResp<any>>,
+    staleTime: 60_000,
   });
 
+  const tickets = useMemo(() => toArray<any>(ticketsResp), [ticketsResp]);
+
   const totalAmount = useMemo(() => {
-    if (!tickets?.length) return 0;
-    // si cada ticket ya trae totalAmount, úsalo; si no, suma jugadas
+    if (!tickets.length) return 0;
     return tickets.reduce((acc, t) => {
       if (typeof t.totalAmount === 'number') return acc + t.totalAmount;
-      const sumJugadas = (t.jugadas ?? []).reduce((s, j) => s + (j.amount ?? 0), 0);
+      const sumJugadas = (t.jugadas ?? []).reduce((s: number, j: any) => s + (j.amount ?? 0), 0);
       return acc + sumJugadas;
     }, 0);
   }, [tickets]);
 
   return (
-    <ScrollView>
+    <ScrollView flex={1} backgroundColor={'$background'}>
       <YStack padding="$4" gap="$4">
         <XStack justifyContent="space-between" alignItems="center" flexWrap="wrap" gap="$3">
           <Text fontSize="$8" fontWeight="bold" color="$color">
             Mis Tiquetes de Hoy
           </Text>
-          <Button icon={<Plus />} onPress={() => router.push('/vendedor/tickets/nuevo')}>
-            Nuevo Tiquete
+          <Button icon={Plus} onPress={() => router.push('/vendedor/tickets/nuevo')}>
+            <Text>Nuevo Tiquete</Text>
           </Button>
         </XStack>
 
@@ -40,54 +54,60 @@ export default function MisTicketsScreen() {
           <YStack padding="$8" alignItems="center">
             <Spinner size="large" />
           </YStack>
-        ) : !tickets?.length ? (
+        ) : tickets.length === 0 ? (
           <Card padding="$4">
             <Text color="$textSecondary">Aún no tienes tiquetes hoy.</Text>
           </Card>
         ) : (
           <>
             <YStack gap="$3">
-              {tickets.map((ticket) => (
-                <Card key={ticket.id} padding="$4">
-                  <XStack justifyContent="space-between" alignItems="flex-start" gap="$3">
-                    <YStack flex={1}>
-                      <XStack gap="$2" alignItems="center" marginBottom="$2">
-                        <TicketIcon size={20} />
-                        <Text fontSize="$5" fontWeight="600" color="$color">
-                          Tiquete #{ticket.id.slice(0, 8)}
-                        </Text>
-                      </XStack>
+              {tickets.map((ticket: any) => {
+                const loteriaName = ticket?.sorteo?.loteria?.name ?? ticket?.sorteo?.loteriaId ?? 'Lotería';
+                const { label } = formatScheduledAtISO(ticket?.sorteo?.scheduledAt);
 
-                      <Text fontSize="$3" color="$textSecondary">
-                        Sorteo: {ticket.sorteo?.date} - {ticket.sorteo?.hour}
-                      </Text>
+                const ticketTotal =
+                  typeof ticket.totalAmount === 'number'
+                    ? ticket.totalAmount
+                    : (ticket.jugadas ?? []).reduce((s: number, j: any) => s + (j.amount ?? 0), 0);
 
-                      <Text fontSize="$4" fontWeight="600" color="$primary" marginTop="$2">
-                        Total: {formatCurrency(
-                          typeof ticket.totalAmount === 'number'
-                            ? ticket.totalAmount
-                            : (ticket.jugadas ?? []).reduce((s, j) => s + (j.amount ?? 0), 0)
-                        )}
-                      </Text>
-                    </YStack>
-                  </XStack>
+                return (
+                  <Card key={ticket.id} padding="$4">
+                    <XStack justifyContent="space-between" alignItems="flex-start" gap="$3">
+                      <YStack flex={1}>
+                        <XStack gap="$2" alignItems="center" marginBottom="$2">
+                          <TicketIcon size={20} />
+                          <Text fontSize="$5" fontWeight="600" color="$color">
+                            Tiquete #{String(ticket.id).slice(0, 8)}
+                          </Text>
+                        </XStack>
 
-                  <YStack marginTop="$3" gap="$1">
-                    {(ticket.jugadas ?? []).map((jugada, index) => (
-                      <XStack key={index} justifyContent="space-between" paddingVertical="$1">
                         <Text fontSize="$3" color="$textSecondary">
-                          {jugada.type === 'NUMERO'
-                            ? `Número: ${jugada.number}`
-                            : `Reventado: ${jugada.reventadoNumber}`}
+                          Sorteo: {loteriaName} — {label}
                         </Text>
-                        <Text fontSize="$3" fontWeight="500">
-                          {formatCurrency(jugada.amount ?? 0)}
+
+                        <Text fontSize="$4" fontWeight="600" color="$primary" marginTop="$2">
+                          Total: {formatCurrency(ticketTotal)}
                         </Text>
-                      </XStack>
-                    ))}
-                  </YStack>
-                </Card>
-              ))}
+                      </YStack>
+                    </XStack>
+
+                    <YStack marginTop="$3" gap="$1">
+                      {(ticket.jugadas ?? []).map((jugada: any, index: number) => (
+                        <XStack key={index} justifyContent="space-between" paddingVertical="$1">
+                          <Text fontSize="$3" color="$textSecondary">
+                            {jugada.type === 'NUMERO'
+                              ? `Número: ${jugada.number}`
+                              : `Reventado: ${jugada.reventadoNumber}`}
+                          </Text>
+                          <Text fontSize="$3" fontWeight="500">
+                            {formatCurrency(jugada.amount ?? 0)}
+                          </Text>
+                        </XStack>
+                      ))}
+                    </YStack>
+                  </Card>
+                );
+              })}
             </YStack>
 
             <Card padding="$4" backgroundColor="$blue2">

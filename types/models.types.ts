@@ -158,7 +158,6 @@ export interface Ticket {
 }
 
 export interface CreateTicketRequest {
-  ventanaId: string;
   loteriaId: string;
   sorteoId: string;
   jugadas: Omit<Jugada, 'id'>[];

@@ -1,8 +1,10 @@
 // components/ui/Toast.tsx
 import React, { useMemo, useRef, useState, useCallback, useEffect } from 'react'
+import { Platform } from 'react-native'
 import { YStack, XStack, Text, Card, Separator, Button } from 'tamagui'
 import { CheckCircle, Info, AlertTriangle, X } from '@tamagui/lucide-icons'
 import { AnimatePresence } from '@tamagui/animate-presence'
+import { Portal } from '@tamagui/portal'
 import {
   ToastContext,
   type ToastPayload,
@@ -37,19 +39,36 @@ export function ToastProvider({
   position = 'top-right',
 }: Props) {
   const [toasts, setToasts] = useState<ToastPayload[]>([])
-  const timers = useRef<Record<string, any>>({})
+  const timers = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
+
+  const clearTimer = (id: string) => {
+    const t = timers.current[id]
+    if (t) {
+      clearTimeout(t)
+      delete timers.current[id]
+    }
+  }
+
+  const scheduleDismiss = (id: string, duration: number) => {
+    if (!duration || duration === Infinity) return
+    clearTimer(id)
+    timers.current[id] = setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id))
+      delete timers.current[id]
+    }, duration)
+  }
 
   const show = useCallback(
     (kind: ToastKind, message: string, opts?: ShowToastOptions) => {
       const id = uid()
       const duration = opts?.duration ?? defaultDuration
-      setToasts((prev) => [{ id, kind, message, createdAt: Date.now(), duration }, ...prev].slice(0, maxToasts))
-      timers.current[id] = setTimeout(() => {
-        setToasts((prev) => prev.filter((t) => t.id !== id))
-        delete timers.current[id]
-      }, duration)
+      setToasts((prev) => {
+        const next = [{ id, kind, message, createdAt: Date.now(), duration }, ...prev]
+        return next.slice(0, maxToasts)
+      })
+      scheduleDismiss(id, duration)
     },
-    [defaultDuration, maxToasts],
+    [defaultDuration, maxToasts]
   )
 
   const success = useCallback((m: string, o?: ShowToastOptions) => show('success', m, o), [show])
@@ -65,12 +84,13 @@ export function ToastProvider({
 
   const value = useMemo(() => ({ show, success, error, info }), [show, success, error, info])
 
+  // Contenedor: fijo en web, absoluto en native (para que realmente flote sobre la UI)
   const posStyle: Record<string, any> = {
-    position: 'fixed',
-    zIndex: 1000,
+    position: Platform.OS === 'web' ? 'fixed' : 'absolute',
+    zIndex: 9999,
     padding: 12,
     gap: 10,
-    pointerEvents: 'none', // <- no bloquear clicks del resto de la UI
+    pointerEvents: 'none',
   }
   if (position.includes('top')) posStyle.top = 10
   if (position.includes('bottom')) posStyle.bottom = 10
@@ -82,24 +102,26 @@ export function ToastProvider({
   return (
     <ToastContext.Provider value={value}>
       {children}
-      <YStack {...posStyle}>
-        <AnimatePresence>
-          {toasts.map((t) => (
-            <ToastItem
-              key={t.id}
-              toast={t}
-              position={position}
-              enterStyle={enterStyle}
-              exitStyle={exitStyle}
-              onClose={() => {
-                clearTimeout(timers.current[t.id])
-                setToasts((prev) => prev.filter((x) => x.id !== t.id))
-                delete timers.current[t.id]
-              }}
-            />
-          ))}
-        </AnimatePresence>
-      </YStack>
+      <Portal>
+        <YStack {...posStyle}>
+          <AnimatePresence>
+            {toasts.map((t) => (
+              <ToastItem
+                key={t.id}
+                toast={t}
+                enterStyle={enterStyle}
+                exitStyle={exitStyle}
+                onClose={() => {
+                  clearTimer(t.id)
+                  setToasts((prev) => prev.filter((x) => x.id !== t.id))
+                }}
+                onPause={() => clearTimer(t.id)}
+                onResume={() => scheduleDismiss(t.id, t.duration)}
+              />
+            ))}
+          </AnimatePresence>
+        </YStack>
+      </Portal>
     </ToastContext.Provider>
   )
 }
@@ -107,13 +129,15 @@ export function ToastProvider({
 function ToastItem({
   toast,
   onClose,
-  position,        // no lo usamos directo ahora, pero lo dejamos por si ajustas más tarde
+  onPause,
+  onResume,
   enterStyle,
   exitStyle,
 }: {
   toast: ToastPayload
   onClose: () => void
-  position: Props['position']
+  onPause: () => void
+  onResume: () => void
   enterStyle: Record<string, any>
   exitStyle: Record<string, any>
 }) {
@@ -130,6 +154,8 @@ function ToastItem({
 
   return (
     <Card
+      role={Platform.OS === 'web' ? 'status' : undefined}
+      aria-live={Platform.OS === 'web' ? 'polite' : undefined}
       elevate
       size="$3"
       bg={palette.bg}
@@ -138,14 +164,16 @@ function ToastItem({
       br="$8"
       p="$3"
       w={320}
-      pointerEvents="auto"           // <- permitir click en el propio toast
-      // ✨ animación de entrada/salida
+      pointerEvents="auto"
       animation="medium"
       enterStyle={enterStyle}
       exitStyle={exitStyle}
       shadowColor="$shadowColor"
       shadowRadius={12}
       shadowOffset={{ width: 0, height: 4 }}
+      // Pausar / reanudar auto-close en web
+      onMouseEnter={Platform.OS === 'web' ? onPause : undefined}
+      onMouseLeave={Platform.OS === 'web' ? onResume : undefined}
     >
       <XStack ai="center" jc="space-between" gap="$3">
         <XStack ai="center" gap="$2" f={1}>
@@ -163,7 +191,6 @@ function ToastItem({
           <X size={16} />
         </Button>
       </XStack>
-
       <Separator mt="$2" bc="$borderColor" />
     </Card>
   )
