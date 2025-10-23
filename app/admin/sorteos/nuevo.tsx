@@ -36,6 +36,23 @@ function joinLocalToISO(date: string, time: string) {
   return d.toISOString()
 }
 
+// dd/mm/YYYY hh:mm a.m./p.m. (desde ISO)
+function formatLocalPretty(iso?: string) {
+  if (!iso) return '—'
+  const d = new Date(iso)
+  if (isNaN(d.getTime())) return '—'
+  const dd = pad(d.getDate())
+  const mm = pad(d.getMonth() + 1)
+  const yyyy = d.getFullYear()
+  let h = d.getHours()
+  const ampm = h >= 12 ? 'p.m.' : 'a.m.'
+  h = h % 12
+  if (h === 0) h = 12
+  const hh = String(h).padStart(2, '0')
+  const min = pad(d.getMinutes())
+  return `${dd}/${mm}/${yyyy} ${hh}:${min} ${ampm}`
+}
+
 /** ─────────────── Botones Fecha/Hora (web) con input oculto ─────────────── **/
 function WebDateButton({
   value,
@@ -44,7 +61,7 @@ function WebDateButton({
 }: { value: string; onChange: (v: string) => void; placeholder?: string }) {
   const ref = useRef<HTMLInputElement | null>(null)
   return (
-    <YStack gap="$1" width={160}>
+    <YStack gap="$1" width={120}>
       <input
         ref={ref}
         type="date"
@@ -296,7 +313,7 @@ export default function NuevoSorteoScreen() {
                 <>
                   <XStack gap="$4" ai="flex-start" fw="wrap" jc="flex-start">
                     {/* Fecha (nativo) */}
-                    <YStack gap="$1" width={160}>
+                    <YStack gap="$1" width={120}>
                       <Button
                         height={36}
                         px="$3"
@@ -359,10 +376,11 @@ export default function NuevoSorteoScreen() {
                 </>
               )}
 
-              {/* Mostrar lo que se enviará */}
+              {/* Mostrar selección en local y con formato solicitado */}
               <Text fontSize="$2" color="$textSecondary">
-                Fecha seleccionada: {values.scheduledAt || '—'}
+                Fecha seleccionada: {formatLocalPretty(values.scheduledAt)}
               </Text>
+              {!!errors.scheduledAt && <Text color="$error">{errors.scheduledAt}</Text>}
             </YStack>
           </YStack>
         </Card>

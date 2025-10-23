@@ -35,4 +35,8 @@ export const LoteriasApi = {
       page: 1, pageSize: params.pageSize ?? 100, total: 0, totalPages: 1, hasNextPage: false, hasPrevPage: false
     }}
   },
+  getById: (id: string) => apiClient.get<{ data: any }>(`/loterias/${id}`),
+  // PATCH parcial que acepte rulesJson
+  update: (id: string, payload: Partial<{ name: string; isActive: boolean; rulesJson: any }>) =>
+    apiClient.patch<{ data: any }>(`/loterias/${id}`, payload),
 }

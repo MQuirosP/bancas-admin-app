@@ -50,7 +50,6 @@ export async function listVentanas(params: VentanasQueryParams): Promise<Paginat
     total: Number(m.total ?? (Array.isArray(data) ? data.length : 0)),
     totalPages: Number(m.totalPages ?? 1),
   }
-  console.log(data, meta)
   return { data, meta }
 }
 
