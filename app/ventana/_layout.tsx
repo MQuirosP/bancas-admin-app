@@ -30,6 +30,7 @@ export default function VentanaLayout() {
         <Stack.Screen name="restrictions/index" />
         <Stack.Screen name="sorteos/index" />
         <Stack.Screen name="tickets/index" />
+        <Stack.Screen name="tickets/[id]" />
         <Stack.Screen name="ventas/index" />
       </Stack>
     </YStack>
