@@ -586,7 +586,7 @@ export default function SorteosListScreen() {
 
                         {s.status === 'OPEN' && (
                           <Button
-                            size="$2"
+                            size="$3"
                             onPress={async (e: any) => {
                               e?.stopPropagation?.()
                               const ok = await confirm({
