@@ -19,16 +19,16 @@ const extra = ((Constants as any)?.expoConfig?.extra ??
   (Constants as any)?.manifest?.extra ??
   {}) as Extra
 
-const API_BASE_URL =
-  process.env.EXPO_PUBLIC_API_BASE_URL ??
-  extra.EXPO_PUBLIC_API_BASE_URL ??
-  extra.apiBaseUrl ??
-  'https://backend-bancas.onrender.com/api/v1'
 // const API_BASE_URL =
 //   process.env.EXPO_PUBLIC_API_BASE_URL ??
 //   extra.EXPO_PUBLIC_API_BASE_URL ??
 //   extra.apiBaseUrl ??
-//   'http://localhost:3000/api/v1'
+//   'https://backend-bancas.onrender.com/api/v1'
+const API_BASE_URL =
+  process.env.EXPO_PUBLIC_API_BASE_URL ??
+  extra.EXPO_PUBLIC_API_BASE_URL ??
+  extra.apiBaseUrl ??
+  'http://localhost:3000/api/v1'
 
 export const buildQueryString = buildQuery // alias público
 
@@ -96,7 +96,7 @@ export class ApiClient {
     this.refreshSubscribers = []
   }
 
-  private async refreshAccessToken(): Promise<string> {
+    private async refreshAccessToken(): Promise<string> {
     const refreshToken = await getRefreshToken()
     if (!refreshToken) {
       throw new AuthenticationError(
@@ -128,7 +128,14 @@ export class ApiClient {
         )
       }
 
-      await setAccessToken(newAccessToken) // solo guardar token
+      await setAccessToken(newAccessToken)
+
+      // ✅ LOG DE ÉXITO DE REFRESH
+      console.log('✅ Access token refreshed:', {
+        at: new Date().toISOString(),
+        baseURL: this.baseURL,
+      })
+
       return newAccessToken
     } catch (error) {
       console.error('❌ Error en refresh token:', error)

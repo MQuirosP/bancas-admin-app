@@ -23,9 +23,10 @@ type Props = {
   submitting?: boolean
   onSubmit: (values: FormValues) => void | Promise<void>
   onCancel?: () => void
+  externalDirty?: boolean
 }
 
-export default function LoteriaForm({ mode, initial, submitting, onSubmit, onCancel }: Props) {
+export default function LoteriaForm({ mode, initial, submitting, onSubmit, onCancel, externalDirty }: Props) {
   const toast = useToast()
 
   const initialUI = useMemo(() => ({
@@ -47,19 +48,24 @@ export default function LoteriaForm({ mode, initial, submitting, onSubmit, onCan
   })
 
   // Detecta cambios solo en edición
-  const isDirty = useMemo(() => {
+  const isDirtyLocal = useMemo(() => {
     if (mode === 'create') return true
     const a = normalize(values)
     const b = normalize(initialUI)
     return a.name !== b.name || a.isActive !== b.isActive
   }, [mode, values, initialUI])
 
+  const isReallyDirty = useMemo(() => {
+    if (mode === 'create') return true
+    return isDirtyLocal || !!externalDirty
+  }, [mode, isDirtyLocal, externalDirty])
+
   // Habilita Guardar solo cuando es válido y (en edit) hubo cambios
   const canSubmit = useMemo(() => {
     if (!values.name || values.name.trim().length < 2) return false
-    if (mode === 'edit' && !isDirty) return false
+    if (mode === 'edit' && !isReallyDirty) return false
     return true
-  }, [values.name, mode, isDirty])
+  }, [values.name, mode, isReallyDirty])
 
   const handleSubmit = () => {
     setErrors({})

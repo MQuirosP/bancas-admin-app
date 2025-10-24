@@ -24,37 +24,32 @@ const queryClient = new QueryClient({
   },
 })
 
-function AuthGateWrapper() {
-  const { isAuthenticated, isLoading } = useAuthStore()
-  const segments = useSegments()
-  const router = useRouter()
-
-  useEffect(() => {
-    if (isLoading) return
-    const inAuth = segments[0] === '(auth)'
-    if (!isAuthenticated && !inAuth) router.replace('/(auth)/login')
-    if (isAuthenticated && inAuth) router.replace('/')
-  }, [isAuthenticated, isLoading, segments])
-
-  const inAuth = segments[0] === '(auth)'
-
-  // 👉 envuelve la rama (auth) también, para capturar errores en pantallas de login
-  if (inAuth) {
-    return (
-      <ErrorBoundary>
-        <Slot />
-      </ErrorBoundary>
-    )
-  }
-
-  // 👉 y aquí envolvemos el layout principal + pantallas
-  return (
-    <ErrorBoundary>
-      <MainLayout>
-        <Slot />
-      </MainLayout>
-    </ErrorBoundary>
-  )
+function AuthGateWrapper() {  
+  const { isAuthenticated, isHydrating } = useAuthStore();  
+  const segments = useSegments();  
+  
+  // ❌ ELIMINAR TODO EL useEffect  
+  // Ya no necesitas este useEffect porque:  
+  // 1. app/index.tsx maneja la redirección inicial  
+  // 2. Los layouts de rol manejan la protección  
+  
+  const inAuth = segments[0] === '(auth)';  
+  
+  if (inAuth) {  
+    return (  
+      <ErrorBoundary>  
+        <Slot />  
+      </ErrorBoundary>  
+    );  
+  }  
+  
+  return (  
+    <ErrorBoundary>  
+      <MainLayout>  
+        <Slot />  
+      </MainLayout>  
+    </ErrorBoundary>  
+  );  
 }
 
 export default function RootLayout() {

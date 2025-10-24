@@ -1,19 +1,19 @@
 // components/loterias/LoteriaRulesInline.tsx
-import React from 'react';
-import { useForm, Controller } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
+import React from 'react'
+import { useForm, Controller } from 'react-hook-form'
+import { z } from 'zod'
+import { zodResolver } from '@hookform/resolvers/zod'
 import {
-  YStack, XStack, Text, Input, Button, Card, Separator, Switch, Label, Checkbox, Select,
-} from 'tamagui';
-import { ChevronDown, Check } from '@tamagui/lucide-icons';
-import type { LoteriaRulesJson, Weekday } from '@/types/loteriaRules';
-import { toWeekdays } from '@/types/loteriaRules';
-import TimeInput from '@/components/loterias/TimeInput';
-import TimeListEditor from '@/components/loterias/TimeListEditor';
-import WeekdaySelector from '@/components/loterias/WeekdaySelector';
-import VisualPicker from '@/components/loterias/VisualPicker';
-import { useUiSettings } from "@/hooks/useUiSettings";
+  YStack, XStack, Text, Input, Button, Card, Separator, Label, Checkbox, Select,
+} from 'tamagui'
+import { ChevronDown, Check } from '@tamagui/lucide-icons'
+import type { LoteriaRulesJson, Weekday } from '@/types/loteriaRules'
+import { toWeekdays } from '@/types/loteriaRules'
+import TimeInput from '@/components/loterias/TimeInput'
+import TimeListEditor from '@/components/loterias/TimeListEditor'
+import WeekdaySelector from '@/components/loterias/WeekdaySelector'
+import VisualPicker from '@/components/loterias/VisualPicker'
+import FilterSwitch from '@/components/ui/FilterSwitch'
 
 const RulesJsonSchema = z.object({
   closingTimeBeforeDraw: z.coerce.number().min(0).max(180).optional(),
@@ -44,9 +44,9 @@ const RulesJsonSchema = z.object({
   }).optional(),
   baseMultiplierX: z.coerce.number().positive().optional(),
   salesHours: z.any().optional(),
-}).partial().passthrough();
+}).partial().passthrough()
 
-type FormShape = z.infer<typeof RulesJsonSchema>;
+type FormShape = z.infer<typeof RulesJsonSchema>
 
 const dayDefs = [
   { key:'sunday', label:'Domingo' },
@@ -56,7 +56,7 @@ const dayDefs = [
   { key:'thursday', label:'Jueves' },
   { key:'friday', label:'Viernes' },
   { key:'saturday', label:'Sábado' },
-] as const;
+] as const
 
 export default function LoteriaRulesInline({
   value,
@@ -64,13 +64,12 @@ export default function LoteriaRulesInline({
   submitLabel = 'Aplicar',
   persistHint,
 }: {
-  value: LoteriaRulesJson;
-  onChange: (rules: LoteriaRulesJson) => void;
-  submitLabel?: string;
+  value: LoteriaRulesJson
+  onChange: (rules: LoteriaRulesJson) => void
+  submitLabel?: string
   /** Texto debajo del botón (ej: “Se guardan al actualizar la lotería”) */
-  persistHint?: string;
+  persistHint?: string
 }) {
-  const { timeFormat, timePickerMode, minuteStep } = useUiSettings()
   const defaultValues: FormShape = {
     ...value,
     drawSchedule: {
@@ -78,13 +77,13 @@ export default function LoteriaRulesInline({
       times: value?.drawSchedule?.times ?? [],
       daysOfWeek: (value?.drawSchedule?.daysOfWeek as number[] | undefined) ?? [1,2,3,4,5,6,0],
     },
-  };
+  }
 
   const { control, handleSubmit, watch } = useForm<FormShape>({
     resolver: zodResolver(RulesJsonSchema),
     defaultValues,
     mode: 'onBlur',
-  });
+  })
 
   const submit = handleSubmit((values) => {
     const reventadoConfig =
@@ -94,13 +93,13 @@ export default function LoteriaRulesInline({
             requiresMatchingNumber: values.reventadoConfig.requiresMatchingNumber,
             colors: values.reventadoConfig.colors,
           }
-        : undefined;
+        : undefined
 
-    const nr = values.numberRange;
+    const nr = values.numberRange
     const numberRange =
       nr && typeof nr.min === 'number' && typeof nr.max === 'number'
         ? { min: nr.min, max: nr.max }
-        : undefined;
+        : undefined
 
     const rules: LoteriaRulesJson = {
       ...values,
@@ -113,14 +112,14 @@ export default function LoteriaRulesInline({
             daysOfWeek: toWeekdays(values.drawSchedule.daysOfWeek as number[] | undefined) as Weekday[] | undefined,
           }
         : undefined,
-    };
+    }
 
-    onChange(rules);
-  });
+    onChange(rules)
+  })
 
   const reventadoEnabled =
     (watch('reventadoConfig.enabled') as boolean | undefined) ??
-    value?.reventadoConfig?.enabled ?? false;
+    value?.reventadoConfig?.enabled ?? false
 
   return (
     <Card p="$4" bw={1} bc="$borderColor">
@@ -199,11 +198,11 @@ export default function LoteriaRulesInline({
               control={control}
               name="allowedBetTypes"
               render={({ field }) => {
-                const current = new Set<string>(field.value ?? []);
+                const current = new Set<string>(field.value ?? [])
                 const toggle = (opt: 'NUMERO'|'REVENTADO') => {
-                  if (current.has(opt)) current.delete(opt); else current.add(opt);
-                  field.onChange(Array.from(current));
-                };
+                  if (current.has(opt)) current.delete(opt); else current.add(opt)
+                  field.onChange(Array.from(current))
+                }
                 return (
                   <XStack gap="$4" ai="center">
                     <Label>NUMERO</Label>
@@ -218,36 +217,36 @@ export default function LoteriaRulesInline({
                       onCheckedChange={() => toggle('REVENTADO')}
                     ><Checkbox.Indicator><Check size={14}/></Checkbox.Indicator></Checkbox>
                   </XStack>
-                );
+                )
               }}
             />
 
+            {/* Reemplazo de Switch -> FilterSwitch */}
             <Controller
               control={control}
               name="reventadoConfig.enabled"
               render={({ field }) => (
-                <XStack ai="center" gap="$2">
-                  <Label>Reventado habilitado</Label>
-                  <Switch checked={!!field.value} onCheckedChange={field.onChange}>
-                    <Switch.Thumb />
-                  </Switch>
-                </XStack>
+                <FilterSwitch
+                  label="Reventado habilitado"
+                  checked={!!field.value}
+                  onCheckedChange={(v) => field.onChange(v)}
+                />
               )}
             />
           </XStack>
 
           {reventadoEnabled && (
             <XStack gap="$2" fw="wrap" ai="center">
+              {/* Reemplazo de Switch -> FilterSwitch */}
               <Controller
                 control={control}
                 name="reventadoConfig.requiresMatchingNumber"
                 render={({ field }) => (
-                  <XStack ai="center" gap="$2">
-                    <Label>Debe coincidir número</Label>
-                    <Switch checked={!!field.value} onCheckedChange={field.onChange}>
-                      <Switch.Thumb />
-                    </Switch>
-                  </XStack>
+                  <FilterSwitch
+                    label="Debe coincidir número"
+                    checked={!!field.value}
+                    onCheckedChange={(v) => field.onChange(v)}
+                  />
                 )}
               />
               <Controller
@@ -285,8 +284,8 @@ export default function LoteriaRulesInline({
 
           <YStack gap="$2">
             {dayDefs.map(({ key, label }) => (
-              <XStack key={key} gap="$2" fw="wrap" ai="center">
-                <Text w={100}>{label}</Text>
+              <XStack key={key} gap="$1" fw="wrap" ai="center">
+                <Text w={80}>{label}</Text>
                 <Controller
                   control={control}
                   name={`salesHours.${key}.start` as any}
@@ -330,7 +329,7 @@ export default function LoteriaRulesInline({
               render={({ field }) => (
                 <YStack w={200} gap="$1">
                   <Text>Frecuencia</Text>
-                  <Select value={field.value ?? 'daily'} onValueChange={field.onChange}>
+                  <Select value={field.value ?? 'diario'} onValueChange={field.onChange}>
                     <Select.Trigger iconAfter={ChevronDown} height={34} bw={1} bc="$borderColor">
                       <Select.Value />
                     </Select.Trigger>
@@ -373,16 +372,16 @@ export default function LoteriaRulesInline({
             )}
           />
 
+          {/* Reemplazo de Switch -> FilterSwitch */}
           <Controller
             control={control}
             name="autoCreateSorteos"
             render={({ field }) => (
-              <XStack ai="center" gap="$2">
-                <Label>Auto-crear sorteos</Label>
-                <Switch checked={!!field.value} onCheckedChange={field.onChange}>
-                  <Switch.Thumb />
-                </Switch>
-              </XStack>
+              <FilterSwitch
+                label="Auto-crear sorteos"
+                checked={!!field.value}
+                onCheckedChange={(v) => field.onChange(v)}
+              />
             )}
           />
         </YStack>
@@ -439,5 +438,5 @@ export default function LoteriaRulesInline({
         </YStack>
       </YStack>
     </Card>
-  );
+  )
 }

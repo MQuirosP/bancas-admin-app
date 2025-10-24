@@ -1,5 +1,5 @@
 // app/admin/loterias/[id].tsx
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useState, useEffect } from 'react'
 import { YStack, Text, ScrollView, Spinner } from 'tamagui'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useToast } from '@/hooks/useToast'
@@ -29,6 +29,15 @@ export default function EditLoteriaScreen() {
   }, [data])
 
   const [rules, setRules] = useState<LoteriaRulesJson>(initialRules)
+
+  useEffect(() => {
+  setRules(initialRules)
+}, [initialRules])
+
+const rulesDirty = useMemo(
+  () => JSON.stringify(rules) !== JSON.stringify(initialRules),
+  [rules, initialRules]
+)
 
   const update = useMutation({
     mutationFn: (body: any) => apiClient.patch(`/loterias/${id}`, body),
@@ -60,6 +69,7 @@ export default function EditLoteriaScreen() {
           submitting={update.isPending}
           onSubmit={(values) => update.mutate({ ...values, rulesJson: rules })}
           onCancel={goBackSafe}
+          externalDirty={rulesDirty}
         />
 
         <LoteriaRulesInline
