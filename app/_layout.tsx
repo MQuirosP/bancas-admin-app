@@ -11,7 +11,7 @@ import { LogBox } from 'react-native'
 import { useAuthStore } from '@/store/auth.store'
 import { ToastProvider } from '@/components/ui/Toast'
 import { MainLayout } from '@/components/layout/MainLayout'
-import { ErrorBoundary } from '@/components/ErrorBoundary' // 👈 importa el boundary
+import { ErrorBoundary } from '@/components/ErrorBoundary' // importa el boundary
 import { installGlobalErrorHooks } from '../lib/global-error-hooks'
 
 installGlobalErrorHooks()
