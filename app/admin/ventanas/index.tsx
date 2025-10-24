@@ -147,10 +147,22 @@ export default function VentanasListScreen() {
 
               <Separator vertical />
 
-              <Button icon={RefreshCw} onPress={() => { setPage(1); refetch() }} hoverStyle={{ scale: 1.02 }} pressStyle={{ scale: 0.98 }}>
+              <Button
+                icon={RefreshCw}
+                onPress={() => { setPage(1); refetch() }} backgroundColor={'$green4'}
+                borderColor={'$green8'}
+                hoverStyle={{ backgroundColor: '$green5' }}
+                pressStyle={{ scale: 0.98 }}
+              >
                 <Text>Refrescar</Text>
               </Button>
-              <Button onPress={clearFilters} hoverStyle={{ scale: 1.02 }} pressStyle={{ scale: 0.98 }}>
+              <Button 
+              onPress={clearFilters} 
+              backgroundColor={'$gray4'}
+              borderColor={'$gray8'}
+              hoverStyle={{ backgroundColor: '$gray5' }} 
+              pressStyle={{ scale: 0.98 }}
+              >
                 <Text>Limpiar</Text>
               </Button>
             </XStack>

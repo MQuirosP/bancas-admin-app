@@ -171,7 +171,14 @@ export default function BancasListScreen() {
                 <Text>Buscar</Text>
               </Button>
 
-              <Button icon={RefreshCw} onPress={() => { setPage(1); refetch() }}>
+              <Button
+                icon={RefreshCw}
+                onPress={() => { setPage(1); refetch() }}
+                backgroundColor={'$green4'}
+                borderColor={'$green8'}
+                hoverStyle={{ backgroundColor: '$green5' }}
+                pressStyle={{ scale: 0.98 }}
+              >
                 <Text>Refrescar</Text>
               </Button>
             </XStack>

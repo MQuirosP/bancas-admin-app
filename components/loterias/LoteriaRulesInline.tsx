@@ -14,6 +14,7 @@ import TimeListEditor from '@/components/loterias/TimeListEditor'
 import WeekdaySelector from '@/components/loterias/WeekdaySelector'
 import VisualPicker from '@/components/loterias/VisualPicker'
 import FilterSwitch from '@/components/ui/FilterSwitch'
+import { useMultipliersQuery } from '@/hooks/useMultipliersCrud'
 
 const RulesJsonSchema = z.object({
   closingTimeBeforeDraw: z.coerce.number().min(0).max(180).optional(),
@@ -27,8 +28,7 @@ const RulesJsonSchema = z.object({
   allowedBetTypes: z.array(z.enum(['NUMERO','REVENTADO'])).optional(),
   reventadoConfig: z.object({
     enabled: z.boolean(),
-    requiresMatchingNumber: z.boolean().optional(),
-    colors: z.array(z.enum(['ROJA','VERDE'])).optional(),
+    allowedMultiplierIds: z.array(z.string()).optional(),
   }).optional(),
   drawSchedule: z.object({
     frequency: z.enum(['diario','semanal','personalizado']),
@@ -59,15 +59,17 @@ const dayDefs = [
 ] as const
 
 export default function LoteriaRulesInline({
+  loteriaId,
   value,
   onChange,
   submitLabel = 'Aplicar',
   persistHint,
 }: {
+  loteriaId?: string
   value: LoteriaRulesJson
   onChange: (rules: LoteriaRulesJson) => void
   submitLabel?: string
-  /** Texto debajo del botón (ej: “Se guardan al actualizar la lotería”) */
+  /** Texto debajo del botón (ej: "Se guardan al actualizar la lotería") */
   persistHint?: string
 }) {
   const defaultValues: FormShape = {
@@ -85,13 +87,18 @@ export default function LoteriaRulesInline({
     mode: 'onBlur',
   })
 
+  // Cargar multiplicadores de la lotería
+  const { data: multipliersData } = useMultipliersQuery({
+    loteriaId,
+    isActive: true,
+  })
+
   const submit = handleSubmit((values) => {
     const reventadoConfig =
       values.reventadoConfig && typeof values.reventadoConfig.enabled !== 'undefined'
         ? {
             enabled: !!values.reventadoConfig.enabled,
-            requiresMatchingNumber: values.reventadoConfig.requiresMatchingNumber,
-            colors: values.reventadoConfig.colors,
+            allowedMultiplierIds: values.reventadoConfig.allowedMultiplierIds || [],
           }
         : undefined
 
@@ -211,7 +218,7 @@ export default function LoteriaRulesInline({
                       onCheckedChange={() => toggle('NUMERO')}
                     ><Checkbox.Indicator><Check size={14}/></Checkbox.Indicator></Checkbox>
 
-                    <Label>REVENTADO</Label>
+                    <Label>EXTRA</Label>
                     <Checkbox
                       checked={current.has('REVENTADO')}
                       onCheckedChange={() => toggle('REVENTADO')}
@@ -227,7 +234,7 @@ export default function LoteriaRulesInline({
               name="reventadoConfig.enabled"
               render={({ field }) => (
                 <FilterSwitch
-                  label="Reventado habilitado"
+                  label="Extra habilitado"
                   checked={!!field.value}
                   onCheckedChange={(v) => field.onChange(v)}
                 />
@@ -235,43 +242,93 @@ export default function LoteriaRulesInline({
             />
           </XStack>
 
-          {reventadoEnabled && (
-            <XStack gap="$2" fw="wrap" ai="center">
-              {/* Reemplazo de Switch -> FilterSwitch */}
+          {reventadoEnabled && loteriaId && multipliersData && multipliersData.data.length > 0 && (
+            <YStack gap="$2">
+              <Text fontWeight="600">Multiplicadores EXTRA habilitados</Text>
+              <Text color="$gray10" fontSize="$2">
+                Selecciona qué multiplicadores EXTRA estarán disponibles para apuestas
+              </Text>
               <Controller
                 control={control}
-                name="reventadoConfig.requiresMatchingNumber"
-                render={({ field }) => (
-                  <FilterSwitch
-                    label="Debe coincidir número"
-                    checked={!!field.value}
-                    onCheckedChange={(v) => field.onChange(v)}
-                  />
-                )}
+                name="reventadoConfig.allowedMultiplierIds"
+                render={({ field }) => {
+                  const currentIds = new Set<string>(field.value ?? [])
+                  const extraMultipliers = multipliersData.data.filter(m => m.kind === 'REVENTADO')
+
+                  const toggle = (id: string) => {
+                    if (currentIds.has(id)) currentIds.delete(id)
+                    else currentIds.add(id)
+                    field.onChange(Array.from(currentIds))
+                  }
+
+                  return (
+                    <YStack gap="$2">
+                      {extraMultipliers.length === 0 ? (
+                        <Text color="$orange10" fontSize="$3">
+                          No hay multiplicadores EXTRA configurados para esta lotería
+                        </Text>
+                      ) : (
+                        extraMultipliers.map((mult) => (
+                          <XStack key={mult.id} gap="$2" ai="center" p="$2" br="$2" bg="$gray2" bw={1} bc="$borderColor">
+                            <Checkbox
+                              checked={currentIds.has(mult.id)}
+                              onCheckedChange={() => toggle(mult.id)}
+                            >
+                              <Checkbox.Indicator>
+                                <Check size={16} />
+                              </Checkbox.Indicator>
+                            </Checkbox>
+                            <Text flex={1}>{mult.name}</Text>
+                            <Text fontWeight="700" color="$green10">{mult.valueX}x</Text>
+                          </XStack>
+                        ))
+                      )}
+                    </YStack>
+                  )
+                }}
               />
-              <Controller
-                control={control}
-                name="reventadoConfig.colors"
-                render={({ field }) => (
-                  <YStack w={220} gap="$1">
-                    <Text>Colores permitidos</Text>
-                    <Select value={(field.value?.[0] ?? '') as any} onValueChange={(v) => field.onChange([v])}>
-                      <Select.Trigger iconAfter={ChevronDown} height={34} bw={1} bc="$borderColor">
-                        <Select.Value placeholder="Seleccione color principal" />
-                      </Select.Trigger>
-                      <Select.Content zIndex={1_000_000}>
-                        <Select.Viewport>
-                          <Select.Item value="ROJA" index={0}><Select.ItemText>ROJA</Select.ItemText></Select.Item>
-                          <Select.Item value="VERDE" index={1}><Select.ItemText>VERDE</Select.ItemText></Select.Item>
-                        </Select.Viewport>
-                      </Select.Content>
-                    </Select>
-                  </YStack>
-                )}
-              />
-            </XStack>
+            </YStack>
           )}
         </YStack>
+
+        {/* Multiplicadores disponibles para esta lotería */}
+        {loteriaId && multipliersData && multipliersData.data.length > 0 && (
+          <YStack gap="$2">
+            <Text fontWeight="700">Multiplicadores Disponibles</Text>
+            <YStack gap="$2">
+              {multipliersData.data
+                .filter((m) => m.kind === 'NUMERO')
+                .map((mult) => (
+                  <XStack key={mult.id} gap="$3" ai="center" p="$2" br="$2" bg="$blue2" bw={1} bc="$blue6">
+                    <Text color="$blue11" fontWeight="600" fontSize="$2" w={60}>
+                      NÚMERO
+                    </Text>
+                    <XStack gap="$2" ai="center" flex={1}>
+                      <Text flex={1}>{mult.name}</Text>
+                      <Text fontWeight="700" color="$green10" fontSize="$5">
+                        {mult.valueX}x
+                      </Text>
+                    </XStack>
+                  </XStack>
+                ))}
+              {multipliersData.data
+                .filter((m) => m.kind === 'REVENTADO')
+                .map((mult) => (
+                  <XStack key={mult.id} gap="$3" ai="center" p="$2" br="$2" bg="$purple2" bw={1} bc="$purple6">
+                    <Text color="$purple11" fontWeight="600" fontSize="$2" w={60}>
+                      EXTRA
+                    </Text>
+                    <XStack gap="$2" ai="center" flex={1}>
+                      <Text flex={1}>{mult.name}</Text>
+                      <Text fontWeight="700" color="$green10" fontSize="$5">
+                        {mult.valueX}x
+                      </Text>
+                    </XStack>
+                  </XStack>
+                ))}
+            </YStack>
+          </YStack>
+        )}
 
         <Separator />
 

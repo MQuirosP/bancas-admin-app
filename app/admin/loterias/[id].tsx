@@ -73,6 +73,7 @@ const rulesDirty = useMemo(
         />
 
         <LoteriaRulesInline
+          loteriaId={id}
           value={rules}
           onChange={setRules}
           submitLabel="Aplicar"

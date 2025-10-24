@@ -136,9 +136,10 @@ export interface Jugada {
 }
 
 export enum TicketStatus {
-  PENDING = 'PENDING',
-  WON = 'WON',
-  LOST = 'LOST',
+  ACTIVE = 'ACTIVE',
+  EVALUATED = 'EVALUATED',
+  CANCELLED = 'CANCELLED',
+  RESTORED = 'RESTORED',
 }
 
 export interface Ticket {

@@ -11,8 +11,7 @@ export interface LoteriaRulesJson {
   allowedBetTypes?: BetType[];
   reventadoConfig?: {
     enabled: boolean;
-    requiresMatchingNumber?: boolean;
-    colors?: ('ROJA'|'VERDE')[];
+    allowedMultiplierIds?: string[]; // IDs de multiplicadores EXTRA habilitados
   };
   minBetAmount?: number;
   maxBetAmount?: number;
@@ -40,7 +39,7 @@ export interface LoteriaRulesJson {
 
 export const DEFAULT_RULES: LoteriaRulesJson = {
   allowedBetTypes: ['NUMERO'],
-  reventadoConfig: { enabled: false, requiresMatchingNumber: true, colors: ['ROJA','VERDE'] },
+  reventadoConfig: { enabled: false, allowedMultiplierIds: [] },
   minBetAmount: 1,
   maxBetAmount: 10000,
   maxNumbersPerTicket: 10,

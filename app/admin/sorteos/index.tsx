@@ -5,7 +5,7 @@ import {
 } from 'tamagui'
 import { useRouter } from 'expo-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plus, Search, X, RefreshCw, ChevronDown, Check, Trash2, RotateCcw } from '@tamagui/lucide-icons'
+import { Plus, Search, X, RefreshCw, ChevronDown, Check, Trash2, RotateCcw, Calendar } from '@tamagui/lucide-icons'
 import { Toolbar } from '@/components/ui/Toolbar'
 import ActiveBadge from '@/components/ui/ActiveBadge'
 import { useToast } from '@/hooks/useToast'
@@ -108,10 +108,13 @@ export default function SorteosListScreen() {
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState<Status | undefined>(undefined)
 
-  // 🔁 Filtro local de “Activos”:
+  // 🔁 Filtro local de "Activos":
   // ON  -> muestra solo activos
   // OFF -> muestra solo inactivos
   const [activeOnly, setActiveOnly] = useState(true)
+
+  // Lotería seleccionada para preview
+  const [selectedLoteriaForPreview, setSelectedLoteriaForPreview] = useState<{ id: string; name: string } | null>(null)
 
   const { data, isLoading, isFetching, isError, refetch } = useQuery<ApiListResponse<Sorteo>>({
     queryKey: ['sorteos', 'list', { page, pageSize, search, status }],
@@ -126,6 +129,17 @@ export default function SorteosListScreen() {
     refetchOnReconnect: true,
   })
 
+  // Cargar loterías para el selector
+  const { data: loteriasData } = useQuery({
+    queryKey: ['loterias', 'all'],
+    queryFn: async () => {
+      const res = await apiClient.get<any>('/loterias', { pageSize: 100 })
+      const payload: any = res ?? {}
+      return Array.isArray(payload) ? payload : payload?.data ?? []
+    },
+    staleTime: 300_000,
+  })
+
   const baseRows = useMemo(() => data?.data ?? [], [data])
 
   // Helper para saber si un sorteo está "activo" a efectos de UI
@@ -136,19 +150,28 @@ export default function SorteosListScreen() {
     return flag === undefined ? inferred : flag === true
   }
 
-  // Filtro por estado (frontend) + activos/inactivos (frontend)
+  // Filtro por estado (frontend) + activos/inactivos (frontend) + ordenamiento cronológico
   const rows = useMemo(() => {
     const byStatus = status ? baseRows.filter(r => r.status === status) : baseRows
     // Cuando activeOnly === true -> solo activos
     // Cuando activeOnly === false -> solo inactivos
     const byActiveFlag = byStatus.filter(s => activeOnly ? isRowActive(s) : !isRowActive(s))
 
-    if (!search.trim()) return byActiveFlag
-    const q = search.trim().toLowerCase()
-    return byActiveFlag.filter(s =>
-      (s.name ?? '').toLowerCase().includes(q) ||
-      (s.loteria?.name ?? s.loteriaId ?? '').toLowerCase().includes(q)
-    )
+    let filtered = byActiveFlag
+    if (search.trim()) {
+      const q = search.trim().toLowerCase()
+      filtered = byActiveFlag.filter(s =>
+        (s.name ?? '').toLowerCase().includes(q) ||
+        (s.loteria?.name ?? s.loteriaId ?? '').toLowerCase().includes(q)
+      )
+    }
+
+    // Ordenar por scheduledAt (más pronto primero)
+    return filtered.sort((a, b) => {
+      const dateA = new Date(a.scheduledAt as any).getTime()
+      const dateB = new Date(b.scheduledAt as any).getTime()
+      return dateA - dateB
+    })
   }, [baseRows, status, activeOnly, search])
 
   const meta = data?.meta
@@ -217,15 +240,109 @@ export default function SorteosListScreen() {
             {isFetching && <Spinner size="small" />}
           </XStack>
           {admin && (
-            <Button
-              icon={Plus}
-              onPress={() => router.push('/admin/sorteos/nuevo')}
-              bg="$primary"
-              hoverStyle={{ bg: '$primaryHover' }}
-              pressStyle={{ bg: '$primaryPress', scale: 0.98 }}
-            >
-              <Text>Agregar</Text>
-            </Button>
+            <XStack gap="$2">
+              {/* Selector de lotería + botón Preview */}
+              <XStack ai="center" gap="$2">
+                <Select
+                  size="$3"
+                  value={selectedLoteriaForPreview?.id ?? 'none'}
+                  onValueChange={(v: string) => {
+                    if (v === 'none') {
+                      setSelectedLoteriaForPreview(null)
+                    } else {
+                      const lot = (loteriasData ?? []).find((l: any) => l.id === v)
+                      if (lot) {
+                        setSelectedLoteriaForPreview({ id: lot.id, name: lot.name })
+                      }
+                    }
+                  }}
+                >
+                  <Select.Trigger
+                    px="$3"
+                    br="$3"
+                    bw={1}
+                    bc="$borderColor"
+                    bg="$background"
+                    hoverStyle={{ bg: '$backgroundHover' }}
+                    iconAfter={ChevronDown}
+                    width={200}
+                  >
+                    <Select.Value>
+                      {selectedLoteriaForPreview?.name ?? 'Seleccionar lotería'}
+                    </Select.Value>
+                  </Select.Trigger>
+
+                  <Select.Adapt when="sm">
+                    <Sheet modal dismissOnSnapToBottom animation="quick">
+                      <Sheet.Frame p="$4">
+                        <Select.Adapt.Contents />
+                      </Sheet.Frame>
+                      <Sheet.Overlay />
+                    </Sheet>
+                  </Select.Adapt>
+
+                  <Select.Content zIndex={1000}>
+                    <YStack br="$3" bw={1} bc="$borderColor" bg="$background">
+                      <Select.ScrollUpButton />
+                      <Select.Viewport>
+                        <Select.Item value="none" index={0} pressStyle={{ bg: '$backgroundHover' }} bw={0} px="$3">
+                          <Select.ItemText>Seleccionar lotería</Select.ItemText>
+                        </Select.Item>
+                        {(loteriasData ?? []).map((lot: any, idx: number) => (
+                          <Select.Item
+                            key={lot.id}
+                            value={lot.id}
+                            index={idx + 1}
+                            pressStyle={{ bg: '$backgroundHover' }}
+                            bw={0}
+                            px="$3"
+                          >
+                            <Select.ItemText>{lot.name}</Select.ItemText>
+                            <Select.ItemIndicator ml="auto">
+                              <Check size={16} />
+                            </Select.ItemIndicator>
+                          </Select.Item>
+                        ))}
+                      </Select.Viewport>
+                      <Select.ScrollDownButton />
+                    </YStack>
+                  </Select.Content>
+                </Select>
+
+                <Button
+                  size="$3"
+                  icon={Calendar}
+                  onPress={() => {
+                    if (!selectedLoteriaForPreview) {
+                      toast.error('Selecciona una lotería primero')
+                      return
+                    }
+                    router.push(
+                      `/admin/sorteos/preview?loteriaId=${selectedLoteriaForPreview.id}&loteriaName=${encodeURIComponent(selectedLoteriaForPreview.name)}` as any
+                    )
+                  }}
+                  bg="$blue4"
+                  borderColor="$blue8"
+                  borderWidth={1}
+                  disabled={!selectedLoteriaForPreview}
+                  hoverStyle={{ bg: '$blue5' }}
+                  pressStyle={{ bg: '$blue6' }}
+                >
+                  Preview
+                </Button>
+              </XStack>
+
+              <Button
+                size="$3"
+                icon={Plus}
+                onPress={() => router.push('/admin/sorteos/nuevo')}
+                bg="$primary"
+                hoverStyle={{ bg: '$primaryHover' }}
+                pressStyle={{ bg: '$primaryPress' }}
+              >
+                Agregar
+              </Button>
+            </XStack>
           )}
         </XStack>
 
@@ -261,8 +378,8 @@ export default function SorteosListScreen() {
                 )}
               </XStack>
 
-              <Button icon={Search} onPress={handleSearch} hoverStyle={{ scale: 1.02 }} pressStyle={{ scale: 0.98 }}>
-                <Text>Buscar</Text>
+              <Button size="$3" icon={Search} onPress={handleSearch}>
+                Buscar
               </Button>
 
               <Separator vertical />
@@ -290,12 +407,20 @@ export default function SorteosListScreen() {
 
               <Separator vertical />
 
-              <Button icon={RefreshCw} onPress={() => { setPage(1); refetch() }} hoverStyle={{ scale: 1.02 }} pressStyle={{ scale: 0.98 }}>
-                <Text>Refrescar</Text>
+              <Button
+                size="$3"
+                icon={RefreshCw}
+                onPress={() => { setPage(1); refetch() }}
+                backgroundColor={'$green4'}
+                borderColor={'$green8'}
+                hoverStyle={{ backgroundColor: '$green5' }}
+                pressStyle={{ scale: 0.98 }}
+              >
+                Refrescar
               </Button>
 
-              <Button onPress={clearFilters} hoverStyle={{ scale: 1.02 }} pressStyle={{ scale: 0.98 }}>
-                <Text>Limpiar</Text>
+              <Button size="$3" onPress={clearFilters}>
+                Limpiar
               </Button>
             </XStack>
           </YStack>
@@ -329,7 +454,7 @@ export default function SorteosListScreen() {
                   backgroundColor="$backgroundHover"
                   borderColor="$borderColor"
                   borderWidth={1}
-                  pressStyle={{ backgroundColor: '$backgroundPress', borderColor: '$borderColorHover', scale: 0.98 }}
+                  pressStyle={{ backgroundColor: '$backgroundPress', borderColor: '$borderColorHover' }}
                   onPress={() => router.push(`/admin/sorteos/${s.id}` as any)}
                 >
                   <XStack justifyContent="space-between" ai="center" gap="$3" flexWrap="wrap">
@@ -353,9 +478,9 @@ export default function SorteosListScreen() {
                             fontWeight="700"
                             color={
                               s.status === 'OPEN' ? '$green11' :
-                              s.status === 'SCHEDULED' ? '$blue11' :
-                              s.status === 'EVALUATED' ? '$yellow11' :
-                              '$gray11'
+                                s.status === 'SCHEDULED' ? '$blue11' :
+                                  s.status === 'EVALUATED' ? '$yellow11' :
+                                    '$gray11'
                             }
                           >
                             {s.status}
@@ -363,71 +488,71 @@ export default function SorteosListScreen() {
                         </Text>
 
                         {!!s.winningNumber && (
-  <>
-    <Text fontSize="$3" color="$textSecondary"> • </Text>
-    <Text fontSize="$3" color="$textSecondary">
-      <Text fontWeight="700">Ganador:</Text>{' '}
-    </Text>
-    <Text
-      fontSize="$5"
-      fontWeight="800"
-      px="$2"
-      py={2}
-      br="$2"
-      bg="$purple3"
-      color="$purple12"
-      bw={1}
-      bc="$purple8"
-    >
-      {s.winningNumber}
-    </Text>
+                          <>
+                            <Text fontSize="$3" color="$textSecondary"> • </Text>
+                            <Text fontSize="$3" color="$textSecondary">
+                              <Text fontWeight="700">Ganador:</Text>{' '}
+                            </Text>
+                            <Text
+                              fontSize="$5"
+                              fontWeight="800"
+                              px="$2"
+                              py={2}
+                              br="$2"
+                              bg="$purple3"
+                              color="$purple12"
+                              bw={1}
+                              bc="$purple8"
+                            >
+                              {s.winningNumber}
+                            </Text>
 
-    {(['EVALUATED','CLOSED'] as const).includes(s.status as any) && (() => {
-      const anyS = s as any
+                            {(['EVALUATED', 'CLOSED'] as const).includes(s.status as any) && (() => {
+                              const anyS = s as any
 
-      // Lee los campos según tu API
-      const x =
-        (typeof anyS.extraMultiplierX === 'number' ? anyS.extraMultiplierX : null) ??
-        (typeof anyS?.extraMultiplier?.valueX === 'number' ? anyS.extraMultiplier.valueX : null)
+                              // Lee los campos según tu API
+                              const x =
+                                (typeof anyS.extraMultiplierX === 'number' ? anyS.extraMultiplierX : null) ??
+                                (typeof anyS?.extraMultiplier?.valueX === 'number' ? anyS.extraMultiplier.valueX : null)
 
-      // Puedes priorizar el nombre del multiplicador; si no, usa el outcomeCode
-      const code: string | null =
-        (anyS.extraMultiplier?.name && String(anyS.extraMultiplier.name).trim()) ||
-        (anyS.extraOutcomeCode && String(anyS.extraOutcomeCode).trim()) ||
-        null
+                              // Puedes priorizar el nombre del multiplicador; si no, usa el outcomeCode
+                              const code: string | null =
+                                (anyS.extraMultiplier?.name && String(anyS.extraMultiplier.name).trim()) ||
+                                (anyS.extraOutcomeCode && String(anyS.extraOutcomeCode).trim()) ||
+                                null
 
-      // Si no hay info extra, no mostramos nada
-      if (x == null && !code) return null
+                              // Si no hay info extra, no mostramos nada
+                              if (x == null && !code) return null
 
-      const parts: string[] = []
-      if (x != null) parts.push(`X ${x}`)
-      if (code) parts.push(code)
-      const label = parts.join(' · ')
+                              const parts: string[] = []
+                              if (x != null) parts.push(`X ${x}`)
+                              if (code) parts.push(code)
+                              const label = parts.join(' · ')
 
-      return (
-        <>
-          <Text fontSize="$3" color="$textSecondary"> • </Text>
-          <Text fontSize="$3" color="$textSecondary">
-            <Text fontWeight="700">Reventado:</Text>{' '}
-          </Text>
-          <Text
-            fontSize="$4"
-            fontWeight="700"
-            px="$2"
-            py={2}
-            br="$2"
-            bg="$orange3"
-            color="$orange12"
-            bw={1}
-            bc="$orange8"
-          >
-            {label}
-          </Text>
-        </>
-      )
-    })()}
-  </>
-)}
+                              return (
+                                <>
+                                  <Text fontSize="$3" color="$textSecondary"> • </Text>
+                                  <Text fontSize="$3" color="$textSecondary">
+                                    <Text fontWeight="700">Reventado:</Text>{' '}
+                                  </Text>
+                                  <Text
+                                    fontSize="$4"
+                                    fontWeight="700"
+                                    px="$2"
+                                    py={2}
+                                    br="$2"
+                                    bg="$orange3"
+                                    color="$orange12"
+                                    bw={1}
+                                    bc="$orange8"
+                                  >
+                                    {label}
+                                  </Text>
+                                </>
+                              )
+                            })()}
+                          </>
+                        )}
 
                       </XStack>
                     </YStack>
@@ -436,10 +561,12 @@ export default function SorteosListScreen() {
                       <XStack gap="$2" fw="wrap">
                         {s.status === 'SCHEDULED' && (
                           <Button
-                            size="$2"
+                            size="$3"
                             backgroundColor="$blue4"
                             borderColor="$blue8"
-                            hoverStyle={{ backgroundColor: '$blue5', scale: 1.02 }}
+                            borderWidth={1}
+                            hoverStyle={{ backgroundColor: '$blue5' }}
+                            pressStyle={{ backgroundColor: '$blue6' }}
                             onPress={async (e: any) => {
                               e?.stopPropagation?.()
                               const ok = await confirm({
@@ -474,34 +601,36 @@ export default function SorteosListScreen() {
                             disabled={mClose.isPending}
                             backgroundColor="$gray4"
                             borderColor="$gray8"
-                            hoverStyle={{ backgroundColor: '$gray5', scale: 1.02 }}
-                            pressStyle={{ scale: 0.98 }}
-                            bw={1}
+                            borderWidth={1}
+                            hoverStyle={{ backgroundColor: '$gray5' }}
+                            pressStyle={{ backgroundColor: '$gray6' }}
                           >
-                            <Text>Cerrar</Text>
+                            Cerrar
                           </Button>
                         )}
 
                         {!isFinal ? (
                           !isDeleted ? (
                             <Button
-                              size="$2"
+                              size="$3"
                               backgroundColor="$red4"
                               borderColor="$red8"
+                              borderWidth={1}
                               icon={Trash2}
-                              pressStyle={{ scale: 0.98 }}
+                              hoverStyle={{ backgroundColor: '$red5' }}
+                              pressStyle={{ backgroundColor: '$red6' }}
                               onPress={(e: any) => { e?.stopPropagation?.(); askDelete(s) }}
                             >
-                              <Text>Eliminar</Text>
+                              Eliminar
                             </Button>
                           ) : (
                             <Button
-                              size="$2"
+                              size="$3"
                               icon={RotateCcw}
                               onPress={(e: any) => { e?.stopPropagation?.(); askRestore(s) }}
                               disabled={mRestore.isPending}
                             >
-                              {mRestore.isPending ? <Spinner size="small" /> : <Text>Restaurar</Text>}
+                              {mRestore.isPending ? <Spinner size="small" /> : 'Restaurar'}
                             </Button>
                           )
                         ) : null}

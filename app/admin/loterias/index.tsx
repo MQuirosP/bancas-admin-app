@@ -15,7 +15,7 @@ import FilterSwitch from '@/components/ui/FilterSwitch'
 
 type ListParams = { page: number; pageSize: number; search?: string } // ← sin isActive ni isDeleted
 
-async function fetchLoterias(params: ListParams): Promise<{ data: Loteria[]; meta: { page:number; pageSize:number; total:number; totalPages:number } }> {
+async function fetchLoterias(params: ListParams): Promise<{ data: Loteria[]; meta: { page: number; pageSize: number; total: number; totalPages: number } }> {
   const res = await apiClient.get<any>('/loterias', params)
   return {
     data: Array.isArray(res) ? res : res?.data ?? [],
@@ -102,8 +102,8 @@ export default function LoteriasListScreen() {
             icon={Plus}
             onPress={() => router.push('/admin/loterias/nueva')}
             bg="$primary"
-            hoverStyle={{ scale: 1.02}}
-            pressStyle={{ bg: '$primaryPress', scale: 0.98}}
+            hoverStyle={{ scale: 1.02 }}
+            pressStyle={{ bg: '$primaryPress', scale: 0.98 }}
           >
             <Text>Agregar</Text>
           </Button>
@@ -160,8 +160,25 @@ export default function LoteriasListScreen() {
               </XStack>
 
               <Separator vertical />
-              <Button icon={RefreshCw} onPress={() => { setPage(1); refetch() }}><Text>Refrescar</Text></Button>
-              <Button onPress={clearFilters}><Text>Limpiar</Text></Button>
+              <Button
+                icon={RefreshCw}
+                onPress={() => { setPage(1); refetch() }}
+                backgroundColor={'$green4'}
+                borderColor={'$green8'}
+                hoverStyle={{ backgroundColor: '$green5' }}
+                pressStyle={{ scale: 0.98 }}
+              >
+                Refrescar
+              </Button>
+              <Button 
+              onPress={clearFilters}
+              backgroundColor={'$gray4'}
+                borderColor={'$gray8'}
+                hoverStyle={{ backgroundColor: '$gray5' }}
+                pressStyle={{ scale: 0.98 }}
+              >
+                Limpiar
+              </Button>
             </XStack>
           </YStack>
         </Toolbar>
@@ -209,12 +226,12 @@ export default function LoteriasListScreen() {
                           hoverStyle={{ backgroundColor: '$red5' }}
                           pressStyle={{ backgroundColor: '$red6', scale: 0.98 }}
                           icon={Trash2}
-                          onPress={(e:any) => { e?.stopPropagation?.(); askDelete(lot) }}
+                          onPress={(e: any) => { e?.stopPropagation?.(); askDelete(lot) }}
                         >
                           <Text>Eliminar</Text>
                         </Button>
                       ) : (
-                        <Button onPress={(e:any) => { e?.stopPropagation?.(); askRestore(lot) }}>
+                        <Button onPress={(e: any) => { e?.stopPropagation?.(); askRestore(lot) }}>
                           <Text>Restaurar</Text>
                         </Button>
                       )}

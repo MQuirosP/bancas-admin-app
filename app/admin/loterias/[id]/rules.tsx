@@ -49,6 +49,7 @@ export default function LoteriaRulesScreen() {
 
         {/* El inline arma el JSON y te lo entrega; aquí lo mandas al backend */}
         <LoteriaRulesInline
+          loteriaId={id}
           value={localRules}
           onChange={(rules) => { setLocalRules(rules); mSave.mutate(rules); }}
           submitLabel={mSave.isPending ? 'Guardando…' : 'Guardar reglas'}

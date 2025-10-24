@@ -1,6 +1,6 @@
 // services/users.service.ts
 import { apiClient } from '@/lib/api.client'
-import type { Usuario } from '@/types/models.types'
+import type { Usuario, ApiListResponse, ApiItemResponse, MetaPage } from '@/types/models.types'
 import { compact } from '../utils/object'
 
 export type UsersQueryParams = {
@@ -32,6 +32,20 @@ export type UpdateUserDTO = Partial<{
   isActive: boolean
 }>
 
+/** Helpers para soportar tanto {success,data,meta} como data plano */
+function unwrapList<T>(res: unknown): { data: T[]; meta?: MetaPage } {
+  const body = (res as any) ?? {}
+  if (Array.isArray(body)) return { data: body }
+  if (Array.isArray(body?.data)) return { data: body.data as T[], meta: body.meta }
+  return { data: [] }
+}
+
+function unwrapItem<T>(res: unknown): T {
+  const body = (res as any) ?? {}
+  if (body?.data !== undefined) return body.data as T
+  return body as T
+}
+
 /**
  * 🔧 Adaptadores desde valores del form (Usuario parcial) a DTOs del backend
  */
@@ -42,12 +56,12 @@ export function toCreateUserDTO(
   if (!v.username) throw new Error('username es requerido')
   if (!v.role) throw new Error('role es requerido')
 
-  const toNull = (x?: string | null) => (x && x.trim() !== '' ? x.trim() : null)
+  const toNull = (x?: string | null) => (x && `${x}`.trim() !== '' ? `${x}`.trim() : null)
 
   return {
     name: v.name.trim(),
     username: v.username.trim(),
-    email: toNull(v.email),            // 👈 manda null si viene vacío
+    email: toNull(v.email),
     code: toNull(v.code),
     role: v.role as CreateUserDTO['role'],
     ventanaId: toNull((v as any).ventanaId),
@@ -71,39 +85,49 @@ export function toUpdateUserDTO(
 }
 
 /**
- * 👇 Importante: tu apiClient devuelve YA el `data` interno.
- * - list -> Usuario[]
- * - detail/getById -> Usuario
+ * 👇 Mantiene todas las funciones existentes y mismas firmas públicas
+ * - list -> Promise<Usuario[]>  (internamente leerá {success,data,meta} y devolverá solo data)
+ *   * si necesitas meta, expón otra función listWithMeta sin romper esta
  */
 export const usersService = {
-  list: async (params?: UsersQueryParams) => {
-    return apiClient.get<Usuario[]>('/users', params)
+  // Mantiene firma: Promise<Usuario[]>
+  list: async (params?: UsersQueryParams): Promise<Usuario[]> => {
+    const res = await apiClient.get<ApiListResponse<Usuario> | Usuario[]>('/users', params)
+    const { data } = unwrapList<Usuario>(res)
+    return data
   },
 
-  detail: async (id: string) => {
-    return apiClient.get<Usuario>(`/users/${id}`)
+  // Mantiene firmas: Promise<Usuario>
+  detail: async (id: string): Promise<Usuario> => {
+    const res = await apiClient.get<ApiItemResponse<Usuario> | Usuario>(`/users/${id}`)
+    return unwrapItem<Usuario>(res)
   },
 
-  getById: async (id: string) => {
-    return apiClient.get<Usuario>(`/users/${id}`)
+  getById: async (id: string): Promise<Usuario> => {
+    const res = await apiClient.get<ApiItemResponse<Usuario> | Usuario>(`/users/${id}`)
+    return unwrapItem<Usuario>(res)
   },
 
-  create: async (payload: CreateUserDTO) => {
-    return apiClient.post<Usuario>('/users', payload)
+  create: async (payload: CreateUserDTO): Promise<Usuario> => {
+    const res = await apiClient.post<ApiItemResponse<Usuario> | Usuario>('/users', payload)
+    return unwrapItem<Usuario>(res)
   },
 
-  update: async (id: string, payload: UpdateUserDTO) => {
-    return apiClient.patch<Usuario>(`/users/${id}`, compact(payload))
+  update: async (id: string, payload: UpdateUserDTO): Promise<Usuario> => {
+    const res = await apiClient.patch<ApiItemResponse<Usuario> | Usuario>(`/users/${id}`, compact(payload))
+    return unwrapItem<Usuario>(res)
   },
 
-  softDelete: async (id: string, reason?: string) => {
-    return reason?.trim()
-      ? apiClient.deleteWithBody<Usuario>(`/users/${id}`, { reason })
-      : apiClient.delete<Usuario>(`/users/${id}`)
+  softDelete: async (id: string, reason?: string): Promise<Usuario> => {
+    const res = reason?.trim()
+      ? await apiClient.deleteWithBody<ApiItemResponse<Usuario> | Usuario>(`/users/${id}`, { reason })
+      : await apiClient.delete<ApiItemResponse<Usuario> | Usuario>(`/users/${id}`)
+    return unwrapItem<Usuario>(res)
   },
 
-  restore: async (id: string) => {
-    return apiClient.patch<Usuario>(`/users/${id}/restore`, {})
+  restore: async (id: string): Promise<Usuario> => {
+    const res = await apiClient.patch<ApiItemResponse<Usuario> | Usuario>(`/users/${id}/restore`, {})
+    return unwrapItem<Usuario>(res)
   },
 }
 

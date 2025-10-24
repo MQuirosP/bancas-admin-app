@@ -50,10 +50,11 @@ export const Header: React.FC = () => {
         <Button
           size="$3"
           chromeless
-          icon={<Menu size={24} color="$headerTitle" />}
+          icon={Menu}
           onPress={toggleDrawer}
+          color="$color"
           hoverStyle={{ backgroundColor: '$backgroundHover' }}
-          pressStyle={{ scale: 0.95 }}
+          pressStyle={{ backgroundColor: '$backgroundPress' }}
           borderRadius="$3"
           padding="$2"
         />
@@ -77,16 +78,11 @@ export const Header: React.FC = () => {
         <Button
           size="$3"
           chromeless
-          icon={
-            theme === 'light' ? (
-              <Moon size={20} color="$textSecondary" />
-            ) : (
-              <Sun size={20} color="$textSecondary" />
-            )
-          }
+          icon={theme === 'light' ? Moon : Sun}
           onPress={toggleTheme}
+          color="$color"
           hoverStyle={{ backgroundColor: '$backgroundHover' }}
-          pressStyle={{ scale: 0.95 }}
+          pressStyle={{ backgroundColor: '$backgroundPress' }}
           borderRadius="$3"
           padding="$2"
         />
@@ -95,10 +91,11 @@ export const Header: React.FC = () => {
         <Button
           size="$3"
           chromeless
-          icon={<LogOut size={20} color="$error" />}
+          icon={LogOut}
           onPress={handleLogout}
+          color="$error"
           hoverStyle={{ backgroundColor: '$backgroundHover' }}
-          pressStyle={{ scale: 0.95 }}
+          pressStyle={{ backgroundColor: '$backgroundPress' }}
           borderRadius="$3"
           padding="$2"
         />

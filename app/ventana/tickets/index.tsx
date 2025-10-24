@@ -1,15 +1,11 @@
-import React from 'react';
-import { YStack, Text, ScrollView } from 'tamagui';
+import React from 'react'
+import TicketsListScreen from '@/components/tickets/TicketsListScreen'
 
-export default function VentanaTicketsScreen() {
+export default function AdminTicketsIndex() {
   return (
-    <ScrollView flex={1} backgroundColor={'$background'}>
-      <YStack padding="$4" gap="$4">
-        <Text fontSize="$8" fontWeight="bold" color="$color">
-          Tickets de la Ventana
-        </Text>
-        <Text color="$textSecondary">Implementar lista de tickets de la ventana</Text>
-      </YStack>
-    </ScrollView>
-  );
+    <TicketsListScreen
+      scope="admin"
+      buildDetailPath={(id: string) => `/admin/tickets/${id}`}
+    />
+  )
 }
