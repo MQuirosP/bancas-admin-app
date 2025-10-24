@@ -93,17 +93,19 @@ export default function MultipliersListScreen() {
         {/* Filtros */}
         <Toolbar>
           <YStack gap="$3">
-            <XStack gap="$3" ai="center" fw="wrap">
-              {/* Buscar */}
-              <XStack flex={1} position="relative" ai="center" minWidth={260}>
+            <XStack gap="$2" ai="center" fw="wrap">
+              <XStack flex={1} position="relative" ai="center">
                 <Input
                   flex={1}
                   placeholder="Buscar por nombre"
                   value={searchInput}
                   onChangeText={setSearchInput}
+                  inputMode='search'
+                  enterKeyHint='search'
                   pr="$8"
                   onSubmitEditing={handleSearch}
                   returnKeyType="search"
+                  aria-label='Buscar multiplicador'
                   focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
                 />
                 {searchInput.length > 0 && (
@@ -114,8 +116,8 @@ export default function MultipliersListScreen() {
                     position="absolute"
                     right="$2"
                     onPress={() => setSearchInput('')}
-                    hoverStyle={{ bg: '$backgroundHover' }}
                     aria-label="Limpiar búsqueda"
+                    hoverStyle={{ bg: '$backgroundHover' }}
                   />
                 )}
               </XStack>
@@ -126,7 +128,7 @@ export default function MultipliersListScreen() {
                 hoverStyle={{ scale: 1.02 }}
                 pressStyle={{ scale: 0.98 }}
               >
-                <Text>Buscar</Text>
+                Buscar
               </Button>
 
               <Separator vertical />
@@ -229,7 +231,7 @@ export default function MultipliersListScreen() {
               </XStack>
 
               {/* Empuja acciones a la derecha */}
-              <XStack flex={1} />
+              {/* <XStack flex={1} /> */}
 
               <Separator vertical />
 
@@ -241,7 +243,7 @@ export default function MultipliersListScreen() {
                 hoverStyle={{ backgroundColor: '$green5' }}
                 pressStyle={{ scale: 0.98 }}
               >
-                <Text>Refrescar</Text>
+                Refrescar
               </Button>
 
               <Button

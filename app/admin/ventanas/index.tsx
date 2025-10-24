@@ -102,7 +102,7 @@ export default function VentanasListScreen() {
               <XStack flex={1} position="relative" ai="center">
                 <Input
                   flex={1}
-                  placeholder="Buscar por nombre, código o email"
+                  placeholder="Buscar por nombre, código o correo"
                   value={searchInput}
                   onChangeText={setSearchInput}
                   inputMode="search"
@@ -127,8 +127,11 @@ export default function VentanasListScreen() {
                 )}
               </XStack>
 
-              <Button icon={Search} onPress={handleSearch} hoverStyle={{ scale: 1.02 }} pressStyle={{ scale: 0.98 }}>
-                <Text>Buscar</Text>
+              <Button 
+              icon={Search} 
+              onPress={handleSearch}  
+              pressStyle={{ scale: 0.98 }}>
+                Buscar
               </Button>
 
               <Separator vertical />
@@ -154,8 +157,9 @@ export default function VentanasListScreen() {
                 hoverStyle={{ backgroundColor: '$green5' }}
                 pressStyle={{ scale: 0.98 }}
               >
-                <Text>Refrescar</Text>
+                Refrescar
               </Button>
+
               <Button 
               onPress={clearFilters} 
               backgroundColor={'$gray4'}
@@ -163,7 +167,7 @@ export default function VentanasListScreen() {
               hoverStyle={{ backgroundColor: '$gray5' }} 
               pressStyle={{ scale: 0.98 }}
               >
-                <Text>Limpiar</Text>
+                Limpiar
               </Button>
             </XStack>
           </YStack>

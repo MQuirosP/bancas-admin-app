@@ -155,10 +155,13 @@ export default function TicketsListScreen({ scope }: Props) {
 
         <Toolbar>
           <YStack gap="$3">
-            <XStack gap="$4" ai="center" flexWrap="wrap">
-              <XStack position="relative" ai="center" minWidth={260}>
+            {/* Fila 1: búsqueda + fecha + solo ganadores (responsiva) */}
+            <XStack gap="$3" ai="center" flexWrap="wrap">
+              {/* Buscar */}
+              <XStack position="relative" ai="center" flex={1} minWidth={260} maxWidth="100%">
                 <Input
-                  w={460}
+                  flex={1}
+                  minWidth={240}
                   placeholder="Buscar por ID, vendedor, ventana, lotería..."
                   value={searchInput}
                   onChangeText={setSearchInput}
@@ -189,57 +192,72 @@ export default function TicketsListScreen({ scope }: Props) {
 
               <Separator vertical />
 
-              <XStack ai="center" gap="$2">
-                <Text fontSize="$3" fontWeight="600">Fecha:</Text>
-
-                {/* Selector rápido de fecha */}
-                <Select
-                  size="$3"
-                  value={dateFilter}
-                  onValueChange={(v: any) => setDateFilter(v)}
-                >
-                  <Select.Trigger
-                    px="$3"
-                    w={160}
-                    br="$3"
-                    bw={1}
-                    bc="$borderColor"
-                    bg="$background"
-                    hoverStyle={{ bg: '$backgroundHover' }}
-                    focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
-                    iconAfter={ChevronDown}
+              {/* Fecha + Solo ganadores (no se sobreponen, se envuelven si no hay espacio) */}
+              <XStack ai="center" gap="$3" flexWrap="wrap">
+                {/* Bloque Fecha */}
+                <XStack ai="center" gap="$2" flexShrink={0}>
+                  <Text fontSize="$3" fontWeight="600">Fecha:</Text>
+                  <Select
+                    size="$3"
+                    value={dateFilter}
+                    onValueChange={(v: any) => setDateFilter(v)}
                   >
-                    <Select.Value>{({
-                      today: 'Hoy',
-                      yesterday: 'Ayer',
-                      last7: 'Últimos 7 días',
-                      last30: 'Últimos 30 días',
-                      range: 'Rango personalizado',
-                    } as any)[dateFilter]}</Select.Value>
-                  </Select.Trigger>
+                    <Select.Trigger
+                      // ← evita que se expanda y se monte sobre el switch
+                      width={160}
+                      flexShrink={0}
+                      br="$3"
+                      bw={1}
+                      bc="$borderColor"
+                      bg="$background"
+                      px="$3"
+                      hoverStyle={{ bg: '$backgroundHover' }}
+                      focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
+                      iconAfter={ChevronDown}
+                    >
+                      <Select.Value>{({
+                        today: 'Hoy',
+                        yesterday: 'Ayer',
+                        last7: 'Últimos 7 días',
+                        last30: 'Últimos 30 días',
+                        range: 'Rango personalizado',
+                      } as any)[dateFilter]}</Select.Value>
+                    </Select.Trigger>
 
-                  <Select.Content zIndex={1000}>
-                    <YStack br="$3" bw={1} bc="$borderColor" bg="$background">
-                      <Select.Viewport>
-                        {[
-                          { value: 'today', label: 'Hoy' },
-                          { value: 'yesterday', label: 'Ayer' },
-                          { value: 'last7', label: 'Últimos 7 días' },
-                          { value: 'last30', label: 'Últimos 30 días' },
-                          { value: 'range', label: 'Rango personalizado' },
-                        ].map((it, idx) => (
-                          <Select.Item key={it.value} value={it.value} index={idx} pressStyle={{ bg: '$backgroundHover' }} bw={0} px="$3">
-                            <Select.ItemText>{it.label}</Select.ItemText>
-                            <Select.ItemIndicator ml="auto"><Check size={16} /></Select.ItemIndicator>
-                          </Select.Item>
-                        ))}
-                      </Select.Viewport>
-                    </YStack>
-                  </Select.Content>
-                </Select>
+                    <Select.Content zIndex={1000}>
+                      <YStack br="$3" bw={1} bc="$borderColor" bg="$background">
+                        <Select.Viewport>
+                          {[
+                            { value: 'today', label: 'Hoy' },
+                            { value: 'yesterday', label: 'Ayer' },
+                            { value: 'last7', label: 'Últimos 7 días' },
+                            { value: 'last30', label: 'Últimos 30 días' },
+                            { value: 'range', label: 'Rango personalizado' },
+                          ].map((it, idx) => (
+                            <Select.Item key={it.value} value={it.value} index={idx} pressStyle={{ bg: '$backgroundHover' }} bw={0} px="$3">
+                              <Select.ItemText>{it.label}</Select.ItemText>
+                              <Select.ItemIndicator ml="auto"><Check size={16} /></Select.ItemIndicator>
+                            </Select.Item>
+                          ))}
+                        </Select.Viewport>
+                      </YStack>
+                    </Select.Content>
+                  </Select>
+                </XStack>
+
+                {/* Bloque Switch */}
+                {/* <XStack flexShrink={0}> */}
+                  <FilterSwitch
+                    label="Solo ganadores"
+                    checked={filterWinnersOnly}
+                    onCheckedChange={setFilterWinnersOnly}
+                  />
+                {/* </XStack> */}
               </XStack>
+
             </XStack>
 
+            {/* Fila 2: rango personalizado (también responsiva) */}
             {dateFilter === 'range' && (
               <XStack gap="$3" ai="flex-start" flexWrap="wrap">
                 <WebDateButton value={dateFrom} onChange={setDateFrom} placeholder="Desde" />
@@ -247,49 +265,43 @@ export default function TicketsListScreen({ scope }: Props) {
               </XStack>
             )}
 
+            {/* Fila 3: acciones a la derecha pero que no desborden */}
             <XStack gap="$3" ai="center" flexWrap="wrap">
-              <FilterSwitch
-                label="Solo ganadores"
-                checked={filterWinnersOnly}
-                onCheckedChange={setFilterWinnersOnly}
-              />
+              <Button
+                size="$3"
+                icon={RefreshCw}
+                onPress={() => { setPage(1); refetch() }}
+                backgroundColor="$green4"
+                borderColor="$green8"
+                borderWidth={1}
+                hoverStyle={{ backgroundColor: '$green5' }}
+                pressStyle={{ backgroundColor: '$green6' }}
+              >
+                Refrescar
+              </Button>
 
-              <XStack gap="$3" ai="center" jc="flex-end" ml="auto">
-                <Button
-                  size="$3"
-                  icon={RefreshCw}
-                  onPress={() => { setPage(1); refetch() }}
-                  backgroundColor="$green4"
-                  borderColor="$green8"
-                  borderWidth={1}
-                  hoverStyle={{ backgroundColor: '$green5' }}
-                  pressStyle={{ backgroundColor: '$green6' }}
-                >
-                  Refrescar
-                </Button>
-
-                <Button
-                  size="$3"
-                  onPress={() => {
-                    setSearchInput('')
-                    setDateFilter('today')
-                    setDateFrom('')
-                    setDateTo('')
-                    setFilterWinnersOnly(false)
-                    setPage(1)
-                  }}
-                  backgroundColor="$gray4"
-                  borderColor="$gray8"
-                  borderWidth={1}
-                  hoverStyle={{ backgroundColor: '$gray5' }}
-                  pressStyle={{ backgroundColor: '$gray6' }}
-                >
-                  Limpiar
-                </Button>
-              </XStack>
+              <Button
+                size="$3"
+                onPress={() => {
+                  setSearchInput('')
+                  setDateFilter('today')
+                  setDateFrom('')
+                  setDateTo('')
+                  setFilterWinnersOnly(false)
+                  setPage(1)
+                }}
+                backgroundColor="$gray4"
+                borderColor="$gray8"
+                borderWidth={1}
+                hoverStyle={{ backgroundColor: '$gray5' }}
+                pressStyle={{ backgroundColor: '$gray6' }}
+              >
+                Limpiar
+              </Button>
             </XStack>
           </YStack>
         </Toolbar>
+
 
         {isLoading ? (
           <Card padding="$4" elevate><Text>Cargando tickets…</Text></Card>

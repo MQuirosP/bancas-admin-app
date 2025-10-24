@@ -124,6 +124,7 @@ export default function LoteriasListScreen() {
                   pr="$8"
                   onSubmitEditing={handleSearch}
                   returnKeyType="search"
+                  aria-label='Buscar ventanas'
                   focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
                 />
                 {searchInput.length > 0 && (
@@ -132,34 +133,38 @@ export default function LoteriasListScreen() {
                     circular
                     icon={X}
                     position="absolute"
+                    right="$2"
                     onPress={() => setSearchInput('')}
                     aria-label='Limpiar búsqueda'
-                    right="$2"
-                    alignSelf='center'
-                    variant='outlined'
+                    // alignSelf='center'
+                    hoverStyle={{ bg: '$backgroundHover' }}
                   />
                 )}
               </XStack>
 
-              <Button icon={Search} onPress={handleSearch}><Text>Buscar</Text></Button>
+              <Button icon={Search} onPress={handleSearch}
+              pressStyle={{ scale: 0.98 }}>
+                <Text>Buscar</Text>
+                </Button>
 
               <Separator vertical />
 
               {/* Empuja el switch a la derecha */}
-              <XStack flex={1} />
+              {/* <XStack flex={1} /> */}
 
               {/* Front-only: Activas (default true) */}
-              <XStack ai="center" gap="$2" minWidth={220} ml="$2">
+              {/* <XStack ai="center" gap="$2" minWidth={220} ml="$2"> */}
                 <FilterSwitch
                   label="Activas:"
                   checked={activeOnly}
                   onCheckedChange={(v) => { setActiveOnly(!!v); setPage(1) }}
                 />
-                <Text color="$textSecondary" fontSize="$2">
-                </Text>
-              </XStack>
+                {/* <Text color="$textSecondary" fontSize="$2">
+                </Text> */}
+              {/* </XStack> */}
 
               <Separator vertical />
+
               <Button
                 icon={RefreshCw}
                 onPress={() => { setPage(1); refetch() }}
@@ -170,6 +175,7 @@ export default function LoteriasListScreen() {
               >
                 Refrescar
               </Button>
+              
               <Button 
               onPress={clearFilters}
               backgroundColor={'$gray4'}

@@ -77,6 +77,7 @@ function RoleSelect({
         px="$3"
         br="$3"
         bw={1}
+        mr={7}
         bc="$borderColor"
         bg="$background"
         hoverStyle={{ bg: '$backgroundHover' }}
@@ -242,7 +243,7 @@ export default function UsuariosListScreen() {
                     circular
                     icon={X}
                     position="absolute"
-                    right="$2"
+                    // right="$1"
                     onPress={() => setSearchInput('')}
                     aria-label="Limpiar búsqueda"
                     hoverStyle={{ bg: '$backgroundHover' }}
@@ -264,7 +265,7 @@ export default function UsuariosListScreen() {
               <Separator vertical />
 
               {/* Etiqueta + switch en bloque para que no se sobreponga */}
-              <XStack ai="center" gap="$2" minWidth={200} marginLeft={'$3'}>
+              {/* <XStack ai="center" gap="$2" minWidth={200} marginLeft={'$3'}> */}
                 <FilterSwitch
                   label="Activos:"
                   checked={isActive === true}
@@ -273,7 +274,7 @@ export default function UsuariosListScreen() {
                     setPage(1)
                   }}
                 />
-              </XStack>
+              {/* </XStack> */}
 
               <Separator vertical />
 

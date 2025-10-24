@@ -130,60 +130,71 @@ export default function BancasListScreen() {
         </XStack>
 
         {/* Toolbar */}
-        <Toolbar>
-          <XStack gap="$3" ai="center">
-            <XStack flex={1} ai="center" gap="$2">
-              <XStack flex={1} position="relative" ai="center">
-                <Input
-                  flex={1}
-                  placeholder="Buscar bancas..."
-                  value={searchInput}
-                  onChangeText={setSearchInput}
-                  size="$4"
-                  inputMode="search"
-                  enterKeyHint="search"
-                  clearButtonMode="while-editing"
-                  onSubmitEditing={handleSearchClick}
-                  returnKeyType="search"
-                  aria-label="Buscar bancas"
-                  pr="$8"
-                  backgroundColor="$backgroundHover"
-                  borderColor="$borderColor"
-                  color="$color"
-                  placeholderTextColor="$placeholderColor"
-                />
-                {searchInput.length > 0 && (
-                  <Button
-                    size="$2"
-                    circular
-                    icon={X}
-                    position="absolute"
-                    onPress={() => setSearchInput('')}
-                    aria-label="Limpiar búsqueda"
-                    right="$2"
-                    alignSelf="center"
-                    variant="outlined"
-                  />
-                )}
-              </XStack>
+<Toolbar>
+  <YStack gap="$3">
+    <XStack gap="$3" ai="center" flexWrap="wrap">
+      {/* Buscador: ocupa todo el ancho disponible, no se desborda */}
+      <XStack flex={1} minWidth={220} position="relative" ai="center">
+        <Input
+          flex={1}
+          placeholder="Buscar bancas..."
+          value={searchInput}
+          onChangeText={setSearchInput}
+          size="$4"
+          inputMode="search"
+          enterKeyHint="search"
+          clearButtonMode="while-editing"
+          onSubmitEditing={handleSearchClick}
+          returnKeyType="search"
+          aria-label="Buscar bancas"
+          pr="$8" // espacio para el botón de limpiar
+          backgroundColor="$backgroundHover"
+          borderColor="$borderColor"
+          color="$color"
+          placeholderTextColor="$placeholderColor"
+          focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
+        />
+        {searchInput.length > 0 && (
+          <Button
+            size="$2"
+            circular
+            icon={X}
+            position="absolute"
+            right="$2"
+            onPress={() => setSearchInput('')}
+            aria-label="Limpiar búsqueda"
+            variant="outlined"
+            zIndex={1}
+          />
+        )}
+      </XStack>
 
-              <Button icon={Search} onPress={handleSearchClick}>
-                <Text>Buscar</Text>
-              </Button>
+      {/* Botonera: no se encoge ni se monta; salta a la siguiente línea si no cabe */}
+      <XStack gap="$2" ml="auto" flexShrink={0} flexWrap="wrap">
+        <Button
+          icon={Search}
+          onPress={handleSearchClick}
+          flexShrink={0}
+        >
+          <Text>Buscar</Text>
+        </Button>
 
-              <Button
-                icon={RefreshCw}
-                onPress={() => { setPage(1); refetch() }}
-                backgroundColor={'$green4'}
-                borderColor={'$green8'}
-                hoverStyle={{ backgroundColor: '$green5' }}
-                pressStyle={{ scale: 0.98 }}
-              >
-                <Text>Refrescar</Text>
-              </Button>
-            </XStack>
-          </XStack>
-        </Toolbar>
+        <Button
+          icon={RefreshCw}
+          onPress={() => { setPage(1); refetch() }}
+          backgroundColor="$green4"
+          borderColor="$green8"
+          hoverStyle={{ backgroundColor: '$green5' }}
+          pressStyle={{ scale: 0.98 }}
+          flexShrink={0}
+        >
+          <Text>Refrescar</Text>
+        </Button>
+      </XStack>
+    </XStack>
+  </YStack>
+</Toolbar>
+
 
         {/* Contenido */}
         {isLoading ? (

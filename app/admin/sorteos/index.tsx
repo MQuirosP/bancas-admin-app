@@ -349,8 +349,8 @@ export default function SorteosListScreen() {
         {/* Filtros */}
         <Toolbar>
           <YStack gap="$3">
-            <XStack gap="$3" ai="center" flexWrap="wrap">
-              <XStack flex={1} position="relative" ai="center" minWidth={260}>
+            <XStack gap="$2" ai="center" flexWrap="wrap">
+              <XStack flex={1} position="relative" ai="center">
                 <Input
                   flex={1}
                   placeholder="Buscar por nombre o lotería"
@@ -378,24 +378,25 @@ export default function SorteosListScreen() {
                 )}
               </XStack>
 
-              <Button size="$3" icon={Search} onPress={handleSearch}>
+              <Button icon={Search} onPress={handleSearch}
+              pressStyle={{ scale: 0.98 }}>
                 Buscar
               </Button>
 
               <Separator vertical />
 
-              <XStack ai="center" gap="$2" minWidth={180}>
+              <XStack ai="center" gap="$2" mr="$9">
                 <Text fontSize="$3">Estado:</Text>
                 <StatusSelect value={status} onChange={setStatus} />
               </XStack>
 
               {/* Empuja el switch a la derecha */}
-              <XStack flex={1} />
+              {/* <XStack flex={1} /> */}
 
               <Separator vertical />
 
               {/* Switch Activos (ON = activos, OFF = inactivos) */}
-              <XStack ai="center" gap="$2" minWidth={220} ml="$4">
+              {/* <XStack ai="center" gap="$2" minWidth={220} ml="$4"> */}
                 <FilterSwitch
                   label={`Activos:`}
                   checked={activeOnly}
@@ -403,12 +404,11 @@ export default function SorteosListScreen() {
                 />
                 <Text color="$textSecondary" fontSize="$2">
                 </Text>
-              </XStack>
+              {/* </XStack> */}
 
               <Separator vertical />
 
               <Button
-                size="$3"
                 icon={RefreshCw}
                 onPress={() => { setPage(1); refetch() }}
                 backgroundColor={'$green4'}
@@ -419,7 +419,13 @@ export default function SorteosListScreen() {
                 Refrescar
               </Button>
 
-              <Button size="$3" onPress={clearFilters}>
+              <Button
+              onPress={clearFilters}
+              backgroundColor={'$gray4'}
+              borderColor={'$gray8'}
+              hoverStyle={{ backgroundColor: '$gray5' }} 
+              pressStyle={{ scale: 0.98 }}
+              >
                 Limpiar
               </Button>
             </XStack>
