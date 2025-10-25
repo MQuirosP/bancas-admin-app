@@ -39,10 +39,10 @@ export default function NuevaVentanaScreen() {
     const payload = {
       bancaId: values.bancaId,
       name: values.name.trim(),
-      code: values.code?.trim() || null,
-      email: values.email?.trim() || null,
-      phone: values.phone?.trim() || null,
-      address: values.address?.trim() || null,
+      code: values.code?.trim() || undefined,
+      email: values.email?.trim() || undefined,
+      phone: values.phone?.trim() || undefined,
+      address: values.address?.trim() || undefined,
       commissionMarginX:
         values.commissionMarginX == null ? null : Number(values.commissionMarginX),
       isActive: !!values.isActive,

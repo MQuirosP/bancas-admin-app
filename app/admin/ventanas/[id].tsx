@@ -46,10 +46,10 @@ export default function EditVentanaScreen() {
   const toPayload = (v: VentanaFormValues) => ({
     bancaId: v.bancaId,
     name: (v.name ?? '').trim(),
-    code: v.code?.trim() || null,
-    email: v.email?.trim() || null,
-    phone: v.phone?.trim() || null,
-    address: v.address?.trim() || null,
+    code: v.code?.trim() || undefined,
+    email: v.email?.trim() || undefined,
+    phone: v.phone?.trim() || undefined,
+    address: v.address?.trim() || undefined,
     commissionMarginX:
       v.commissionMarginX == null ? null : Number(v.commissionMarginX),
     isActive: !!v.isActive,

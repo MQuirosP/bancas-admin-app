@@ -54,7 +54,7 @@ export const Header: React.FC = () => {
           circular
           chromeless
           icon={Menu}
-          scaleIcon={isMobile ? 1.15 : 1.4}
+          scaleIcon={isMobile ? 1.15 : 1.6}
           onPress={toggleDrawer}
           color="$headerTitle"
           hoverStyle={{ backgroundColor: '$headerHover' }}
@@ -101,7 +101,7 @@ export const Header: React.FC = () => {
           icon={LogOut}
           scaleIcon={isMobile ? 1.15 : 1.4}
           onPress={handleLogout}
-          color="$headerTitle"
+          color="$red8"
           hoverStyle={{ backgroundColor: '$headerHover' }}
           pressStyle={{ backgroundColor: '$headerHover' }}
           borderRadius="$3"
