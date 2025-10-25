@@ -3,6 +3,7 @@ import Constants from 'expo-constants'
 import { getAccessToken, getRefreshToken, setAccessToken, clearTokens } from './auth.token'
 import { ApiError } from '../types/api.types'
 import { AuthenticationError, ErrorCode } from './errors'
+import { API_BASE_URL } from './config'
 
 // Handler global para expiración de sesión (lo registra un layout protegido)
 let onAuthExpired: ((msg: string) => void) | null = null
@@ -10,25 +11,7 @@ export const setAuthExpiredHandler = (fn: (msg: string) => void) => {
   onAuthExpired = fn
 }
 
-type Extra = {
-  EXPO_PUBLIC_API_BASE_URL?: string
-  apiBaseUrl?: string
-}
-
-const extra = ((Constants as any)?.expoConfig?.extra ??
-  (Constants as any)?.manifest?.extra ??
-  {}) as Extra
-
-const API_BASE_URL =
-  process.env.EXPO_PUBLIC_API_BASE_URL ??
-  extra.EXPO_PUBLIC_API_BASE_URL ??
-  extra.apiBaseUrl ??
-  'https://backend-bancas.onrender.com/api/v1'
-// const API_BASE_URL =
-//   process.env.EXPO_PUBLIC_API_BASE_URL ??
-//   extra.EXPO_PUBLIC_API_BASE_URL ??
-//   extra.apiBaseUrl ??
-//   'http://localhost:3000/api/v1'
+// API base URL centralizado en lib/config.ts
 
 export const buildQueryString = buildQuery // alias público
 

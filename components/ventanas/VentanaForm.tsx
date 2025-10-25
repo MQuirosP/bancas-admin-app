@@ -5,6 +5,7 @@ import { Button, Input, Card, Select } from '@/components/ui'
 import { ChevronDown } from '@tamagui/lucide-icons'
 import { z } from 'zod'
 import { formatPhoneCR } from '@/utils/format/phone'
+import { toNumberOrUndef } from '@/utils/number'
 
 export type VentanaFormValues = {
   bancaId: string
@@ -29,14 +30,6 @@ type Props = {
   onRetryBancas?: () => void | Promise<void>
   /** Opcional: precargar valores (por ejemplo, para "duplicar") */
   initialValues?: Partial<VentanaFormValues>
-}
-
-// ---------- helpers ----------
-const toNumberOrUndef = (v: unknown) => {
-  const s = typeof v === 'string' ? v.trim() : v
-  if (s === '' || s === undefined || s === null) return undefined
-  const n = Number(s)
-  return Number.isFinite(n) ? n : NaN
 }
 
 // Zod alineado al patrón de BancaForm (strings opcionales '' -> undefined)

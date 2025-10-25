@@ -1,20 +1,14 @@
 // components/bancas/BancaForm.tsx
 import React, { useEffect, useMemo, useState } from 'react'
-import { YStack, XStack, Text, Button, Input, Card, Switch, Spinner, TextArea } from 'tamagui'
+import { YStack, XStack, Text, Input, Card, Switch, Spinner, TextArea } from 'tamagui'
 import { z } from 'zod'
 import type { Banca } from '@/types/models.types'
 import { ApiErrorClass } from '@/lib/api.client'
 import { useToast } from '@/hooks/useToast'
 import { isDirty as isDirtyUtil } from '@/utils/forms/dirty'
 import { formatPhoneCR } from "@/utils/format/phone";
-
-// Acepta string/'' y retorna number | undefined | NaN
-const toNumberOrUndef = (v: unknown) => {
-  const s = typeof v === 'string' ? v.trim() : v
-  if (s === '' || s === undefined || s === null) return undefined
-  const n = Number(s)
-  return Number.isFinite(n) ? n : NaN
-}
+import { Button } from '@/components/ui'
+import { toNumberOrUndef } from '@/utils/number'
 
 // Zod alineado al backend
 const bancaSchema = z.object({
