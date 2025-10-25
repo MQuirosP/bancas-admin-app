@@ -1,6 +1,7 @@
 // app/vendedor/index.tsx
 import React from 'react';
-import { YStack, XStack, Text, Button, ScrollView } from 'tamagui';
+import { YStack, XStack, Text, ScrollView } from 'tamagui';
+import { Button } from '@/components/ui';
 import { Package, TrendingUp, Plus, Clock } from '@tamagui/lucide-icons';
 import { useAuthStore } from '../../store/auth.store';
 

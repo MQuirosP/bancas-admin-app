@@ -1,6 +1,7 @@
 // app/admin/bancas/[id].tsx
 import React from 'react'
-import { ScrollView, Text, YStack, XStack, Button } from 'tamagui'
+import { ScrollView, Text, YStack, XStack } from 'tamagui'
+import { Button } from '@/components/ui'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient, ApiErrorClass } from '@/lib/api.client'

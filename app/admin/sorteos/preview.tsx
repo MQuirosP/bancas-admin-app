@@ -81,10 +81,10 @@ export default function PreviewSorteosScreen() {
   // Mutation seed
   const mSeed = useMutation<SeedResponse, Error, string[]>({
     mutationFn: async (scheduledDates) => {
+      const qs = apiClient.buildQueryString({ days: Number(days) || 7, limit: 200 })
       const res = await apiClient.post<SeedResponse>(
-        `/loterias/${loteriaId}/seed_sorteos`,
-        { scheduledDates },
-        { days: Number(days) || 7, limit: 200 }
+        `/loterias/${loteriaId}/seed_sorteos${qs}`,
+        { scheduledDates }
       )
       return res
     },

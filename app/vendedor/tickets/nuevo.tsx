@@ -1,16 +1,7 @@
 // app/vendedor/tickets/nuevo.tsx
 import React, { useState, useEffect, useMemo } from 'react'
-import {
-  YStack,
-  XStack,
-  Text,
-  Button,
-  Input,
-  Select,
-  Card,
-  ScrollView,
-  Spinner,
-} from 'tamagui'
+import { YStack, XStack, Text, Select, ScrollView, Spinner } from 'tamagui'
+import { Button, Input, Card } from '@/components/ui'
 import { useRouter } from 'expo-router'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Plus, Trash2, AlertCircle, Check, ChevronDown } from '@tamagui/lucide-icons'

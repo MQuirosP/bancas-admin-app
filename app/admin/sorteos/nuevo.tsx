@@ -1,9 +1,7 @@
 // app/admin/sorteos/nuevo.tsx
 import React, { useMemo, useState, useEffect, useRef } from 'react'
-import {
-  YStack, XStack, Text, Card, Input, Button, Spinner,
-  Select, Sheet, Adapt, ScrollView, Separator
-} from 'tamagui'
+import { YStack, XStack, Text, Spinner, Select, Sheet, Adapt, ScrollView, Separator } from 'tamagui'
+import { Card, Input, Button } from '@/components/ui'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'expo-router'
 import { ChevronDown } from '@tamagui/lucide-icons'

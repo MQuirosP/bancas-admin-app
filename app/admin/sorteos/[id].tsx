@@ -1,6 +1,7 @@
 // app/admin/sorteos/[id].tsx
 import React, { useMemo, useState } from 'react'
-import { YStack, XStack, Text, Card, Button, Spinner, Separator, ScrollView, Sheet } from 'tamagui'
+import { YStack, XStack, Text, Spinner, Separator, ScrollView, Sheet } from 'tamagui'
+import { Card, Button } from '@/components/ui'
 import { useLocalSearchParams } from 'expo-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useToast } from '@/hooks/useToast'

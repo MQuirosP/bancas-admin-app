@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { YStack, Text, Button, Input, Card, Switch, ScrollView, XStack } from 'tamagui';
+import { YStack, Text, Switch, ScrollView, XStack } from 'tamagui';
+import { Button, Input, Card } from '@/components/ui';
 
 export default function ConfiguracionScreen() {
   const [defaultCutoff, setDefaultCutoff] = useState('5');
@@ -59,7 +60,7 @@ export default function ConfiguracionScreen() {
             </XStack>
 
 
-            <Button backgroundColor="$blue4" borderColor="$blue8" borderWidth={1} marginTop="$3">
+            <Button variant="primary" marginTop="$3">
               Guardar Configuración
             </Button>
           </YStack>
