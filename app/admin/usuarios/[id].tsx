@@ -1,6 +1,7 @@
 // app/admin/usuarios/[id].tsx
 import React, { useMemo } from 'react'
-import { YStack, XStack, Text, ScrollView, Spinner, Button } from 'tamagui'
+import { YStack, XStack, Text, ScrollView, Spinner } from 'tamagui'
+import { Button } from '@/components/ui'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useUserQuery, useUpdateUser, useSoftDeleteUser, useRestoreUser } from '@/hooks/useUsers'
 import UserForm, { UserFormValues } from '@/components/usuarios/UserForm'
