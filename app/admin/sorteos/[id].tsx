@@ -154,7 +154,7 @@ export default function SorteoDetailScreen() {
   }
 
   const s: Sorteo = data
-  const isDeleted = (s as any).isDeleted === true
+  const isActive = (s as any).isActive === false
   const flag = (s as any).isActive
   const rowActive = flag === undefined ? (s.status === 'OPEN' || s.status === 'SCHEDULED') : flag === true
   const isEvaluatedOrClosed = s.status === 'EVALUATED' || s.status === 'CLOSED'
@@ -228,7 +228,7 @@ export default function SorteoDetailScreen() {
                 </Button>
               )}
 
-              {!isDeleted && !isEvaluatedOrClosed && (
+              {isActive && !isEvaluatedOrClosed && (
                 <Button
                   backgroundColor="$red4"
                   borderColor="$red8"
@@ -241,7 +241,7 @@ export default function SorteoDetailScreen() {
                 </Button>
               )}
 
-              {isDeleted && (
+              {!isActive && (
                 <Button icon={RotateCcw} onPress={() => askRestore(s)} disabled={mRestore.isPending}>
                   {mRestore.isPending ? <Spinner size="small" /> : <Text>Restaurar</Text>}
                 </Button>
@@ -251,7 +251,7 @@ export default function SorteoDetailScreen() {
         </XStack>
 
         {/* Edit o detalle */}
-        {!isEvaluatedOrClosed && !isDeleted ? (
+        {!isEvaluatedOrClosed && isActive ? (
           <SorteoForm
             mode="edit"
             initial={s}

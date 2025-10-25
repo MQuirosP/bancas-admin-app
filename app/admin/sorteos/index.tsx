@@ -447,7 +447,7 @@ export default function SorteosListScreen() {
         ) : (
           <YStack gap="$2">
             {rows.map((s) => {
-              const isDeleted = (s as any).isDeleted === true
+              const isActive = (s as any).isActive === false
               const rowActive = isRowActive(s)
               const isFinal = s.status === 'EVALUATED' || s.status === 'CLOSED'
 
@@ -614,7 +614,7 @@ export default function SorteosListScreen() {
                         )}
 
                         {!isFinal ? (
-                          !isDeleted ? (
+                          isActive ? (
                             <Button
                               size="$3"
                               backgroundColor="$red4"

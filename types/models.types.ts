@@ -46,7 +46,7 @@ export interface Usuario {
   isActive: boolean;
 
   // soft-delete flags (el backend los tiene)
-  isDeleted?: boolean;
+  IsActive?: boolean;
   deletedAt?: string | null;
   deletedBy?: string | null;
   deletedReason?: string | null;

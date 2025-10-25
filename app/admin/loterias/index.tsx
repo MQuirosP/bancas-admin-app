@@ -203,7 +203,7 @@ export default function LoteriasListScreen() {
         ) : (
           <YStack gap="$2">
             {rows!.map((lot) => {
-              const deleted = ((lot as any)?.isDeleted === true)
+              // const deleted = ((lot as any)?.isDeleted === true)
               const active = ((lot as any)?.isActive ?? true) === true
               return (
                 <Card
@@ -220,12 +220,12 @@ export default function LoteriasListScreen() {
                       <XStack ai="center" gap="$2" flexWrap="wrap">
                         <Text fontSize="$5" fontWeight="600">{lot.name}</Text>
                         <ActiveBadge active={active} />
-                        {deleted && <Badge tone="warning">ELIMINADA</Badge>}
+                        {!active && <Badge tone="warning">ELIMINADA</Badge>}
                       </XStack>
                     </YStack>
 
                     <XStack gap="$2">
-                      {!deleted ? (
+                      {active ? (
                         <Button
                           backgroundColor={'$red4'}
                           borderColor={'$red8'}

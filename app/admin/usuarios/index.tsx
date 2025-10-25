@@ -350,7 +350,7 @@ export default function UsuariosListScreen() {
                     </YStack>
 
                     <XStack gap="$2">
-                      {!u.isDeleted ? (
+                      {u.isActive ? (
                         <Button
                           backgroundColor={'$red4'}
                           borderColor={'$red8'}

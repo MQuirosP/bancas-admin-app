@@ -42,7 +42,6 @@ export interface User {
   role: Role;
   isActive: boolean;
   ventana?: Ventana;
-  isDeleted: boolean;
   deletedAt?: string;
   createdAt: string;
   updatedAt: string;
@@ -59,7 +58,6 @@ export interface Banca {
   address?: string;
   phone?: string;
   email?: string;
-  isDeleted: boolean;
   deletedAt?: string;
   createdAt: string;
   updatedAt: string;
@@ -77,7 +75,6 @@ export interface Ventana {
   phone?: string;
   email?: string;
   banca?: Banca;
-  isDeleted: boolean;
   deletedAt?: string;
   createdAt: string;
   updatedAt: string;
@@ -89,7 +86,6 @@ export interface Loteria {
   name: string;
   isActive: boolean;
   rulesJson?: any;
-  isDeleted: boolean;
   deletedAt?: string;
   createdAt: string;
   updatedAt: string;
@@ -118,7 +114,6 @@ export interface Sorteo {
   extraMultiplierX?: number;
   loteria?: Loteria;
   extraMultiplier?: LoteriaMultiplier;
-  isDeleted: boolean;
   deletedAt?: string;
   createdAt: string;
   updatedAt: string;
@@ -153,7 +148,6 @@ export interface Jugada {
   isWinner: boolean;
   payout?: number;
   multiplier?: LoteriaMultiplier;
-  isDeleted: boolean;
   deletedAt?: string;
   createdAt: string;
   updatedAt: string;
@@ -176,7 +170,6 @@ export interface Ticket {
   vendedor?: User;
   sorteo?: Sorteo;
   jugadas: Jugada[];
-  isDeleted: boolean;
   deletedAt?: string;
   createdAt: string;
   updatedAt: string;
@@ -261,7 +254,6 @@ export interface UserMultiplierOverride {
   baseMultiplierX: number;
   user?: User;
   loteria?: Loteria;
-  isDeleted: boolean;
   deletedAt?: string;
   createdAt: string;
   updatedAt: string;
@@ -300,7 +292,6 @@ export interface RestrictionRule {
   banca?: Banca;
   ventana?: Ventana;
   user?: User;
-  isDeleted: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -438,5 +429,5 @@ export type ApiListResponse<T> = { data: T[]; meta: ApiListMeta };
 export type ApiItemResponse<T> = { data: T };
 export type UsersQueryParams = {
   page?: number; pageSize?: number; role?: 'ADMIN'|'VENTANA'|'VENDEDOR';
-  isDeleted?: boolean; search?: string;
+  isActive?: boolean; search?: string;
 };

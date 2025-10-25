@@ -214,7 +214,7 @@ export default function BancasListScreen() {
         ) : (
           <YStack gap="$2">
             {rows.map((banca) => {
-              const deleted = ((banca as any)?.isDeleted === true);
+              // const deleted = ((banca as any)?.isDeleted === true);
               const active = !!(banca as any)?.isActive;
 
               return (
@@ -239,7 +239,7 @@ export default function BancasListScreen() {
 
                     {/* Acciones (no navegan) */}
                     <XStack gap="$2">
-                      {!deleted ? (
+                      {active ? (
                         <Button
                           icon={Trash2}
                           backgroundColor="$red3"
