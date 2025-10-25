@@ -1,18 +1,7 @@
 // app/admin/usuarios/index.tsx
 import React, { useMemo, useState } from 'react'
-import {
-  YStack,
-  XStack,
-  Text,
-  Button,
-  Input,
-  Card,
-  ScrollView,
-  Spinner,
-  Separator,
-  Select,
-  Sheet,
-} from 'tamagui'
+import { YStack, XStack, Text, ScrollView, Spinner, Separator, Sheet } from 'tamagui'
+import { Button, Input, Card, Select, Toolbar } from '@/components/ui'
 import { useRouter } from 'expo-router'
 import { Plus, Search, X, Trash2, RefreshCw, ChevronDown, Check } from '@tamagui/lucide-icons'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -20,7 +9,7 @@ import { apiClient, ApiErrorClass } from '@/lib/api.client'
 import type { Usuario } from '@/types/models.types'
 import type { UsersQueryParams } from '@/services/users.service'
 import { useToast } from '@/hooks/useToast'
-import { Toolbar } from '@/components/ui/Toolbar'
+// Toolbar ahora exportado desde components/ui
 import { RoleBadge } from '@/components/ui/Badge'
 import ActiveBadge from '@/components/ui/ActiveBadge'
 import { useConfirm } from '@/components/ui/Confirm'
@@ -411,11 +400,11 @@ export default function UsuariosListScreen() {
         {/* Paginación */}
         {!!meta && (
           <XStack gap="$2" jc="center" mt="$4" ai="center">
-            <Button disabled={page <= 1} onPress={() => setPage((p) => Math.max(1, p - 1))}><Text>Anterior</Text></Button>
+            <Button size="$2" variant="secondary" disabled={page <= 1} onPress={() => setPage((p) => Math.max(1, p - 1))}><Text>Anterior</Text></Button>
             <Card padding="$2" px="$4" bg="$backgroundHover" borderColor="$borderColor" borderWidth={1}>
               <Text fontSize="$3">Página {meta.page} de {meta.totalPages}</Text>
             </Card>
-            <Button disabled={page >= (meta.totalPages || 1)} onPress={() => setPage((p) => Math.min(p + 1, meta.totalPages || p + 1))}>
+            <Button size="$2" variant="secondary" disabled={page >= (meta.totalPages || 1)} onPress={() => setPage((p) => Math.min(p + 1, meta.totalPages || p + 1))}>
               <Text>Siguiente</Text>
             </Button>
           </XStack>

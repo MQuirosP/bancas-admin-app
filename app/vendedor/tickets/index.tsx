@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
-import { YStack, XStack, Text, Button, ScrollView, Card, Spinner } from 'tamagui';
+import { YStack, XStack, Text, ScrollView, Spinner } from 'tamagui';
+import { Button, Card } from '@/components/ui';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { Plus, Ticket as TicketIcon } from '@tamagui/lucide-icons';

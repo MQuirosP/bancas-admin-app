@@ -44,3 +44,5 @@ outputs/
 /ios
 /android
 
+# local reports
+CODE_REVIEW.md

@@ -1,12 +1,12 @@
 // app/admin/bancas/index.tsx
 import React, { useMemo, useState } from 'react';
-import { YStack, XStack, Text, Button, Input, ScrollView, Card, Spinner } from 'tamagui';
+import { YStack, XStack, Text, ScrollView, Spinner } from 'tamagui';
+import { Button, Input, Card, Toolbar, ActiveBadge } from '@/components/ui';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { Plus, Search, X, RefreshCw, Trash2 } from '@tamagui/lucide-icons';
 import { apiClient, ApiErrorClass } from '@/lib/api.client';
-import { Toolbar } from '@/components/ui/Toolbar';
-import ActiveBadge from '@/components/ui/ActiveBadge';
+// Usar Toolbar y ActiveBadge desde components/ui
 import { useToast } from '@/hooks/useToast';
 import { useConfirm } from '@/components/ui/Confirm';
 import type { PaginatedResponse, Banca } from '@/types/models.types';
@@ -270,11 +270,11 @@ export default function BancasListScreen() {
         {/* Paginación */}
         {!!pagination && (
           <XStack gap="$2" justifyContent="center" marginTop="$4" ai="center">
-            <Button size="$3" disabled={page <= 1} onPress={handlePrev}><Text>Anterior</Text></Button>
+            <Button size="$2" variant="secondary" disabled={page <= 1} onPress={handlePrev}><Text>Anterior</Text></Button>
             <Card padding="$2" paddingHorizontal="$4" justifyContent="center" backgroundColor="$backgroundHover" borderColor="$borderColor" borderWidth={1}>
               <Text fontSize="$3" color="$color">Página {pagination.page} de {pagination.totalPages}</Text>
             </Card>
-            <Button size="$3" disabled={page >= pagination.totalPages} onPress={handleNext}><Text>Siguiente</Text></Button>
+            <Button size="$2" variant="secondary" disabled={page >= pagination.totalPages} onPress={handleNext}><Text>Siguiente</Text></Button>
           </XStack>
         )}
 

@@ -1,18 +1,14 @@
 // app/admin/multipliers/index.tsx
 import React, { useMemo, useState } from 'react'
-import {
-  YStack, XStack, Text, Button, Card, Input, ScrollView,
-  Spinner, Separator, Select, Sheet
-} from 'tamagui'
+import { YStack, XStack, Text, ScrollView, Spinner, Separator, Select, Sheet } from 'tamagui'
+import { Button, Card, Input, Toolbar, ActiveBadge } from '@/components/ui'
 import { useRouter } from 'expo-router'
 import { Plus, Search, X, RefreshCw, Check, ChevronDown, Trash2 } from '@tamagui/lucide-icons'
 import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api.client'
 import type { Loteria } from '@/types/models.types'
 import type { LoteriaMultiplier } from '@/types/api.types'
-import { Toolbar } from '@/components/ui/Toolbar'
 import { MultipliersApi } from '@/lib/api.multipliers'
-import ActiveBadge from '@/components/ui/ActiveBadge'
 import FilterSwitch from '@/components/ui/FilterSwitch'
 
 export default function MultipliersListScreen() {

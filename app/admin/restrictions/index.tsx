@@ -1,23 +1,14 @@
 // app/admin/restrictions/index.tsx
 import React, { useMemo, useState } from 'react'
-import {
-  ScrollView,
-  YStack,
-  XStack,
-  Text,
-  Button,
-  Card,
-  Input,
-  Select,
-  Spinner,
-} from 'tamagui'
+import { ScrollView, YStack, XStack, Text, Spinner } from 'tamagui'
+import { Button, Card, Input, Select } from '@/components/ui'
 import { useRouter } from 'expo-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Check, ChevronDown, Plus, Trash2, RotateCcw } from '@tamagui/lucide-icons'
 import { listRestrictions, deleteRestriction, restoreRestriction } from '@/lib/api.restrictions'
 import type { RestrictionRule } from '@/types/models.types'
 import { useToast } from '@/hooks/useToast'
-import ActiveBadge from '@/components/ui/ActiveBadge'
+import { ActiveBadge } from '@/components/ui'
 
 // preferir nombre, luego código; jamás mostrar ID
 const pickNameOrCode = (name?: string | null, code?: string | null) =>
@@ -291,13 +282,13 @@ export default function RestrictionsListScreen() {
         {/* Paginación */}
         {meta?.pages > 1 && (
           <XStack gap="$2" ai="center" jc="center">
-            <Button disabled={page <= 1} onPress={() => setPage((p) => Math.max(1, p - 1))}>
+            <Button size="$2" variant="secondary" disabled={page <= 1} onPress={() => setPage((p) => Math.max(1, p - 1))}>
               Anterior
             </Button>
             <Text>
               {page} / {meta.pages}
             </Text>
-            <Button
+            <Button size="$2" variant="secondary"
               disabled={page >= meta.pages}
               onPress={() => setPage((p) => Math.min(meta.pages, p + 1))}
             >

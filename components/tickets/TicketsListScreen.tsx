@@ -1,5 +1,6 @@
-import React, { useMemo, useState, useRef } from 'react'
-import { YStack, XStack, Text, Button, Input, Card, ScrollView, Spinner, Separator, Select, Sheet } from 'tamagui'
+import React, { useMemo, useState } from 'react'
+import { YStack, XStack, Text, ScrollView, Spinner, Separator } from 'tamagui'
+import { Button, Input, Card, Select, DatePicker } from '@/components/ui'
 import { useRouter } from 'expo-router'
 import { useQuery } from '@tanstack/react-query'
 import { Search, X, RefreshCw, ChevronDown, Check } from '@tamagui/lucide-icons'
@@ -34,38 +35,7 @@ type Props = {
 
 type DateFilter = 'today' | 'yesterday' | 'last7' | 'last30' | 'range'
 
-function WebDateButton({
-  value, onChange, placeholder = 'Seleccionar fecha',
-}: { value: string; onChange: (v: string) => void; placeholder?: string }) {
-  const ref = useRef<HTMLInputElement | null>(null)
-  return (
-    <YStack gap="$1" width={140}>
-      <input
-        ref={ref}
-        type="date"
-        value={value}
-        onChange={(e) => onChange(e.currentTarget.value)}
-        style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', width: 0, height: 0 }}
-      />
-      <Button
-        size="$3"
-        px="$3"
-        bg="$background"
-        bw={1}
-        bc="$borderColor"
-        hoverStyle={{ bg: '$backgroundHover' }}
-        onPress={() => {
-          const el = ref.current
-          // @ts-ignore
-          if (el?.showPicker) el.showPicker(); else { el?.click(); el?.focus() }
-        }}
-      >
-        Fecha
-      </Button>
-      <Text fontSize="$2" color="$textSecondary">{value || placeholder}</Text>
-    </YStack>
-  )
-}
+// Rango personalizado utilizará DatePicker (web/nativo)
 
 async function fetchTickets(params: any): Promise<{ data: Ticket[]; meta: any }> {
   const res = await apiClient.get<any>('/tickets', params)
@@ -260,8 +230,16 @@ export default function TicketsListScreen({ scope }: Props) {
             {/* Fila 2: rango personalizado (también responsiva) */}
             {dateFilter === 'range' && (
               <XStack gap="$3" ai="flex-start" flexWrap="wrap">
-                <WebDateButton value={dateFrom} onChange={setDateFrom} placeholder="Desde" />
-                <WebDateButton value={dateTo} onChange={setDateTo} placeholder="Hasta" />
+                <DatePicker
+                  value={dateFrom ? new Date(dateFrom) : null}
+                  onChange={(d) => setDateFrom(d.toISOString().slice(0, 10))}
+                  placeholder="Desde"
+                />
+                <DatePicker
+                  value={dateTo ? new Date(dateTo) : null}
+                  onChange={(d) => setDateTo(d.toISOString().slice(0, 10))}
+                  placeholder="Hasta"
+                />
               </XStack>
             )}
 
@@ -398,7 +376,7 @@ export default function TicketsListScreen({ scope }: Props) {
 
         {!!meta && meta.totalPages > 0 && (
           <XStack gap="$2" jc="center" mt="$4" ai="center">
-            <Button size="$3" disabled={page <= 1} onPress={() => setPage((p) => Math.max(1, p - 1))}>
+            <Button size="$2" variant="secondary" disabled={page <= 1} onPress={() => setPage((p) => Math.max(1, p - 1))}>
               Anterior
             </Button>
             <Card padding="$2" px="$4" bg="$backgroundHover" borderColor="$borderColor" borderWidth={1}>
@@ -406,7 +384,7 @@ export default function TicketsListScreen({ scope }: Props) {
                 Página {meta.page} de {meta.totalPages} • {filteredRows.length} de {meta.total} tickets
               </Text>
             </Card>
-            <Button size="$3" disabled={page >= (meta.totalPages || 1)} onPress={() => setPage((p) => Math.min(p + 1, meta.totalPages || p + 1))}>
+            <Button size="$2" variant="secondary" disabled={page >= (meta.totalPages || 1)} onPress={() => setPage((p) => Math.min(p + 1, meta.totalPages || p + 1))}>
               Siguiente
             </Button>
           </XStack>

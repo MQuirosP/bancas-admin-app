@@ -1,7 +1,8 @@
 // app/admin/index.tsx
 import React from 'react';
 import { useRouter } from 'expo-router';
-import { YStack, XStack, Text, Card, Button, ScrollView } from 'tamagui';
+import { YStack, XStack, Text, ScrollView } from 'tamagui';
+import { Card, Button } from '@/components/ui';
 import {
   Users,
   Store,

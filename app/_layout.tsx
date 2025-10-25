@@ -11,7 +11,7 @@ import { LogBox } from 'react-native'
 import { useAuthStore } from '@/store/auth.store'
 import { ToastProvider } from '@/components/ui/Toast'
 import { MainLayout } from '@/components/layout/MainLayout'
-import { ErrorBoundary } from '@/components/ErrorBoundary' // importa el boundary
+import { ErrorBoundary } from '@/components/ErrorBoundary' // importamos el boundary
 import { installGlobalErrorHooks } from '../lib/global-error-hooks'
 
 installGlobalErrorHooks()
@@ -28,10 +28,10 @@ function AuthGateWrapper() {
   const { isAuthenticated, isHydrating } = useAuthStore();  
   const segments = useSegments();  
   
-  // ❌ ELIMINAR TODO EL useEffect  
-  // Ya no necesitas este useEffect porque:  
-  // 1. app/index.tsx maneja la redirección inicial  
-  // 2. Los layouts de rol manejan la protección  
+  // ELIMINADO TODO EL useEffect  
+  // Ya no se necesita este useEffect porque:  
+  // 1. app/index.tsx ya maneja la redirección inicial  
+  // 2. Los layouts de rol ya manejan la protección  
   
   const inAuth = segments[0] === '(auth)';  
   
@@ -60,7 +60,7 @@ export default function RootLayout() {
     <TamaguiProvider config={config} defaultTheme={safeTheme}>
       <QueryClientProvider client={queryClient}>
         <ToastProvider position="top-right">
-          {/* 👉 el ErrorBoundary vive aquí adentro, no fuera, para que use Tamagui/Toast */}
+          {/* el ErrorBoundary vive aquí adentro, no fuera, para que use Tamagui/Toast */}
           <AuthGateWrapper />
         </ToastProvider>
         <SystemThemeSync />

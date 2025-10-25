@@ -1,15 +1,15 @@
 // app/admin/loterias/index.tsx
 import React, { useMemo, useState } from 'react'
-import { YStack, XStack, Text, Input, Card, ScrollView, Spinner, Separator, Button } from 'tamagui'
+import { YStack, XStack, Text, ScrollView, Spinner, Separator } from 'tamagui'
+import { Button, Input, Card, Toolbar, ActiveBadge } from '@/components/ui'
+import { Badge } from '@/components/ui/Badge'
 import { useRouter } from 'expo-router'
 import { Plus, Search, X, RefreshCw, Trash2 } from '@tamagui/lucide-icons'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient, ApiErrorClass } from '@/lib/api.client'
 import type { Loteria } from '@/types/models.types'
 import { useToast } from '@/hooks/useToast'
-import { Toolbar } from '@/components/ui/Toolbar'
-import { Badge } from '@/components/ui/Badge'
-import ActiveBadge from '@/components/ui/ActiveBadge'
+// Toolbar/Badge/ActiveBadge desde components/ui
 import { useConfirm } from '@/components/ui/Confirm'
 import FilterSwitch from '@/components/ui/FilterSwitch'
 
@@ -251,11 +251,11 @@ export default function LoteriasListScreen() {
 
         {!!meta && (
           <XStack gap="$2" jc="center" mt="$4" ai="center">
-            <Button disabled={page <= 1} onPress={() => setPage((p) => Math.max(1, p - 1))}><Text>Anterior</Text></Button>
+            <Button size="$2" variant="secondary" disabled={page <= 1} onPress={() => setPage((p) => Math.max(1, p - 1))}><Text>Anterior</Text></Button>
             <Card padding="$2" px="$4" bg="$backgroundHover" borderColor="$borderColor" borderWidth={1}>
               <Text fontSize="$3">Página {meta.page} de {meta.totalPages}</Text>
             </Card>
-            <Button disabled={page >= (meta.totalPages || 1)} onPress={() => setPage((p) => Math.min(p + 1, meta.totalPages || p + 1))}><Text>Siguiente</Text></Button>
+            <Button size="$2" variant="secondary" disabled={page >= (meta.totalPages || 1)} onPress={() => setPage((p) => Math.min(p + 1, meta.totalPages || p + 1))}><Text>Siguiente</Text></Button>
           </XStack>
         )}
 
