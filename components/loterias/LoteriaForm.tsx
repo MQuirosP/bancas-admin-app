@@ -1,6 +1,7 @@
 // components/loterias/LoteriaForm.tsx
 import React, { useMemo, useEffect, useState } from 'react'
-import { YStack, XStack, Text, Card, Input, Switch, Button, Spinner } from 'tamagui'
+import { YStack, XStack, Text, Switch, Spinner } from 'tamagui'
+import { Card, Input, Button } from '@/components/ui'
 import { z } from 'zod'
 import { useToast } from '@/hooks/useToast'
 import { CustomButton } from '@/components/ui/CustomButton'

@@ -1,9 +1,7 @@
 // components/ventanas/VentanaForm.tsx
 import React, { useEffect, useMemo, useState } from 'react'
-import {
-  YStack, XStack, Text, Input, Card, Switch, Separator,
-  Select, Sheet, Adapt, Button, Spinner
-} from 'tamagui'
+import { YStack, XStack, Text, Switch, Separator, Sheet, Adapt, Spinner } from 'tamagui'
+import { Button, Input, Card, Select } from '@/components/ui'
 import { ChevronDown } from '@tamagui/lucide-icons'
 import { z } from 'zod'
 import { formatPhoneCR } from '@/utils/format/phone'

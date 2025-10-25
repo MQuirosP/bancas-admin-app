@@ -1,18 +1,7 @@
 // components/usuarios/UserForm.tsx
 import React, { useEffect, useMemo, useState } from 'react'
-import {
-  YStack,
-  XStack,
-  Text,
-  Button,
-  Input,
-  Card,
-  Switch,
-  Spinner,
-  Select,
-  Sheet,
-  Adapt,
-} from 'tamagui'
+import { YStack, XStack, Text, Switch, Spinner, Sheet, Adapt } from 'tamagui'
+import { Button, Input, Card, Select } from '@/components/ui'
 import { z } from 'zod'
 import type { Usuario } from '@/types/models.types'
 import { useToast } from '@/hooks/useToast'

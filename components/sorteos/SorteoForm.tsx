@@ -1,8 +1,7 @@
 // components/sorteos/SorteoForm.tsx
 import React, { useMemo, useState, useEffect, useCallback } from 'react'
-import {
-  YStack, XStack, Text, Card, Input, Button, Spinner, Select, Sheet, Adapt
-} from 'tamagui'
+import { YStack, XStack, Text, Spinner, Select, Sheet, Adapt } from 'tamagui'
+import { Card, Input, Button } from '@/components/ui'
 import { z } from 'zod'
 import { ChevronDown, Check } from '@tamagui/lucide-icons'
 import { useToast } from '@/hooks/useToast'

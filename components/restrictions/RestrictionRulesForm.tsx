@@ -1,8 +1,7 @@
 // components/restrictions/RestrictionRulesForm.tsx
 import React, { useEffect, useRef, useState } from 'react'
-import {
-  YStack, XStack, Text, Input, Button, Card, Select, Separator,
-} from 'tamagui'
+import { YStack, XStack, Text, Select, Separator } from 'tamagui'
+import { Input, Button, Card } from '@/components/ui'
 import { Platform } from 'react-native'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Check, ChevronDown } from '@tamagui/lucide-icons'

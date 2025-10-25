@@ -7,6 +7,7 @@ import { useUIStore } from '../../store/ui.store';
 import { useThemeStore } from '../../store/theme.store';
 import { useAuthStore, UserRole } from '../../store/auth.store';
 import { Image } from 'react-native';
+import { useIsMobile } from '../../hooks/useBreakpoint';
 
 // Función para obtener el título según el rol
 const getTitleByRole = (role: UserRole | undefined): string => {
@@ -27,6 +28,7 @@ export const Header: React.FC = () => {
   const { user, logout } = useAuthStore();
   const { toggleDrawer } = useUIStore();
   const { theme, toggleTheme } = useThemeStore();
+  const isMobile = useIsMobile();
 
   const handleLogout = () => {
     logout();
@@ -46,17 +48,19 @@ export const Header: React.FC = () => {
       height={64}
     >
       {/* Left: Menu button */}
-      <XStack alignItems="center" width={100}>
+      <XStack alignItems="center" minWidth={72}>
         <Button
-          size="$3"
+          size={isMobile ? "$4" : "$5"}
+          circular
           chromeless
           icon={Menu}
+          scaleIcon={isMobile ? 1.15 : 1.4}
           onPress={toggleDrawer}
-          color="$color"
-          hoverStyle={{ backgroundColor: '$backgroundHover' }}
-          pressStyle={{ backgroundColor: '$backgroundPress' }}
+          color="$headerTitle"
+          hoverStyle={{ backgroundColor: '$headerHover' }}
+          pressStyle={{ backgroundColor: '$headerHover' }}
           borderRadius="$3"
-          padding="$2"
+          padding={isMobile ? "$1" : "$2"}
         />
       </XStack>
 
@@ -67,37 +71,41 @@ export const Header: React.FC = () => {
           style={{ width: 120, height: 120 }}
           resizeMode="contain"
         />
-        <Text fontSize="$6" fontWeight="600" color="$headerTitle">
+        <Text fontSize={isMobile ? "$5" : "$6"} fontWeight="600" color="$headerTitle">
           {pageTitle}
         </Text>
       </XStack>
 
       {/* Right: Theme toggle + Logout */}
-      <XStack alignItems="center" gap="$3" width={100} justifyContent="flex-end">
+      <XStack alignItems="center" gap={isMobile ? "$1" : "$2"} minWidth={72} justifyContent="flex-end">
         {/* Theme Toggle */}
         <Button
-          size="$3"
+          size={isMobile ? "$4" : "$5"}
+          circular
           chromeless
           icon={theme === 'light' ? Moon : Sun}
+          scaleIcon={isMobile ? 1.15 : 1.4}
           onPress={toggleTheme}
-          color="$color"
-          hoverStyle={{ backgroundColor: '$backgroundHover' }}
-          pressStyle={{ backgroundColor: '$backgroundPress' }}
+          color="$headerTitle"
+          hoverStyle={{ backgroundColor: '$headerHover' }}
+          pressStyle={{ backgroundColor: '$headerHover' }}
           borderRadius="$3"
-          padding="$2"
+          padding={isMobile ? "$1" : "$2"}
         />
 
         {/* Logout Button */}
         <Button
-          size="$3"
+          size={isMobile ? "$4" : "$5"}
+          circular
           chromeless
           icon={LogOut}
+          scaleIcon={isMobile ? 1.15 : 1.4}
           onPress={handleLogout}
-          color="$error"
-          hoverStyle={{ backgroundColor: '$backgroundHover' }}
-          pressStyle={{ backgroundColor: '$backgroundPress' }}
+          color="$headerTitle"
+          hoverStyle={{ backgroundColor: '$headerHover' }}
+          pressStyle={{ backgroundColor: '$headerHover' }}
           borderRadius="$3"
-          padding="$2"
+          padding={isMobile ? "$1" : "$2"}
         />
       </XStack>
     </XStack>

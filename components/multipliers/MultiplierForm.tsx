@@ -1,6 +1,7 @@
 // components/multipliers/MultiplierForm.tsx
 import React, { useState, useMemo, useEffect } from 'react'
-import { YStack, XStack, Text, Card, Input, Button, Select, Switch, Sheet } from 'tamagui'
+import { YStack, XStack, Text, Select, Switch, Sheet } from 'tamagui'
+import { Card, Input, Button } from '@/components/ui'
 import { Check, ChevronDown } from '@tamagui/lucide-icons'
 import type { Loteria } from '@/types/models.types'
 import type { LoteriaMultiplier } from '@/types/api.types'
