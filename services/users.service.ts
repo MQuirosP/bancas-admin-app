@@ -133,16 +133,28 @@ export const usersService = {
   // Commission Policy
   getCommissionPolicy: async (id: string) => {
     const res = await apiClient.get<any>(`/users/${id}/commission-policy`)
-    const body = res as any
-    if (body?.data !== undefined) return body.data
-    return body
+    const b = res as any
+    // Unwrap defensivo según distintas respuestas posibles
+    return (
+      b?.data?.commissionPolicyJson ??
+      b?.data ??
+      b?.commissionPolicyJson ??
+      null
+    )
   },
 
   updateCommissionPolicy: async (id: string, payload: any) => {
-    const res = await apiClient.put<any>(`/users/${id}/commission-policy`, payload)
-    const body = res as any
-    if (body?.data !== undefined) return body.data
-    return body
+    // El backend espera { commissionPolicyJson: { ...v1 } }
+    const res = await apiClient.put<any>(`/users/${id}/commission-policy`, {
+      commissionPolicyJson: payload,
+    })
+    const b = res as any
+    return (
+      b?.data?.commissionPolicyJson ??
+      b?.data ??
+      b?.commissionPolicyJson ??
+      null
+    )
   },
 }
 
