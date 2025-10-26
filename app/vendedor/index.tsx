@@ -4,9 +4,11 @@ import { YStack, XStack, Text, ScrollView } from 'tamagui';
 import { Button } from '@/components/ui';
 import { Package, TrendingUp, Plus, Clock } from '@tamagui/lucide-icons';
 import { useAuthStore } from '../../store/auth.store';
+import { useRouter } from 'expo-router';
 
 export default function VendedorDashboard() {
   const user = useAuthStore((state) => state.user);
+  const router = useRouter();
 
   return (
     <ScrollView flex={1} backgroundColor="$background">
@@ -35,6 +37,7 @@ export default function VendedorDashboard() {
           hoverStyle={{
             backgroundColor: '$primaryHover',
           }}
+          onPress={() => router.push('/vendedor/tickets/nuevo')}
         >
           <XStack gap="$2" alignItems="center">
             <Plus size={24} color="white" />
@@ -52,7 +55,7 @@ export default function VendedorDashboard() {
             value="12"
             change="+3 desde ayer"
             positive
-            color="#f59e0b"
+            color="$yellow10"
           />
           <StatCard
             icon={TrendingUp}
@@ -60,7 +63,7 @@ export default function VendedorDashboard() {
             value="$450"
             change="+$50"
             positive
-            color="#8b5cf6"
+            color="$purple10"
           />
           <StatCard
             icon={Clock}
@@ -68,7 +71,7 @@ export default function VendedorDashboard() {
             value="10 min"
             change="Hace 10 minutos"
             positive
-            color="#6366f1"
+            color="$indigo10"
           />
         </YStack>
 
@@ -112,12 +115,12 @@ function StatCard({ icon: Icon, title, value, change, positive, color }: StatCar
         <YStack
           width={48}
           height={48}
-          backgroundColor={color}
+          backgroundColor={String(color).replace('10', '4') as any}
           borderRadius="$3"
           alignItems="center"
           justifyContent="center"
         >
-          <Icon size={24} color="white" />
+          <Icon size={24} color={color} />
         </YStack>
         <YStack alignItems="flex-end" gap="$1">
           <Text
@@ -167,7 +170,7 @@ function QuickActionButton({ icon: Icon, label }: QuickActionButtonProps) {
         backgroundColor: '$backgroundPress',
       }}
     >
-      <Icon size={32} color="$primary" />
+      <Icon size={32} color={"$primary"} />
       <Text fontSize="$4" fontWeight="600" color="$textPrimary">
         {label}
       </Text>

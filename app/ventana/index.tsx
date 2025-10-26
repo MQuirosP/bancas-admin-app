@@ -28,7 +28,7 @@ export default function VentanaDashboard() {
             value="42"
             change="+5 desde ayer"
             positive
-            color="#10b981"
+            color="$green10"
           />
           <StatCard
             icon={TrendingUp}
@@ -36,7 +36,7 @@ export default function VentanaDashboard() {
             value="$1,250"
             change="+15%"
             positive
-            color="#8b5cf6"
+            color="$purple10"
           />
           <StatCard
             icon={Users}
@@ -44,7 +44,7 @@ export default function VentanaDashboard() {
             value="8"
             change="De 10 totales"
             positive
-            color="#f59e0b"
+            color="$yellow10"
           />
           <StatCard
             icon={Clock}
@@ -52,7 +52,7 @@ export default function VentanaDashboard() {
             value="5 min"
             change="Hace 5 minutos"
             positive
-            color="#6366f1"
+            color="$indigo10"
           />
         </YStack>
 
@@ -97,12 +97,12 @@ function StatCard({ icon: Icon, title, value, change, positive, color }: StatCar
         <YStack
           width={48}
           height={48}
-          backgroundColor={color}
+          backgroundColor={String(color).replace('10', '4') as any}
           borderRadius="$3"
           alignItems="center"
           justifyContent="center"
         >
-          <Icon size={24} color="white" />
+          <Icon size={24} color={color} />
         </YStack>
         <YStack alignItems="flex-end" gap="$1">
           <Text
@@ -152,7 +152,7 @@ function QuickActionButton({ icon: Icon, label }: QuickActionButtonProps) {
         backgroundColor: '$backgroundPress',
       }}
     >
-      <Icon size={32} color="$primary" />
+      <Icon size={32} color={"$primary"} />
       <Text fontSize="$4" fontWeight="600" color="$textPrimary">
         {label}
       </Text>

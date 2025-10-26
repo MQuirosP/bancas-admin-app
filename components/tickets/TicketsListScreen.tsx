@@ -68,7 +68,8 @@ export default function TicketsListScreen({ scope }: Props) {
     const params: any = {
       page,
       pageSize,
-      scope: scope === 'admin' ? 'all' : 'mine',
+      // Map scope to backend expected values
+      scope: scope === 'admin' ? 'all' : scope === 'ventana' ? 'ventana' : 'vendedor',
     }
     if (dateFilter === 'today') params.date = 'today'
     else if (dateFilter === 'yesterday') params.date = 'yesterday'
