@@ -44,6 +44,8 @@ const themes = {
     cyan3:   '#cffafe',
     cyan10:  '#06b6d4',
     indigo3: '#e0e7ff',
+    // usado en UI como fondo suave del badge/icono
+    indigo4: '#c7d2fe',
     indigo10:'#4f46e5',
   },
 
@@ -87,6 +89,8 @@ const themes = {
     cyan3:   '#164e63',
     cyan10:  '#22d3ee',
     indigo3: '#312e81',
+    // usado en UI como fondo suave del badge/icono
+    indigo4: '#3730a3',
     indigo10:'#6366f1',
   },
 }
