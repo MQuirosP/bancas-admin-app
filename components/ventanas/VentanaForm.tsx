@@ -361,7 +361,8 @@ export default function VentanaForm({
           minWidth={120}
           px="$4"
           onPress={handleSubmit}
-          disabled={!canSubmit || !!submitting}
+          disabled={!canSubmit}
+          loading={!!submitting}
           backgroundColor={"$blue4"}
           borderColor="$blue8"
           borderWidth={1}
@@ -369,7 +370,7 @@ export default function VentanaForm({
           hoverStyle={{ scale: 1.02 }}
           pressStyle={{ scale: 0.98 }}
         >
-          {submitting ? <Spinner size="small" /> : <Text>Guardar</Text>}
+          Guardar
         </Button>
       </XStack>
     </YStack>

@@ -1,5 +1,5 @@
 import React from 'react'
-import { Button as TButton } from 'tamagui'
+import { Button as TButton, Spinner, XStack, Text } from 'tamagui'
 
 type Variant = 'primary' | 'outlined' | 'ghost' | 'danger' | 'secondary'
 
@@ -8,6 +8,10 @@ type TButtonProps = Omit<React.ComponentProps<typeof TButton>, 'variant'>
 export type UIButtonProps = TButtonProps & {
   /** Visual style for our UI Button (not Tamagui's built-in variant) */
   variant?: Variant
+  /** Show loading spinner and disable button */
+  loading?: boolean
+  /** Optional loading label when loading is true */
+  loadingText?: string
 }
 
 const variantStyles = (variant: Variant): Partial<React.ComponentProps<typeof TButton>> => {
@@ -55,10 +59,29 @@ const variantStyles = (variant: Variant): Partial<React.ComponentProps<typeof TB
   }
 }
 
-export const Button: React.FC<UIButtonProps> = ({ variant = 'primary', ...rest }) => {
+export const Button: React.FC<UIButtonProps> = ({
+  variant = 'primary',
+  loading = false,
+  loadingText,
+  children,
+  disabled,
+  ...rest
+}) => {
   const vs = variantStyles(variant)
-  // Do NOT pass our custom variant down to Tamagui's Button to avoid type conflicts
-  return <TButton {...vs} {...rest} />
+  const isDisabled = disabled || loading
+  const content = loading ? (
+    <XStack ai="center" gap="$2">
+      <Spinner size="small" />
+      {typeof loadingText === 'string' ? <Text>{loadingText}</Text> : children}
+    </XStack>
+  ) : (
+    children
+  )
+  return (
+    <TButton {...vs} {...rest} disabled={isDisabled} aria-busy={loading ? true : undefined}>
+      {content}
+    </TButton>
+  )
 }
 
 export default Button
