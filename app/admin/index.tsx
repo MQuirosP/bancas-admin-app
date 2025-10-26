@@ -15,7 +15,7 @@ import {
   X as CloseIcon,
 } from '@tamagui/lucide-icons';
 import { useAuthStore } from '../../store/auth.store';
-import { useVentasSummary, useVentasBreakdown } from '@/hooks/useVentas'
+import { useVentasSummary, useVentasBreakdown, useVentasTimeseries } from '@/hooks/useVentas'
 import { formatCurrency } from '@/utils/formatters'
 import { AnimatePresence } from '@tamagui/animate-presence'
 import { useUIStore } from '@/store/ui.store'
@@ -136,6 +136,16 @@ export default function AdminDashboard() {
   const { data: ventanasToday } = useVentasBreakdown({ date: 'today', dimension: 'ventana', top: 100 })
   const { data: ventanasYesterday } = useVentasBreakdown({ date: 'yesterday', dimension: 'ventana', top: 100 })
 
+  // Serie de últimos 7 días para tarjeta de tendencia
+  const sevenDaysAgo = React.useMemo(() => new Date(Date.now() - 6 * 24 * 60 * 60 * 1000), [])
+  const now = React.useMemo(() => new Date(), [])
+  const { data: series7d } = useVentasTimeseries({
+    date: 'range',
+    from: sevenDaysAgo.toISOString(),
+    to: now.toISOString(),
+    granularity: 'day',
+  })
+
   const stats = useMemo(() => {
     const vt = today?.ventasTotal ?? 0
     const vy = prev?.ventasTotal ?? 0
@@ -146,13 +156,19 @@ export default function AdminDashboard() {
     const wt = (ventanasToday ?? []).length
     const wy = (ventanasYesterday ?? []).length
     const delta = (a: number, b: number) => (b === 0 ? (a > 0 ? 100 : 0) : ((a - b) / b) * 100)
+    // Tendencia 7d para mini-gráfico
+    const serieVals = (series7d ?? []).map((p) => p.ventasTotal)
+    const first = serieVals[0] ?? 0
+    const last = serieVals[serieVals.length - 1] ?? 0
+    const trendDelta = delta(last, first)
     return [
       { key: 'ventas', title: 'Ventas (hoy)', value: formatCurrency(vt), delta: delta(vt, vy), detail: { hoy: vt, ayer: vy } },
       { key: 'neto', title: 'Neto (hoy)', value: formatCurrency(nt), delta: delta(nt, ny), detail: { hoy: nt, ayer: ny } },
       { key: 'payout', title: 'Payout Ratio (hoy)', value: `${prt.toFixed(1)}%`, delta: prt - pry, detail: { hoy: prt, ayer: pry } },
       { key: 'ventanas', title: 'Ventanas Activas', value: String(wt), delta: delta(wt, wy), detail: { hoy: wt, ayer: wy } },
+      { key: 'trend', title: 'Tendencia (7d)', value: `${trendDelta >= 0 ? '↑' : '↓'} ${Math.abs(trendDelta).toFixed(1)}%`, delta: trendDelta, detail: { hoy: last, ayer: first }, serie: serieVals },
     ]
-  }, [today, prev, ventanasToday, ventanasYesterday])
+  }, [today, prev, ventanasToday, ventanasYesterday, series7d])
 
   // Estado local: stats desplegables por card
   const [openIds, setOpenIds] = useState<Set<string>>(new Set())
@@ -162,6 +178,23 @@ export default function AdminDashboard() {
       if (next.has(key)) next.delete(key); else next.add(key)
       return next
     })
+  }
+
+  // Mini gráfico de barras (sparkline sin librerías)
+  function MiniBars({ values }: { values: number[] }) {
+    const vals = values && values.length ? values : [0]
+    const min = Math.min(...vals)
+    const max = Math.max(...vals)
+    const range = max - min || 1
+    const color = (vals[vals.length - 1] - vals[0] >= 0) ? '$green10' : '$red10'
+    return (
+      <XStack ai="flex-end" gap={4} mt="$2" height={28}>
+        {vals.map((v, i) => {
+          const h = 8 + Math.round(((v - min) / range) * 20)
+          return <YStack key={i} width={6} height={h} bg={color} br="$2" />
+        })}
+      </XStack>
+    )
   }
 
   const handleCardPress = (href: string) => {
@@ -234,6 +267,9 @@ export default function AdminDashboard() {
                       {s.delta >= 0 ? '↑' : '↓'} {Math.abs(s.delta).toFixed(1)}%
                     </Text>
                   </XStack>
+                  {s.key === 'trend' && Array.isArray((s as any).serie) && (
+                    <MiniBars values={(s as any).serie as number[]} />
+                  )}
                 </YStack>
 
                 <AnimatePresence>
