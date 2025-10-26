@@ -3,6 +3,7 @@ import React from 'react';
 import { YStack, XStack, Text, ScrollView } from 'tamagui';
 import { Card } from '@/components/ui'
 import { Package, TrendingUp, Users, Clock } from '@tamagui/lucide-icons';
+import { formatCurrency } from '@/utils/formatters'
 import { useAuthStore } from '../../store/auth.store';
 
 export default function VentanaDashboard() {
@@ -26,7 +27,7 @@ export default function VentanaDashboard() {
           {(
             [
               { icon: Package, title: 'Tickets Hoy', value: '42', change: '+5 desde ayer', color: '$green10' },
-              { icon: TrendingUp, title: 'Ventas Hoy', value: '$1,250', change: '+15%', color: '$purple10' },
+              { icon: TrendingUp, title: 'Ventas Hoy', value: formatCurrency(1250), change: '+15%', color: '$purple10' },
               { icon: Users, title: 'Vendedores Activos', value: '8', change: 'De 10 totales', color: '$yellow10' },
               { icon: Clock, title: 'Último Ticket', value: '5 min', change: 'Hace 5 minutos', color: '$indigo10' },
             ] as const

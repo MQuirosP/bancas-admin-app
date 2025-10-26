@@ -1,6 +1,7 @@
 // components/dashboard/LotteryChart.tsx
 import React from 'react';
 import { YStack, Text, Card, XStack } from 'tamagui';
+import { formatCurrency } from '@/utils/formatters'
 
 interface LotteryChartProps {
   data: Array<{
@@ -31,7 +32,7 @@ export const LotteryChart: React.FC<LotteryChartProps> = ({ data }) => {
                     {item.lotteryName}
                   </Text>
                   <Text fontSize="$3" color="$textSecondary">
-                    ${item.totalSales.toLocaleString()}
+                    {formatCurrency(item.totalSales)}
                   </Text>
                 </XStack>
 
@@ -68,6 +69,7 @@ export const LotteryChart: React.FC<LotteryChartProps> = ({ data }) => {
 
 import { ScrollView } from 'react-native';
 import type { Ticket } from '../../types/api.types';
+import { formatCurrency as fmt } from '@/utils/formatters'
 
 interface TicketsTableProps {
   tickets: Ticket[];
@@ -131,7 +133,7 @@ export const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onTicketPre
                   {ticket.user?.name || 'N/A'}
                 </Text>
                 <Text fontSize="$2" width={80} textAlign="right" color="$textPrimary">
-                  ${ticket.totalAmount.toFixed(2)}
+                  {fmt(ticket.totalAmount)}
                 </Text>
                 <YStack width={80}>
                   <Text

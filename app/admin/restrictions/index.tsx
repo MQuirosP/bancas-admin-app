@@ -9,6 +9,7 @@ import { listRestrictions, deleteRestriction, restoreRestriction } from '@/lib/a
 import type { RestrictionRule } from '@/types/models.types'
 import { useToast } from '@/hooks/useToast'
 import { ActiveBadge } from '@/components/ui'
+import { formatCurrency } from '@/utils/formatters'
 
 // preferir nombre, luego código; jamás mostrar ID
 const pickNameOrCode = (name?: string | null, code?: string | null) =>
@@ -206,7 +207,7 @@ export default function RestrictionsListScreen() {
               const subtitulo =
                 r.salesCutoffMinutes != null
                   ? `Corte de venta: ${r.salesCutoffMinutes} min`
-                  : `Montos máximos: por jugada = ${r.maxAmount ?? '—'} · total = ${r.maxTotal ?? '—'}`
+                  : `Montos máximos: por jugada = ${r.maxAmount != null ? formatCurrency(r.maxAmount as any) : '—'} · total = ${r.maxTotal != null ? formatCurrency(r.maxTotal as any) : '—'}`
 
               return (
                 <Card

@@ -6,6 +6,7 @@ import { Check, ChevronDown } from '@tamagui/lucide-icons'
 import { listRestrictions } from '@/lib/api.restrictions'
 import type { RestrictionRule } from '@/types/models.types'
 import ActiveBadge from '@/components/ui/ActiveBadge'
+import { formatCurrency } from '@/utils/formatters'
 
 export default function VentanaRestrictionsScreen() {
   // filtros remotos mínimos (solo lectura)
@@ -125,7 +126,7 @@ export default function VentanaRestrictionsScreen() {
               const subtitulo =
                 r.salesCutoffMinutes != null
                   ? `Corte de venta: ${r.salesCutoffMinutes} min`
-                  : `Montos máximos: por jugada = ${r.maxAmount ?? '—'} · total = ${r.maxTotal ?? '—'}`
+                  : `Montos máximos: por jugada = ${r.maxAmount != null ? formatCurrency(r.maxAmount as any) : '—'} · total = ${r.maxTotal != null ? formatCurrency(r.maxTotal as any) : '—'}`
 
               return (
                 <Card

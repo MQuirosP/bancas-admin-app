@@ -1,6 +1,7 @@
 // components/dashboard/HourlyChart.tsx
 import React from 'react';
 import { YStack, Text, Card, XStack } from 'tamagui';
+import { formatCurrency } from '@/utils/formatters'
 import { ScrollView } from 'react-native';
 
 interface HourlyChartProps {
@@ -31,7 +32,7 @@ export const HourlyChart: React.FC<HourlyChartProps> = ({ data }) => {
                 <YStack key={item.hour} alignItems="center" gap="$2" width={40}>
                   {/* Valor */}
                   <Text fontSize="$1" color="$textTertiary">
-                    ${item.sales.toFixed(0)}
+                    {formatCurrency(item.sales)}
                   </Text>
 
                   {/* Barra */}
@@ -62,7 +63,7 @@ export const HourlyChart: React.FC<HourlyChartProps> = ({ data }) => {
 
         <XStack justifyContent="space-between">
           <Text fontSize="$2" color="$textTertiary">
-            Total: ${data.reduce((sum, d) => sum + d.sales, 0).toLocaleString()}
+            Total: {formatCurrency(data.reduce((sum, d) => sum + d.sales, 0))}
           </Text>
           <Text fontSize="$2" color="$textTertiary">
             Tickets: {data.reduce((sum, d) => sum + d.ticketCount, 0)}

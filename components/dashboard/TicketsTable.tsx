@@ -2,6 +2,7 @@ import React from 'react';
 import { ScrollView } from 'react-native';
 import { YStack, XStack, Text, Card } from 'tamagui';
 import type { Ticket } from '../../types/api.types';
+import { formatCurrency } from '@/utils/formatters'
 
 interface TicketsTableProps {
   tickets: Ticket[];
@@ -101,7 +102,7 @@ export const TicketsTable: React.FC<TicketsTableProps> = ({ tickets, onTicketPre
                   {ticket.loteria?.name || 'N/A'}
                 </Text>
                 <Text fontSize="$2" width={80} textAlign="right" color="$textPrimary">
-                  ${ticket.totalAmount.toFixed(2)}
+                  {formatCurrency(ticket.totalAmount)}
                 </Text>
                 <YStack width={100}>
                   <Text
