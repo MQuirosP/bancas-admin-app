@@ -2,7 +2,7 @@
 import React from 'react';
 import { Animated, Pressable, StyleSheet, Easing } from 'react-native';
 import { useRouter } from 'expo-router';
-import { YStack, XStack, Text, Button, ScrollView } from 'tamagui';
+import { YStack, XStack, Text, Button, ScrollView, useThemeName } from 'tamagui';
 import {
   Home,
   Building2,
@@ -41,6 +41,8 @@ const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 export default function Drawer({ isOpen, onClose }: DrawerProps) {
   const user = useAuthStore((s) => s.user);
   const router = useRouter();
+  const themeName = useThemeName()
+  const iconColor = themeName === 'dark' ? '#ffffff' : '#000000'
 
   // ========== MENÚ POR ROL ==========
   const getMenuItems = (): MenuItem[] => {
@@ -332,7 +334,7 @@ export default function Drawer({ isOpen, onClose }: DrawerProps) {
               pressStyle={{ backgroundColor: '$backgroundFocus' }}
               hoverStyle={{ backgroundColor: '$backgroundPress' }}
             >
-              <X size={18} color="$textPrimary" />
+              <X size={18} color={iconColor} />
             </Button>
           </XStack>
 
@@ -355,7 +357,7 @@ export default function Drawer({ isOpen, onClose }: DrawerProps) {
                       onPress={() => handleNavigate(item.route)}
                     >
                       <XStack gap="$3" alignItems="center" width="100%">
-                        <Icon size={20} color="$textSecondary" />
+                        <Icon size={20} color={iconColor} />
                         <Text fontSize="$4" fontWeight="500" color="$textPrimary">
                           {item.label}
                         </Text>

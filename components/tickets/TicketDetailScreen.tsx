@@ -1,5 +1,6 @@
 import React from 'react'
-import { YStack, XStack, Text, Card, ScrollView, Spinner, Button, Separator } from 'tamagui'
+import { YStack, XStack, Text, Card, ScrollView, Spinner, Separator } from 'tamagui'
+import { Button } from '@/components/ui'
 import { useRouter } from 'expo-router'
 import { useQuery } from '@tanstack/react-query'
 import { ArrowLeft } from '@tamagui/lucide-icons'

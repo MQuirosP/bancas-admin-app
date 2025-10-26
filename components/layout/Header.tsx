@@ -1,7 +1,8 @@
 // components/layout/Header.tsx
 import React from 'react';
 import { useRouter } from 'expo-router';
-import { XStack, YStack, Text, Button } from 'tamagui';
+import { XStack, YStack, Text } from 'tamagui';
+import { Button } from '@/components/ui'
 import { Menu, LogOut, Sun, Moon } from '@tamagui/lucide-icons';
 import { useUIStore } from '../../store/ui.store';
 import { useThemeStore } from '../../store/theme.store';
@@ -50,13 +51,12 @@ export const Header: React.FC = () => {
       {/* Left: Menu button */}
       <XStack alignItems="center" minWidth={72}>
         <Button
+          variant="ghost"
           size={isMobile ? "$4" : "$5"}
           circular
-          chromeless
           icon={Menu}
           scaleIcon={isMobile ? 1.15 : 1.6}
           onPress={toggleDrawer}
-          color="$headerTitle"
           hoverStyle={{ backgroundColor: '$headerHover' }}
           pressStyle={{ backgroundColor: '$headerHover' }}
           borderRadius="$3"
@@ -80,13 +80,12 @@ export const Header: React.FC = () => {
       <XStack alignItems="center" gap={isMobile ? "$1" : "$2"} minWidth={72} justifyContent="flex-end">
         {/* Theme Toggle */}
         <Button
+          variant="ghost"
           size={isMobile ? "$4" : "$5"}
           circular
-          chromeless
           icon={theme === 'light' ? Moon : Sun}
           scaleIcon={isMobile ? 1.15 : 1.4}
           onPress={toggleTheme}
-          color="$headerTitle"
           hoverStyle={{ backgroundColor: '$headerHover' }}
           pressStyle={{ backgroundColor: '$headerHover' }}
           borderRadius="$3"
@@ -95,13 +94,12 @@ export const Header: React.FC = () => {
 
         {/* Logout Button */}
         <Button
+          variant="ghost"
           size={isMobile ? "$4" : "$5"}
           circular
-          chromeless
           icon={LogOut}
           scaleIcon={isMobile ? 1.15 : 1.4}
           onPress={handleLogout}
-          color="$red8"
           hoverStyle={{ backgroundColor: '$headerHover' }}
           pressStyle={{ backgroundColor: '$headerHover' }}
           borderRadius="$3"
