@@ -1,10 +1,11 @@
 // app/vendedor/index.tsx
 import React from 'react';
 import { YStack, XStack, Text, ScrollView } from 'tamagui';
-import { Button } from '@/components/ui';
+import { Button, Card } from '@/components/ui';
 import { Package, TrendingUp, Plus, Clock } from '@tamagui/lucide-icons';
 import { useAuthStore } from '../../store/auth.store';
 import { useRouter } from 'expo-router';
+import { formatCurrency } from '@/utils/formatters'
 import { formatCurrency } from '@/utils/formatters'
 
 export default function VendedorDashboard() {
@@ -48,32 +49,25 @@ export default function VendedorDashboard() {
           </XStack>
         </Button>
 
-        {/* Stats Cards */}
-        <YStack gap="$4">
-          <StatCard
-            icon={Package}
-            title="Mis Tickets Hoy"
-            value="12"
-            change="+3 desde ayer"
-            positive
-            color="$yellow10"
-          />
-          <StatCard
-            icon={TrendingUp}
-            title="Total Vendido Hoy"
-            value={formatCurrency(450)}
-            change={`+${formatCurrency(50)}`}
-            positive
-            color="$purple10"
-          />
-          <StatCard
-            icon={Clock}
-            title="Último Ticket"
-            value="10 min"
-            change="Hace 10 minutos"
-            positive
-            color="$indigo10"
-          />
+        {/* Stats Cards - grid 2 columnas responsivo */}
+        <YStack gap="$3">
+          {(
+            [
+              { icon: Package, title: 'Mis Tickets Hoy', value: '12', change: '+3 desde ayer', color: '$yellow10' },
+              { icon: TrendingUp, title: 'Total Vendido Hoy', value: formatCurrency(450), change: `+${formatCurrency(50)}`, color: '$purple10' },
+              { icon: Clock, title: 'Último Ticket', value: '10 min', change: 'Hace 10 minutos', color: '$indigo10' },
+            ] as const
+          ).reduce((rows: any[][], card, index) => {
+            if (index % 2 === 0) rows.push([card]); else rows[rows.length - 1].push(card); return rows;
+          }, []).map((row, rowIndex) => (
+            <XStack key={rowIndex} gap="$3" flexWrap="wrap">
+              {row.map((c, i) => (
+                <YStack key={i} flex={1} minWidth={280} maxWidth="48%" $sm={{ maxWidth: '100%' }}>
+                  <StatCard icon={c.icon} title={c.title} value={c.value} change={c.change} positive color={c.color as any} />
+                </YStack>
+              ))}
+            </XStack>
+          ))}
         </YStack>
 
         {/* Quick Actions */}
@@ -83,8 +77,8 @@ export default function VendedorDashboard() {
           </Text>
           
           <XStack gap="$3" flexWrap="wrap">
-            <QuickActionButton icon={Package} label="Ver Todos" />
-            <QuickActionButton icon={Clock} label="Pendientes" />
+            <QuickActionButton icon={Package} label="Ver Todos" color="$cyan10" />
+            <QuickActionButton icon={Clock} label="Pendientes" color="$yellow10" />
           </XStack>
         </YStack>
       </YStack>
@@ -104,36 +98,41 @@ interface StatCardProps {
 
 function StatCard({ icon: Icon, title, value, change, positive, color }: StatCardProps) {
   return (
-    <YStack
-      backgroundColor="$backgroundHover"
+    <Card
       padding="$4"
+      backgroundColor="$backgroundStrong"
       borderRadius="$4"
       borderWidth={1}
       borderColor="$borderColor"
-      gap="$3"
+      pressStyle={{ scale: 0.98 }}
+      hoverStyle={{
+        borderColor: color,
+        elevation: 4,
+        shadowColor: color,
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+      }}
+      cursor="default"
+      animation="quick"
     >
       <XStack justifyContent="space-between" alignItems="center">
         <YStack
-          width={48}
-          height={48}
+          width={56}
+          height={56}
           backgroundColor={String(color).replace('10', '4') as any}
           borderRadius="$3"
           alignItems="center"
           justifyContent="center"
         >
-          <Icon size={24} color={color} />
+          <Icon size={28} color={color} />
         </YStack>
         <YStack alignItems="flex-end" gap="$1">
-          <Text
-            fontSize="$2"
-            color={positive ? '$success' : '$textTertiary'}
-            fontWeight="600"
-          >
+          <Text fontSize="$2" color={positive ? '$success' : '$textTertiary'} fontWeight="600">
             {change}
           </Text>
         </YStack>
       </XStack>
-      <YStack gap="$1">
+      <YStack gap="$1" mt="$2">
         <Text fontSize="$3" color="$textSecondary">
           {title}
         </Text>
@@ -141,7 +140,7 @@ function StatCard({ icon: Icon, title, value, change, positive, color }: StatCar
           {value}
         </Text>
       </YStack>
-    </YStack>
+    </Card>
   );
 }
 
@@ -149,32 +148,39 @@ function StatCard({ icon: Icon, title, value, change, positive, color }: StatCar
 interface QuickActionButtonProps {
   icon: any;
   label: string;
+  color?: string; // Tamagui token ej. '$cyan10'
 }
 
-function QuickActionButton({ icon: Icon, label }: QuickActionButtonProps) {
+function QuickActionButton({ icon: Icon, label, color = '$primary' }: QuickActionButtonProps) {
+  const bgSoft = String(color).replace('10', '4') as any
   return (
-    <YStack
+    <Card
       flex={1}
       minWidth={150}
-      backgroundColor="$backgroundHover"
       padding="$4"
+      backgroundColor="$backgroundStrong"
       borderRadius="$4"
       borderWidth={1}
       borderColor="$borderColor"
       alignItems="center"
       gap="$2"
-      pressStyle={{
-        backgroundColor: '$backgroundPress',
-        scale: 0.98,
-      }}
+      pressStyle={{ scale: 0.98 }}
       hoverStyle={{
-        backgroundColor: '$backgroundPress',
+        borderColor: color,
+        elevation: 4,
+        shadowColor: color,
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
       }}
+      cursor="pointer"
+      animation="quick"
     >
-      <Icon size={32} color={"$primary"} />
+      <YStack width={56} height={56} br="$3" ai="center" jc="center" backgroundColor={bgSoft}>
+        <Icon size={28} color={color} />
+      </YStack>
       <Text fontSize="$4" fontWeight="600" color="$textPrimary">
         {label}
       </Text>
-    </YStack>
+    </Card>
   );
 }
