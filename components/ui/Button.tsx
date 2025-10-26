@@ -1,5 +1,5 @@
 import React from 'react'
-import { Button as TButton, Spinner, XStack, Text } from 'tamagui'
+import { Button as TButton, Spinner, XStack, Text, useThemeName } from 'tamagui'
 
 type Variant = 'primary' | 'outlined' | 'ghost' | 'danger' | 'secondary'
 
@@ -70,6 +70,8 @@ export const Button: React.FC<UIButtonProps> = ({
   ...rest
 }) => {
   const vs = variantStyles(variant)
+  const themeName = useThemeName()
+  const iconColor = themeName === 'dark' ? '#ffffff' : '#000000'
   const isDisabled = disabled || loading
   const content = loading ? (
     <XStack ai="center" gap="$2">
@@ -79,8 +81,21 @@ export const Button: React.FC<UIButtonProps> = ({
   ) : (
     children
   )
+  // Enforce icon color for built-in icon/iconAfter props
+  const anyProps = rest as any
+  const OriginalIcon = anyProps.icon as React.ComponentType<any> | undefined
+  const OriginalIconAfter = anyProps.iconAfter as React.ComponentType<any> | undefined
+  const WrappedIcon = OriginalIcon ? ((p: any) => {
+    const I = OriginalIcon as any
+    return <I color={iconColor} {...p} />
+  }) : undefined
+  const WrappedIconAfter = OriginalIconAfter ? ((p: any) => {
+    const I = OriginalIconAfter as any
+    return <I color={iconColor} {...p} />
+  }) : undefined
+
   return (
-    <TButton {...vs} {...rest} disabled={isDisabled} aria-busy={loading ? true : undefined}>
+    <TButton {...vs} {...rest} icon={WrappedIcon as any} iconAfter={WrappedIconAfter as any} disabled={isDisabled} aria-busy={loading ? true : undefined}>
       {content}
     </TButton>
   )

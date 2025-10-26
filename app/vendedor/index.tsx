@@ -3,6 +3,7 @@ import React from 'react';
 import { YStack, XStack, Text, ScrollView } from 'tamagui';
 import { Button, Card } from '@/components/ui';
 import { Package, TrendingUp, Plus, Clock } from '@tamagui/lucide-icons';
+import { useThemeName } from 'tamagui'
 import { useAuthStore } from '../../store/auth.store';
 import { useRouter } from 'expo-router';
 import { formatCurrency } from '@/utils/formatters'
@@ -10,6 +11,7 @@ import { formatCurrency } from '@/utils/formatters'
 export default function VendedorDashboard() {
   const user = useAuthStore((state) => state.user);
   const router = useRouter();
+  const themeName = useThemeName()
 
   return (
     <ScrollView flex={1} backgroundColor="$background">
@@ -41,7 +43,7 @@ export default function VendedorDashboard() {
           onPress={() => router.push('/vendedor/tickets/nuevo')}
         >
           <XStack gap="$2" alignItems="center">
-            <Plus size={24} color="white" />
+            <Plus size={24} color={themeName === 'dark' ? 'white' : 'black'} />
             <Text color="white" fontSize="$6" fontWeight="600">
               Nuevo Ticket
             </Text>
