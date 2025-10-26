@@ -215,35 +215,34 @@ export default function AdminDashboard() {
         </YStack>
 
         {/* Quick Stats (arriba) */}
-        {/* Quick Stats en misma grilla (4 columnas) que el panel de abajo */}
-        <YStack gap="$3" marginTop="$2">
-          {[...Array(Math.ceil(stats.length / 4))].map((_, rowIndex) => {
-            const row = stats.slice(rowIndex * 4, rowIndex * 4 + 4)
+        {/* Quick Stats en una sola fila, centradas y de alto uniforme */}
+        <XStack gap="$3" marginTop="$2" jc="center" flexWrap="wrap">
+          {stats.map((s) => {
+            const isOpen = openIds.has(s.key)
             return (
-              <XStack key={rowIndex} gap="$3" flexWrap="wrap">
-                {row.map((s) => {
-                  const isOpen = openIds.has(s.key)
-                  return (
-                    <Card
-                      key={s.key}
-                      // Sizing consistente con cards de panel (4 columnas)
-                      minWidth={220}
-                      maxWidth="24%"
-                      $md={{ maxWidth: '32%' }}
-                      $sm={{ maxWidth: '48%' }}
-                      $xs={{ maxWidth: '100%' }}
-                      padding="$3"
-                      backgroundColor="$backgroundStrong"
-                      borderRadius="$3"
-                      borderWidth={1}
-                      borderColor="$borderColor"
-                      hoverStyle={{ borderColor: '$borderColorHover' }}
-                      pressStyle={{ backgroundColor: '$backgroundHover' }}
-                      animation="quick"
-                      cursor="pointer"
-                      position="relative"
-                      onPress={() => toggleStat(s.key)}
-                    >
+              <Card
+                key={s.key}
+                minWidth={220}
+                // 5 por fila en pantallas amplias
+                flexBasis="20%"
+                maxWidth="20%"
+                $lg={{ flexBasis: '20%', maxWidth: '20%' }}
+                $md={{ flexBasis: '25%', maxWidth: '25%' }}
+                $sm={{ flexBasis: '33.33%', maxWidth: '33.33%' }}
+                $xs={{ flexBasis: '50%', maxWidth: '50%' }}
+                minHeight={120}
+                padding="$3"
+                backgroundColor="$backgroundStrong"
+                borderRadius="$3"
+                borderWidth={1}
+                borderColor="$borderColor"
+                hoverStyle={{ borderColor: '$borderColorHover' }}
+                pressStyle={{ backgroundColor: '$backgroundHover' }}
+                animation="quick"
+                cursor="pointer"
+                position="relative"
+                onPress={() => toggleStat(s.key)}
+              >
                 {/* Close (visible cuando está abierto) */}
                 {isOpen && (
                   <Button
@@ -294,12 +293,9 @@ export default function AdminDashboard() {
                   )}
                 </AnimatePresence>
               </Card>
-                  )
-                })}
-              </XStack>
             )
           })}
-        </YStack>
+        </XStack>
 
         {/* 🔥 CARDS EN 4 COLUMNAS - Grid Responsivo */}
         <YStack gap="$3">
