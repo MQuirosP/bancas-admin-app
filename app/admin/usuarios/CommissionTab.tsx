@@ -1,4 +1,4 @@
-// app/admin/usuarios/[id]/CommissionTab.tsx
+// app/admin/usuarios/CommissionTab.tsx
 import React from 'react'
 import { YStack, XStack, Text } from 'tamagui'
 import { Toolbar, Button } from '@/components/ui'
