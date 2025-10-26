@@ -188,10 +188,10 @@ export default function AdminDashboard() {
     const range = max - min || 1
     const color = (vals[vals.length - 1] - vals[0] >= 0) ? '$green10' : '$red10'
     return (
-      <XStack ai="flex-end" gap={4} mt="$2" height={28}>
+      <XStack ai="flex-end" gap={4} mt="$1" height={20}>
         {vals.map((v, i) => {
-          const h = 8 + Math.round(((v - min) / range) * 20)
-          return <YStack key={i} width={6} height={h} bg={color} br="$2" />
+          const h = 6 + Math.round(((v - min) / range) * 14)
+          return <YStack key={i} width={5} height={h} bg={color} br="$2" />
         })}
       </XStack>
     )
@@ -216,21 +216,21 @@ export default function AdminDashboard() {
 
         {/* Quick Stats (arriba) */}
         {/* Quick Stats en una sola fila, centradas y de alto uniforme */}
-        <XStack gap="$2" marginTop="$2" jc="center" flexWrap="wrap">
+        <XStack gap="$1" marginTop="$2" jc="center" flexWrap="wrap">
           {stats.map((s) => {
             const isOpen = openIds.has(s.key)
             return (
               <Card
                 key={s.key}
-                minWidth={180}
-                // Más angostas para caber en una sola fila
-                flexBasis="19%"
-                maxWidth="19%"
-                $lg={{ flexBasis: '19%', maxWidth: '19%' }}
+                minWidth={160}
+                // Más angostas y bajas para caber en una sola fila
+                flexBasis="18%"
+                maxWidth="18%"
+                $lg={{ flexBasis: '18%', maxWidth: '18%' }}
                 $md={{ flexBasis: '20%', maxWidth: '20%' }}
                 $sm={{ flexBasis: '33.33%', maxWidth: '33.33%' }}
                 $xs={{ flexBasis: '50%', maxWidth: '50%' }}
-                minHeight={120}
+                minHeight={100}
                 padding="$2"
                 backgroundColor="$backgroundStrong"
                 borderRadius="$3"
