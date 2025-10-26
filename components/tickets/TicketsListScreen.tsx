@@ -68,8 +68,9 @@ export default function TicketsListScreen({ scope }: Props) {
     const params: any = {
       page,
       pageSize,
-      // Map scope to backend expected values
-      scope: scope === 'admin' ? 'all' : scope === 'ventana' ? 'ventana' : 'vendedor',
+      // Backend acepta solo 'all' | 'mine'.
+      // 'mine' aplica para roles VENTANA y VENDEDOR (server infiere filtros por token).
+      scope: scope === 'admin' ? 'all' : 'mine',
     }
     if (dateFilter === 'today') params.date = 'today'
     else if (dateFilter === 'yesterday') params.date = 'yesterday'
