@@ -202,7 +202,7 @@ export default function AdminDashboard() {
 
   return (
     <ScrollView flex={1} backgroundColor="$background">
-      <YStack padding="$4" gap="$4">
+      <YStack padding="$4" gap="$4" maxWidth={1200} alignSelf="center" width="100%">
         {/* Header */}
         <YStack gap="$2">
           <Text fontSize="$8" fontWeight="bold" color="$textPrimary">

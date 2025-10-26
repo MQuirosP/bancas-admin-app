@@ -89,7 +89,7 @@ export default function EditVentanaScreen() {
 
   return (
     <ScrollView flex={1} backgroundColor="$background">
-      <YStack padding="$4" gap="$4" maxWidth={600} alignSelf="center" width="100%">
+      <YStack padding="$4" gap="$4" maxWidth={1200} alignSelf="center" width="100%">
         <Text fontSize="$8" fontWeight="bold">Editar Ventana</Text>
 
         {!ventana || loadingVentana ? (

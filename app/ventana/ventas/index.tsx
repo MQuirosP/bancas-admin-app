@@ -30,7 +30,7 @@ export default function MisVentasScreen() {
 
   return (
     <ScrollView flex={1} backgroundColor={'$background'}>
-      <YStack padding="$4" gap="$4">
+      <YStack padding="$4" gap="$4" maxWidth={1200} alignSelf="center" width="100%">
         <XStack jc="space-between" ai="center" gap="$3" flexWrap="wrap">
           <Text fontSize="$8" fontWeight="bold" color="$color">Mis Ventas</Text>
           {isFetching && <Spinner size="small" />}

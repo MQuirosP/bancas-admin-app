@@ -111,7 +111,7 @@ export default function BancasListScreen() {
 
   return (
     <ScrollView flex={1} backgroundColor="$background" contentContainerStyle={{ flexGrow: 1 }}>
-      <YStack flex={1} padding="$4" gap="$4" backgroundColor="$background">
+      <YStack flex={1} padding="$4" gap="$4" backgroundColor="$background" maxWidth={1200} alignSelf="center" width="100%">
         {/* Header */}
         <XStack justifyContent="space-between" alignItems="center" flexWrap="wrap" gap="$3">
           <XStack ai="center" gap="$2">
