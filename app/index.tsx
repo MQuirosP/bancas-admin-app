@@ -11,7 +11,7 @@ export default function Index() {
   if (isAuthenticated && user) {  
     // Redirigir según el rol  
     if (user.role === 'ADMIN') {  
-      return <Redirect href="/admin" />;  
+      return <Redirect href="/admin/dashboard" />;  
     } else if (user.role === 'VENTANA') {  
       return <Redirect href="/ventana" />;  
     } else if (user.role === 'VENDEDOR') {  

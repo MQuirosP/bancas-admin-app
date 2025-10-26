@@ -59,6 +59,7 @@ export default function AdminLayout() {
         <Stack.Screen name="sorteos/index" />
         <Stack.Screen name="sorteos/[id]" />
         <Stack.Screen name="tickets/index" />
+        <Stack.Screen name="tickets/nuevo" />
         <Stack.Screen name="tickets/[id]" />
         <Stack.Screen name="usuarios/index" />
         <Stack.Screen name="usuarios/[id]" />

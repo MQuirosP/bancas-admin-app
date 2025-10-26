@@ -47,7 +47,7 @@ export default function LoginScreen() {
       await login(validated.username, validated.password)
 
       const currentUser = useAuthStore.getState().user
-      if (currentUser?.role === 'ADMIN') router.replace('/admin')
+      if (currentUser?.role === 'ADMIN') router.replace('/admin/dashboard')
       else if (currentUser?.role === 'VENTANA') router.replace('/ventana')
       else if (currentUser?.role === 'VENDEDOR') router.replace('/vendedor')
       else router.replace('/(dashboard)')

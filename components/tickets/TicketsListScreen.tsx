@@ -137,6 +137,14 @@ export default function TicketsListScreen({ scope }: Props) {
             </Text>
             {isFetching && <Spinner size="small" />}
           </XStack>
+          {(scope === 'admin' || scope === 'ventana') && (
+            <Button
+              size="$3"
+              onPress={() => router.push((scope === 'admin' ? '/admin/tickets/nuevo' : '/ventana/tickets/nuevo') as any)}
+            >
+              Nuevo Ticket
+            </Button>
+          )}
         </XStack>
 
         <Toolbar>
@@ -331,6 +339,8 @@ export default function TicketsListScreen({ scope }: Props) {
                 }
               })()
 
+              // Consecutivo mostrado: ticketNumber o code del backend; fallback: últimos 8 del id
+              const displayNum = (ticket as any).ticketNumber ?? (ticket as any).code ?? ticket.id.slice(-8)
               return (
                 <Card
                   key={ticket.id}
@@ -342,7 +352,11 @@ export default function TicketsListScreen({ scope }: Props) {
                   onPress={() => {
                     // navegación por pathname dinámico + params (expo-router)
                     router.push({
-                      pathname: scope === 'admin' ? '/admin/tickets/[id]' : '/ventana/tickets/[id]',
+                      pathname: scope === 'admin'
+                        ? '/admin/tickets/[id]'
+                        : scope === 'ventana'
+                        ? '/ventana/tickets/[id]'
+                        : '/vendedor/tickets/[id]',
                       params: { id: ticket.id },
                     })
                   }}
@@ -350,7 +364,7 @@ export default function TicketsListScreen({ scope }: Props) {
                   <XStack justifyContent="space-between" ai="flex-start" gap="$3" flexWrap="wrap">
                     <YStack flex={1} gap="$1" minWidth={260}>
                       <XStack ai="center" gap="$2" flexWrap="wrap">
-                        <Text fontSize="$5" fontWeight="600">Ticket #{ticket.id.slice(-8)}</Text>
+                        <Text fontSize="$5" fontWeight="600">Tiquete #{displayNum}</Text>
                         {hasWinner && (
                           <XStack bg="$green4" px="$2" py="$1" br="$2" bw={1} bc="$green8">
                             <Text color="$green11" fontSize="$2" fontWeight="700">GANADOR</Text>

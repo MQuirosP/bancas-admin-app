@@ -35,8 +35,14 @@ export type UpdateUserDTO = Partial<{
 /** Helpers para soportar tanto {success,data,meta} como data plano */
 function unwrapList<T>(res: unknown): { data: T[]; meta?: MetaPage } {
   const body = (res as any) ?? {}
+  // Array plano
   if (Array.isArray(body)) return { data: body }
+  // Forma común: { success, data: T[], meta }
   if (Array.isArray(body?.data)) return { data: body.data as T[], meta: body.meta }
+  // Forma anidada: { success, data: { data: T[], meta } }
+  if (Array.isArray(body?.data?.data)) {
+    return { data: body.data.data as T[], meta: (body.data.meta ?? body.meta) as MetaPage | undefined }
+  }
   return { data: [] }
 }
 

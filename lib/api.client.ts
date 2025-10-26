@@ -242,6 +242,14 @@ export class ApiClient {
     })
   }
 
+  postWithHeaders<T>(endpoint: string, body?: any, headers?: Record<string, string>) {
+    return this.request<T>(endpoint, {
+      method: 'POST',
+      headers,
+      body: body ? JSON.stringify(body) : undefined,
+    })
+  }
+
   patch<T>(endpoint: string, body?: any) {
     return this.request<T>(endpoint, {
       method: 'PATCH',

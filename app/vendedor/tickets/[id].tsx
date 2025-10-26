@@ -12,14 +12,12 @@ async function fetchTicketDetail(id: string) {
   return res?.data ?? res
 }
 
-export default function AdminTicketPreview() {
-  const { id: raw } = useLocalSearchParams()
-  const id = Array.isArray(raw) ? raw[0] : (raw ?? '')
+export default function VendedorTicketPreview() {
+  const { id } = useLocalSearchParams<{ id: string }>()
   const router = useRouter()
-  if (!id) return null
 
   const { data: ticket, isLoading, isError, refetch } = useQuery({
-    queryKey: ['tickets', 'detail', 'admin', id],
+    queryKey: ['tickets', 'detail', 'vendedor', id],
     queryFn: () => fetchTicketDetail(String(id)),
     enabled: !!id,
     staleTime: 30_000,
@@ -29,12 +27,15 @@ export default function AdminTicketPreview() {
     if (!ticket) return ''
     const tn = ticket.ticketNumber ?? (ticket as any).code ?? ticket.id
     const head = `Tiquete #${tn} — ${ticket?.loteria?.name ?? ''}`
-    const lines = (ticket?.jugadas ?? []).map((j: any) => `${j.amount} * ${(j.type === 'REVENTADO' ? (j.reventadoNumber ?? j.number) : j.number)}`)
+    const lines = (ticket?.jugadas ?? []).map((j: any) =>
+      `${j.amount} * ${j.type === 'REVENTADO' ? (j.reventadoNumber ?? j.number) : j.number}`
+    )
     return `${head}\n${lines.join('\n')}\nTotal: ${ticket.totalAmount ?? ''}`
   }, [ticket])
 
   const onShare = useCallback(async () => {
     try {
+      // Web share API via navigator if available
       // @ts-ignore
       if (typeof navigator !== 'undefined' && navigator.share) {
         // @ts-ignore
@@ -64,7 +65,7 @@ export default function AdminTicketPreview() {
       <YStack f={1} ai="center" jc="center" bg="$background" p="$4">
         <Text color="$error">Error al cargar ticket</Text>
         <Button mt="$3" onPress={() => refetch()}>Reintentar</Button>
-        <Button mt="$2" variant="outlined" onPress={() => router.replace('/admin/tickets')}>Volver</Button>
+        <Button mt="$2" variant="outlined" onPress={() => router.replace('/vendedor')}>Volver</Button>
       </YStack>
     )
   }
@@ -73,10 +74,11 @@ export default function AdminTicketPreview() {
     <ScrollView flex={1} backgroundColor="$background">
       <YStack p="$4" gap="$4" ai="center">
         <XStack gap="$2">
-          <Button variant="ghost" onPress={() => router.replace('/admin/tickets')}>Cerrar</Button>
+          <Button variant="ghost" onPress={() => router.replace('/vendedor')}>Cerrar</Button>
           <Button onPress={onShare}>Compartir</Button>
           <Button variant="outlined" onPress={onPrint}>Imprimir</Button>
         </XStack>
+
         <TicketReceipt ticket={ticket} />
       </YStack>
     </ScrollView>

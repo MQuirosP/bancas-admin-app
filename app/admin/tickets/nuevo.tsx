@@ -1,12 +1,12 @@
-// app/vendedor/tickets/nuevo.tsx
+// app/admin/tickets/nuevo.tsx
 import React, { useMemo } from 'react'
 import { YStack, ScrollView } from 'tamagui'
 import { useRouter } from 'expo-router'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { apiClient, ApiErrorClass } from '../../../lib/api.client'
-import { useAuthStore } from '../../../store/auth.store'
-import { Sorteo, SorteoStatus, CreateTicketRequest, RestrictionRule } from '../../../types/models.types'
-import { useToast } from '../../../hooks/useToast'
+import { apiClient, ApiErrorClass } from '@/lib/api.client'
+import { useAuthStore } from '@/store/auth.store'
+import { Sorteo, SorteoStatus, CreateTicketRequest, RestrictionRule } from '@/types/models.types'
+import { useToast } from '@/hooks/useToast'
 import TicketForm from '@/components/tickets/TicketForm'
 
 type ListResp<T> = T[] | { data: T[]; meta?: any }
@@ -15,7 +15,7 @@ function toArray<T>(payload: ListResp<T> | undefined | null): T[] {
   return Array.isArray(payload) ? payload : Array.isArray((payload as any).data) ? (payload as any).data : []
 }
 
-export default function NuevoTicketScreen() {
+export default function AdminNuevoTicket() {
   const router = useRouter()
   const { success, error } = useToast()
   const { user } = useAuthStore()
@@ -23,14 +23,13 @@ export default function NuevoTicketScreen() {
   const safeBack = () => {
     try {
       // @ts-ignore
-      if (router.canGoBack?.()) router.back()
-      else router.replace('/vendedor')
+      if ((router as any).canGoBack?.()) (router as any).back()
+      else router.replace('/admin/tickets')
     } catch {
-      router.replace('/vendedor')
+      router.replace('/admin/tickets')
     }
   }
 
-  // Sorteos abiertos
   const { data: sorteosResp, isLoading: loadingSorteos } = useQuery<ListResp<Sorteo>>({
     queryKey: ['sorteos', 'open'],
     queryFn: () => apiClient.get<ListResp<Sorteo>>('/sorteos', { status: SorteoStatus.OPEN }),
@@ -39,7 +38,6 @@ export default function NuevoTicketScreen() {
   })
   const sorteos = useMemo(() => toArray<Sorteo>(sorteosResp), [sorteosResp])
 
-  // Restricciones
   const { data: restrictionsResp, isLoading: loadingRestrictions } = useQuery<ListResp<RestrictionRule>>({
     queryKey: ['restrictions'],
     queryFn: async () => {
@@ -54,7 +52,6 @@ export default function NuevoTicketScreen() {
   })
   const restrictions = useMemo(() => toArray<RestrictionRule>(restrictionsResp), [restrictionsResp])
 
-  // Crear ticket (backend infiere ventanaId por userId)
   const createTicketMutation = useMutation({
     mutationFn: (data: Omit<CreateTicketRequest, 'ventanaId'>) => apiClient.post('/tickets', data),
     onSuccess: (res: any) => {
@@ -62,7 +59,7 @@ export default function NuevoTicketScreen() {
       const ticketId = created?.id ?? created?._id
       const num = created?.ticketNumber ?? res?.data?.ticketNumber
       success(`Tiquete ${num ? `#${num} ` : ''}creado correctamente`)
-      if (ticketId) router.replace(`/vendedor/tickets/${ticketId}` as any)
+      if (ticketId) router.replace(`/admin/tickets/${ticketId}` as any)
       else safeBack()
     },
     onError: (err: ApiErrorClass) => {
@@ -80,6 +77,7 @@ export default function NuevoTicketScreen() {
           restrictionsLoading={loadingSorteos || loadingRestrictions}
           loading={createTicketMutation.isPending}
           onCancel={safeBack}
+          vendorMode="admin"
           onSubmit={(payload) => createTicketMutation.mutate(payload)}
         />
       </YStack>

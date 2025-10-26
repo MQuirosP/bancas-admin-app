@@ -57,7 +57,22 @@ export default function Drawer({ isOpen, onClose }: DrawerProps) {
           label: 'Dashboard',
           icon: Home,
           roles: ['ADMIN'],
-          route: '/admin',
+          route: '/admin/dashboard',
+        },
+        {
+          id: 'reportes',
+          label: 'Reportes',
+          icon: TrendingUp,
+          roles: ['ADMIN'],
+          route: '/admin/reportes',
+          dividerAfter: true,
+        },
+        {
+          id: 'nuevo-ticket',
+          label: 'Nuevo Ticket',
+          icon: Package,
+          roles: ['ADMIN'],
+          route: '/admin/tickets/nuevo',
         },
         {
           id: 'bancas',
@@ -118,14 +133,6 @@ export default function Drawer({ isOpen, onClose }: DrawerProps) {
           route: '/admin/tickets',
         },
         {
-          id: 'reportes',
-          label: 'Reportes',
-          icon: TrendingUp,
-          roles: ['ADMIN'],
-          route: '/admin/reportes',
-          dividerAfter: true,
-        },
-        {
           id: 'configuracion',
           label: 'Configuración',
           icon: Settings,
@@ -150,6 +157,13 @@ export default function Drawer({ isOpen, onClose }: DrawerProps) {
           icon: Ticket,
           roles: ['VENTANA'],
           route: '/ventana/tickets',
+        },
+        {
+          id: 'nuevo-ticket',
+          label: 'Nuevo Ticket',
+          icon: Package,
+          roles: ['VENTANA'],
+          route: '/ventana/tickets/nuevo',
         },
         {
           id: 'ventas',
@@ -312,6 +326,10 @@ export default function Drawer({ isOpen, onClose }: DrawerProps) {
           backgroundColor={panelBg as any}
           borderRightWidth={1}
           borderRightColor="$borderColor"
+          borderLeftWidth={1}
+          borderLeftColor="$borderColor"
+          borderBottomWidth={1}
+          borderBottomColor="$borderColor"
         >
           {/* Header */}
           <XStack
@@ -350,6 +368,11 @@ export default function Drawer({ isOpen, onClose }: DrawerProps) {
                 {/* Panel Administrativo (hub) */}
                 <Button variant="ghost" justifyContent="flex-start" paddingHorizontal="$4" paddingVertical="$3" borderRadius="$3" bw={1} bc="transparent" animation="quick" style={{ transition: 'all 160ms ease' }} pressStyle={{ backgroundColor: '$backgroundPress' }} hoverStyle={{ backgroundColor: '$backgroundPress', borderColor: hoverBorder, shadowColor: hoverBorder as any, shadowOpacity: 0.35, shadowRadius: 8 }} onPress={() => handleNavigate('/admin')}>
                   <XStack gap="$3" alignItems="center" width="100%"><Store size={20} color={iconColor} /><Text fontSize="$4" fontWeight="500" color="$textPrimary">Panel Administrativo</Text></XStack>
+                </Button>
+
+                {/* Reportes */}
+                <Button variant="ghost" justifyContent="flex-start" paddingHorizontal="$4" paddingVertical="$3" borderRadius="$3" bw={1} bc="transparent" animation="quick" style={{ transition: 'all 160ms ease' }} pressStyle={{ backgroundColor: '$backgroundPress' }} hoverStyle={{ backgroundColor: '$backgroundPress', borderColor: hoverBorder, shadowColor: hoverBorder as any, shadowOpacity: 0.35, shadowRadius: 8 }} onPress={() => handleNavigate('/admin/reportes')}>
+                  <XStack gap="$3" alignItems="center" width="100%"><TrendingUp size={20} color={iconColor} /><Text fontSize="$4" fontWeight="500" color="$textPrimary">Reportes</Text></XStack>
                 </Button>
 
                 {/* Configuración */}
