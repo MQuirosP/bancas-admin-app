@@ -4,7 +4,6 @@ import { YStack, XStack, Text, Switch, Spinner } from 'tamagui'
 import { Card, Input, Button } from '@/components/ui'
 import { z } from 'zod'
 import { useToast } from '@/hooks/useToast'
-import { CustomButton } from '@/components/ui/CustomButton'
 import { FieldGroup, FieldLabel, FieldError } from '@/components/ui/Field'
 
 const createSchema = z.object({

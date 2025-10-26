@@ -1,7 +1,7 @@
 // app/admin/index.tsx
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { useRouter } from 'expo-router';
-import { YStack, XStack, Text, ScrollView } from 'tamagui';
+import { YStack, XStack, Text, ScrollView, Dialog } from 'tamagui';
 import { Card, Button } from '@/components/ui';
 import {
   Users,
@@ -14,6 +14,10 @@ import {
   BarChart3,
 } from '@tamagui/lucide-icons';
 import { useAuthStore } from '../../store/auth.store';
+import { useVentasSummary, useVentasBreakdown } from '@/hooks/useVentas'
+import { formatCurrency } from '@/utils/formatters'
+import SafeDialogContent from '@/components/ui/SafeDialogContent'
+import { useUIStore } from '@/store/ui.store'
 
 interface DashboardCard {
   title: string;
@@ -99,6 +103,55 @@ const dashboardCards: DashboardCard[] = [
 export default function AdminDashboard() {
   const router = useRouter();
   const { user } = useAuthStore();
+  const compareRange = useUIStore((s) => s.compareRange)
+
+  // Periodos comparables: por defecto hoy vs ayer; opcional last7/last30 vs periodo anterior
+  const current = React.useMemo(() => ({ date: 'today' as const }), [])
+  const previous = React.useMemo(() => {
+    if (compareRange === 'yesterday') return { date: 'yesterday' as const }
+    const now = new Date()
+    const to = new Date(now)
+    const from = new Date(now)
+    if (compareRange === 'last7') {
+      // Actual 7 días: [now-6d, now]; Anterior 7 días: [now-13d, now-7d]
+      const prevTo = new Date(now)
+      prevTo.setDate(now.getDate() - 7)
+      const prevFrom = new Date(now)
+      prevFrom.setDate(now.getDate() - 13)
+      return { date: 'range' as const, from: prevFrom.toISOString(), to: prevTo.toISOString() }
+    }
+    if (compareRange === 'last30') {
+      const prevTo = new Date(now)
+      prevTo.setDate(now.getDate() - 30)
+      const prevFrom = new Date(now)
+      prevFrom.setDate(now.getDate() - 59)
+      return { date: 'range' as const, from: prevFrom.toISOString(), to: prevTo.toISOString() }
+    }
+    return { date: 'yesterday' as const }
+  }, [compareRange])
+
+  const { data: today } = useVentasSummary(current)
+  const { data: prev } = useVentasSummary(previous)
+  const { data: ventanasToday } = useVentasBreakdown({ date: 'today', dimension: 'ventana', top: 100 })
+  const { data: ventanasYesterday } = useVentasBreakdown({ date: 'yesterday', dimension: 'ventana', top: 100 })
+
+  const stats = useMemo(() => {
+    const vt = today?.ventasTotal ?? 0
+    const vy = prev?.ventasTotal ?? 0
+    const nt = today?.neto ?? 0
+    const ny = prev?.neto ?? 0
+    const prt = vt > 0 ? ((today?.payoutTotal ?? 0) / vt) * 100 : 0
+    const pry = vy > 0 ? ((prev?.payoutTotal ?? 0) / vy) * 100 : 0
+    const wt = (ventanasToday ?? []).length
+    const wy = (ventanasYesterday ?? []).length
+    const delta = (a: number, b: number) => (b === 0 ? (a > 0 ? 100 : 0) : ((a - b) / b) * 100)
+    return [
+      { key: 'ventas', title: 'Ventas (hoy)', value: formatCurrency(vt), delta: delta(vt, vy), detail: { hoy: vt, ayer: vy } },
+      { key: 'neto', title: 'Neto (hoy)', value: formatCurrency(nt), delta: delta(nt, ny), detail: { hoy: nt, ayer: ny } },
+      { key: 'payout', title: 'Payout Ratio (hoy)', value: `${prt.toFixed(1)}%`, delta: prt - pry, detail: { hoy: prt, ayer: pry } },
+      { key: 'ventanas', title: 'Ventanas Activas', value: String(wt), delta: delta(wt, wy), detail: { hoy: wt, ayer: wy } },
+    ]
+  }, [today, prev, ventanasToday, ventanasYesterday])
 
   const handleCardPress = (href: string) => {
     router.push(href as any);
@@ -117,15 +170,57 @@ export default function AdminDashboard() {
           </Text>
         </YStack>
 
-        {/* 🔥 CARDS EN 2 COLUMNAS - Grid Responsivo */}
+        {/* Quick Stats (arriba) */}
+        <XStack gap="$3" flexWrap="wrap" marginTop="$2">
+          {stats.map((s) => (
+            <Dialog key={s.key}>
+              <Dialog.Trigger asChild>
+                <Card
+                  flex={1}
+                  minWidth={180}
+                  padding="$3"
+                  backgroundColor="$backgroundStrong"
+                  borderRadius="$3"
+                  borderWidth={1}
+                  borderColor="$borderColor"
+                  hoverStyle={{ borderColor: '$borderColorHover', scale: 1.01 }}
+                  pressStyle={{ scale: 0.98 }}
+                  animation="quick"
+                  cursor="pointer"
+                >
+                  <YStack gap="$1">
+                    <Text fontSize="$2" color="$textSecondary" fontWeight="500">{s.title}</Text>
+                    <XStack ai="baseline" jc="space-between">
+                      <Text fontSize="$7" fontWeight="bold" color="$textPrimary">{s.value}</Text>
+                      <Text fontSize="$2" color={s.delta >= 0 ? '$green10' : '$red10'} fontWeight="700">
+                        {s.delta >= 0 ? '↑' : '↓'} {Math.abs(s.delta).toFixed(1)}%
+                      </Text>
+                    </XStack>
+                  </YStack>
+                </Card>
+              </Dialog.Trigger>
+              <SafeDialogContent bg="$background" bw={1} bc="$borderColor" br="$4" p="$3" elevate enterStyle={{ opacity: 0, scale: 0.98 }} exitStyle={{ opacity: 0, scale: 0.98 }}>
+                <YStack gap="$2" maxWidth={360}>
+                  <Text fontSize="$5" fontWeight="700">{s.title}</Text>
+                  <Text color="$textSecondary">Hoy: {s.key === 'payout' ? `${(s.detail.hoy as number).toFixed(2)}%` : formatCurrency(s.detail.hoy as number)}</Text>
+                  <Text color="$textSecondary">Ayer: {s.key === 'payout' ? `${(s.detail.ayer as number).toFixed(2)}%` : formatCurrency(s.detail.ayer as number)}</Text>
+                  <Text color={s.delta >= 0 ? '$green10' : '$red10'} fontWeight="600">Tendencia: {s.delta >= 0 ? '↑' : '↓'} {Math.abs(s.delta).toFixed(1)}%</Text>
+                  <Dialog.Close asChild>
+                    <Button variant="secondary">Cerrar</Button>
+                  </Dialog.Close>
+                </YStack>
+              </SafeDialogContent>
+            </Dialog>
+          ))}
+        </XStack>
+
+        {/* 🔥 CARDS EN 4 COLUMNAS - Grid Responsivo */}
         <YStack gap="$3">
           {/* Agrupar cards de 2 en 2 para crear filas */}
           {dashboardCards.reduce((rows: DashboardCard[][], card, index) => {
-            if (index % 2 === 0) {
-              // Crear nueva fila cada 2 cards
+            if (index % 4 === 0) {
               rows.push([card]);
             } else {
-              // Agregar a la fila existente
               rows[rows.length - 1].push(card);
             }
             return rows;
@@ -135,9 +230,11 @@ export default function AdminDashboard() {
                 <Card
                   key={card.title}
                   flex={1}
-                  minWidth={280}
-                  maxWidth="48%"
-                  $sm={{ maxWidth: '100%' }} // 1 columna en móvil
+                  minWidth={220}
+                  maxWidth="24%"
+                  $md={{ maxWidth: '32%' }}
+                  $sm={{ maxWidth: '48%' }}
+                  $xs={{ maxWidth: '100%' }}
                   padding="$4"
                   backgroundColor="$backgroundStrong"
                   borderRadius="$4"
@@ -188,77 +285,6 @@ export default function AdminDashboard() {
             </XStack>
           ))}
         </YStack>
-
-        {/* Quick Stats (opcional) */}
-        <XStack gap="$3" flexWrap="wrap" marginTop="$4">
-          <Card
-            flex={1}
-            minWidth={150}
-            padding="$3"
-            backgroundColor="$blue3"
-            borderRadius="$3"
-          >
-            <YStack gap="$1">
-              <Text fontSize="$2" color="$blue11" fontWeight="500">
-                Bancas Activas
-              </Text>
-              <Text fontSize="$7" fontWeight="bold" color="$blue11">
-                12
-              </Text>
-            </YStack>
-          </Card>
-
-          <Card
-            flex={1}
-            minWidth={150}
-            padding="$3"
-            backgroundColor="$green3"
-            borderRadius="$3"
-          >
-            <YStack gap="$1">
-              <Text fontSize="$2" color="$green11" fontWeight="500">
-                Ventanas Activas
-              </Text>
-              <Text fontSize="$7" fontWeight="bold" color="$green11">
-                45
-              </Text>
-            </YStack>
-          </Card>
-
-          <Card
-            flex={1}
-            minWidth={150}
-            padding="$3"
-            backgroundColor="$purple3"
-            borderRadius="$3"
-          >
-            <YStack gap="$1">
-              <Text fontSize="$2" color="$primary" fontWeight="500">
-                Tickets Hoy
-              </Text>
-              <Text fontSize="$7" fontWeight="bold" color="$primary">
-                1,234
-              </Text>
-            </YStack>
-          </Card>
-
-          <Card
-            flex={1}
-            minWidth={150}
-            padding="$3"
-            backgroundColor="$orange3"
-            borderRadius="$3"
-          >
-            <YStack gap="$1">
-              <Text fontSize="$2" color="$orange11" fontWeight="500">
-                Sorteos Activos
-              </Text>
-              <Text fontSize="$7" fontWeight="bold" color="$orange11">
-                8
-              </Text>
-            </YStack>
-          </Card>
-        </XStack>
       </YStack>
     </ScrollView>
   );

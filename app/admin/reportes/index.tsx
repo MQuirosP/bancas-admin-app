@@ -40,7 +40,8 @@ export default function ReportesHub() {
                   borderWidth={1}
                   borderColor="$borderColor"
                   pressStyle={{ scale: 0.98 }}
-                  hoverStyle={{ borderColor: c.color, elevation: 4, shadowColor: c.color, shadowOpacity: 0.2, shadowRadius: 8 }}
+                  hoverStyle={{ borderColor: c.color, elevation: 4, shadowColor: c.color, shadowOpacity: 0.2, shadowRadius: 8, scale: 1.01 }}
+                  animation="quick"
                   cursor="pointer"
                   onPress={() => router.push(c.href as any)}
                 >
@@ -60,4 +61,3 @@ export default function ReportesHub() {
     </ScrollView>
   )
 }
-

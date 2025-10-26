@@ -31,9 +31,24 @@ export const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, mode = 
 
   if (Platform.OS === 'web') {
     const webValue = formatForWeb(value ?? null, mode)
+
+    // Inyecta una regla CSS única para asegurar color del placeholder en web
+    if (typeof document !== 'undefined' && !document.getElementById('datePickerPlaceholderStyle')) {
+      const styleTag = document.createElement('style')
+      styleTag.id = 'datePickerPlaceholderStyle'
+      styleTag.innerHTML = `
+        .ui-date-picker::placeholder { color: var(--color-color); opacity: 1; }
+        .ui-date-picker::-webkit-input-placeholder { color: var(--color-color); opacity: 1; }
+        .ui-date-picker::-moz-placeholder { color: var(--color-color); opacity: 1; }
+        .ui-date-picker:-ms-input-placeholder { color: var(--color-color); opacity: 1; }
+      `
+      document.head.appendChild(styleTag)
+    }
+
     return (
       <YStack style={style}>
         <input
+          className="ui-date-picker"
           type={inputType as any}
           value={webValue}
           placeholder={placeholder}

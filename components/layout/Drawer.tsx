@@ -2,7 +2,9 @@
 import React from 'react';
 import { Animated, Pressable, StyleSheet, Easing } from 'react-native';
 import { useRouter } from 'expo-router';
-import { YStack, XStack, Text, Button, ScrollView, useThemeName } from 'tamagui';
+import { YStack, XStack, Text, ScrollView, useThemeName } from 'tamagui';
+import { Button } from '@/components/ui'
+import { AnimatePresence } from '@tamagui/animate-presence'
 import {
   Home,
   Building2,
@@ -19,6 +21,8 @@ import {
   Ticket,
   DollarSign,
   Calendar,
+  ChevronDown,
+  ChevronRight,
 } from '@tamagui/lucide-icons';
 import { useAuthStore } from '../../store/auth.store';
 
@@ -202,6 +206,8 @@ export default function Drawer({ isOpen, onClose }: DrawerProps) {
   };
 
   const menuItems = getMenuItems();
+  const isAdmin = user?.role === 'ADMIN'
+  const [panelOpen, setPanelOpen] = React.useState(false)
 
   // ========== NAVEGACIÓN ==========
   const handleNavigate = (route?: string) => {
@@ -341,40 +347,157 @@ export default function Drawer({ isOpen, onClose }: DrawerProps) {
           {/* Lista de items */}
           <ScrollView flex={1}>
             <YStack padding="$3" gap="$1">
-              {menuItems.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <React.Fragment key={item.id}>
-                    <Button
-                      backgroundColor="transparent"
-                      color="$textPrimary"
-                      justifyContent="flex-start"
-                      paddingHorizontal="$4"
-                      paddingVertical="$3"
-                      borderRadius="$3"
-                      pressStyle={{ backgroundColor: '$backgroundPress' }}
-                      hoverStyle={{ backgroundColor: '$backgroundPress' }}
-                      onPress={() => handleNavigate(item.route)}
-                    >
-                      <XStack gap="$3" alignItems="center" width="100%">
-                        <Icon size={20} color={iconColor} />
-                        <Text fontSize="$4" fontWeight="500" color="$textPrimary">
-                          {item.label}
-                        </Text>
-                      </XStack>
-                    </Button>
+              {isAdmin ? (
+                <>
+                  {/* Dashboard fijo */}
+                  <Button
+                    backgroundColor="transparent"
+                    justifyContent="flex-start"
+                    paddingHorizontal="$4"
+                    paddingVertical="$3"
+                    borderRadius="$3"
+                    pressStyle={{ backgroundColor: '$backgroundPress' }}
+                    hoverStyle={{ backgroundColor: '$backgroundPress' }}
+                    onPress={() => handleNavigate('/admin/dashboard')}
+                  >
+                    <XStack gap="$3" alignItems="center" width="100%">
+                      <Home size={20} color={iconColor} />
+                      <Text fontSize="$4" fontWeight="500" color="$textPrimary">Dashboard</Text>
+                    </XStack>
+                  </Button>
 
-                    {/* Separador visual */}
-                    {item.dividerAfter && (
-                      <YStack
-                        height={1}
-                        backgroundColor="$borderColor"
-                        marginVertical="$2"
-                      />
-                    )}
-                  </React.Fragment>
-                );
-              })}
+                  {/* Panel Administrativo (colapsable) */}
+                  <Button
+                    variant="ghost"
+                    justifyContent="flex-start"
+                    paddingHorizontal="$4"
+                    paddingVertical="$3"
+                    borderRadius="$3"
+                    pressStyle={{ backgroundColor: '$backgroundPress' }}
+                    hoverStyle={{ backgroundColor: '$backgroundPress' }}
+                    onPress={() => setPanelOpen(v => !v)}
+                  >
+                    <XStack gap="$3" alignItems="center" width="100%" jc="space-between">
+                      <XStack gap="$3" alignItems="center">
+                        <Store size={20} color={iconColor} />
+                        <Text fontSize="$4" fontWeight="500" color="$textPrimary">Panel Administrativo</Text>
+                      </XStack>
+                      {panelOpen ? <ChevronDown size={18} color={iconColor} /> : <ChevronRight size={18} color={iconColor} />}
+                    </XStack>
+                  </Button>
+                  <AnimatePresence>
+                  {panelOpen && (
+                    <YStack
+                      pl="$6"
+                      gap="$1"
+                      animation="quick"
+                      enterStyle={{ opacity: 0, y: -4 }}
+                      exitStyle={{ opacity: 0, y: -4 }}
+                    >
+                      {[
+                        { id: 'panel-hub', label: 'Panel', icon: Store, route: '/admin' },
+                        { id: 'bancas', label: 'Bancas', icon: Building2, route: '/admin/bancas' },
+                        { id: 'ventanas', label: 'Ventanas', icon: Store, route: '/admin/ventanas' },
+                        { id: 'usuarios', label: 'Usuarios', icon: Users, route: '/admin/usuarios' },
+                        { id: 'loterias', label: 'Loterías', icon: Trophy, route: '/admin/loterias' },
+                        { id: 'sorteos', label: 'Sorteos', icon: Calendar, route: '/admin/sorteos' },
+                        { id: 'multipliers', label: 'Multiplicadores', icon: BarChart3, route: '/admin/multipliers' },
+                        { id: 'restrictions', label: 'Restricciones', icon: Shield, route: '/admin/restrictions' },
+                        { id: 'tickets', label: 'Tickets', icon: Ticket, route: '/admin/tickets' },
+                      ].map((it) => (
+                        <Button
+                          variant="ghost"
+                          key={it.id}
+                          justifyContent="flex-start"
+                          paddingHorizontal="$4"
+                          paddingVertical="$3"
+                          borderRadius="$3"
+                          pressStyle={{ backgroundColor: '$backgroundPress' }}
+                          hoverStyle={{ backgroundColor: '$backgroundPress' }}
+                          onPress={() => handleNavigate(it.route)}
+                        >
+                          <XStack gap="$3" alignItems="center" width="100%">
+                            <it.icon size={18} color={iconColor} />
+                            <Text fontSize="$3" color="$textPrimary">{it.label}</Text>
+                          </XStack>
+                        </Button>
+                      ))}
+                    </YStack>
+                  )}
+                  </AnimatePresence>
+
+                  {/* Reportes hub */}
+                  <Button
+                    variant="ghost"
+                    justifyContent="flex-start"
+                    paddingHorizontal="$4"
+                    paddingVertical="$3"
+                    borderRadius="$3"
+                    pressStyle={{ backgroundColor: '$backgroundPress' }}
+                    hoverStyle={{ backgroundColor: '$backgroundPress' }}
+                    onPress={() => handleNavigate('/admin/reportes')}
+                  >
+                    <XStack gap="$3" alignItems="center" width="100%">
+                      <TrendingUp size={20} color={iconColor} />
+                      <Text fontSize="$4" fontWeight="500" color="$textPrimary">Reportes</Text>
+                    </XStack>
+                  </Button>
+
+                  {/* Separador y Configuración al final */}
+                  <YStack height={1} backgroundColor="$borderColor" marginVertical="$2" />
+                  <Button
+                    variant="ghost"
+                    justifyContent="flex-start"
+                    paddingHorizontal="$4"
+                    paddingVertical="$3"
+                    borderRadius="$3"
+                    pressStyle={{ backgroundColor: '$backgroundPress' }}
+                    hoverStyle={{ backgroundColor: '$backgroundPress' }}
+                    onPress={() => handleNavigate('/admin/configuracion')}
+                  >
+                    <XStack gap="$3" alignItems="center" width="100%">
+                      <Settings size={20} color={iconColor} />
+                      <Text fontSize="$4" fontWeight="500" color="$textPrimary">Configuración</Text>
+                    </XStack>
+                  </Button>
+                </>
+              ) : (
+                // Para otros roles, lista plana existente
+                menuItems.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <React.Fragment key={item.id}>
+                      <Button
+                        variant="ghost"
+                        backgroundColor="transparent"
+                        justifyContent="flex-start"
+                        paddingHorizontal="$4"
+                        paddingVertical="$3"
+                        borderRadius="$3"
+                        pressStyle={{ backgroundColor: '$backgroundPress' }}
+                        hoverStyle={{ backgroundColor: '$backgroundPress' }}
+                        onPress={() => handleNavigate(item.route)}
+                      >
+                        <XStack gap="$3" alignItems="center" width="100%">
+                          <Icon size={20} color={iconColor} />
+                          <Text fontSize="$4" fontWeight="500" color="$textPrimary">
+                            {item.label}
+                          </Text>
+                        </XStack>
+                      </Button>
+
+                      {/* Separador visual */}
+                      {item.dividerAfter && (
+                        <YStack
+                          height={1}
+                          backgroundColor="$borderColor"
+                          marginVertical="$2"
+                        />
+                      )}
+                    </React.Fragment>
+                  );
+                })
+              )}
             </YStack>
           </ScrollView>
 
