@@ -12,7 +12,6 @@ import {
   Settings,
   Shield,
   BarChart3,
-  X as CloseIcon,
 } from '@tamagui/lucide-icons';
 import { useAuthStore } from '../../store/auth.store';
 import { useVentasSummary, useVentasBreakdown, useVentasTimeseries } from '@/hooks/useVentas'
@@ -238,26 +237,12 @@ export default function AdminDashboard() {
                 borderColor="$borderColor"
                 hoverStyle={{ borderColor: '#39FF14', shadowColor: '#39FF14', shadowOpacity: 0.25, shadowRadius: 10 }}
                 pressStyle={{ backgroundColor: '$backgroundHover' }}
-                animation="quick"
+                animation="medium"
                 cursor="pointer"
                 position="relative"
+                style={{ transition: 'all 220ms ease' }}
                 onPress={() => toggleStat(s.key)}
               >
-                {/* Close (visible cuando está abierto) */}
-                {isOpen && (
-                  <Button
-                    size="$2"
-                    circular
-                    variant="secondary"
-                    icon={CloseIcon}
-                    position="absolute"
-                    top="$2"
-                    right="$2"
-                    onPress={(e: any) => { e?.stopPropagation?.(); toggleStat(s.key) }}
-                    aria-label={`Cerrar ${s.title}`}
-                  />
-                )}
-
                 <YStack gap="$1">
                   <Text fontSize="$2" color="$textSecondary" fontWeight="500">{s.title}</Text>
                   <XStack ai="baseline" jc="space-between">
@@ -276,9 +261,10 @@ export default function AdminDashboard() {
                     <YStack
                       gap="$1"
                       mt="$3"
-                      animation="medium"
-                      enterStyle={{ opacity: 0, y: -4 }}
-                      exitStyle={{ opacity: 0, y: -4 }}
+                      animation="bouncy"
+                      enterStyle={{ opacity: 0, y: -6 }}
+                      exitStyle={{ opacity: 0, y: -6 }}
+                      style={{ transition: 'all 240ms ease' }}
                     >
                       <Text color="$textSecondary">
                         Hoy: {s.key === 'payout' ? `${(s.detail.hoy as number).toFixed(2)}%` : formatCurrency(s.detail.hoy as number)}
