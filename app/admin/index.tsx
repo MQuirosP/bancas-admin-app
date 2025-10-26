@@ -216,17 +216,17 @@ export default function AdminDashboard() {
 
         {/* Quick Stats (arriba) */}
         {/* Quick Stats en una sola fila, centradas y de alto uniforme */}
-        <XStack gap="$1" marginTop="$2" jc="center" flexWrap="wrap">
+        <XStack gap="$7" marginTop="$2" jc="center" flexWrap="wrap">
           {stats.map((s) => {
             const isOpen = openIds.has(s.key)
             return (
               <Card
                 key={s.key}
                 minWidth={160}
-                // Más angostas y bajas para caber en una sola fila
-                flexBasis="18%"
-                maxWidth="18%"
-                $lg={{ flexBasis: '18%', maxWidth: '18%' }}
+                // Más angostas y bajas para caber en una sola fila con mayor separación
+                flexBasis="17.5%"
+                maxWidth="17.5%"
+                $lg={{ flexBasis: '17.5%', maxWidth: '17.5%' }}
                 $md={{ flexBasis: '20%', maxWidth: '20%' }}
                 $sm={{ flexBasis: '33.33%', maxWidth: '33.33%' }}
                 $xs={{ flexBasis: '50%', maxWidth: '50%' }}
