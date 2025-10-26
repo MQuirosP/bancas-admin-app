@@ -21,40 +21,26 @@ export default function VentanaDashboard() {
           </Text>
         </YStack>
 
-        {/* Stats Cards */}
-        <YStack gap="$4">
-          <StatCard
-            icon={Package}
-            title="Tickets Hoy"
-            value="42"
-            change="+5 desde ayer"
-            positive
-            color="$green10"
-          />
-          <StatCard
-            icon={TrendingUp}
-            title="Ventas Hoy"
-            value="$1,250"
-            change="+15%"
-            positive
-            color="$purple10"
-          />
-          <StatCard
-            icon={Users}
-            title="Vendedores Activos"
-            value="8"
-            change="De 10 totales"
-            positive
-            color="$yellow10"
-          />
-          <StatCard
-            icon={Clock}
-            title="Último Ticket"
-            value="5 min"
-            change="Hace 5 minutos"
-            positive
-            color="$indigo10"
-          />
+        {/* Stats Cards - grid 2 columnas responsivo */}
+        <YStack gap="$3">
+          {(
+            [
+              { icon: Package, title: 'Tickets Hoy', value: '42', change: '+5 desde ayer', color: '$green10' },
+              { icon: TrendingUp, title: 'Ventas Hoy', value: '$1,250', change: '+15%', color: '$purple10' },
+              { icon: Users, title: 'Vendedores Activos', value: '8', change: 'De 10 totales', color: '$yellow10' },
+              { icon: Clock, title: 'Último Ticket', value: '5 min', change: 'Hace 5 minutos', color: '$indigo10' },
+            ] as const
+          ).reduce((rows: any[][], card, index) => {
+            if (index % 2 === 0) rows.push([card]); else rows[rows.length - 1].push(card); return rows;
+          }, []).map((row, rowIndex) => (
+            <XStack key={rowIndex} gap="$3" flexWrap="wrap">
+              {row.map((c, i) => (
+                <YStack key={i} flex={1} minWidth={280} maxWidth="48%" $sm={{ maxWidth: '100%' }}>
+                  <StatCard icon={c.icon} title={c.title} value={c.value} change={c.change} positive color={c.color as any} />
+                </YStack>
+              ))}
+            </XStack>
+          ))}
         </YStack>
 
         {/* Quick Actions */}
