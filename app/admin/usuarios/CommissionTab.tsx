@@ -22,6 +22,7 @@ export default function CommissionTab({ userId, targetRole, viewerRole }: Props)
   const { confirm, ConfirmRoot } = useConfirm()
   const { data: policy, isFetching, refetch } = useCommissionPolicy(userId)
   const update = useUpdateCommissionPolicy(userId)
+  const [techError, setTechError] = React.useState<{ code?: string; traceId?: string; details?: any[] } | null>(null)
 
   const readOnly = viewerRole !== 'ADMIN' || !(targetRole === 'VENTANA' || targetRole === 'VENDEDOR')
 
@@ -33,8 +34,15 @@ export default function CommissionTab({ userId, targetRole, viewerRole }: Props)
     }
     try {
       await update.mutateAsync(parsed.data)
+      setTechError(null)
     } catch (e) {
-      toast.error(getErrorMessage(e))
+      const anyErr = e as any
+      const msg = getErrorMessage(e)
+      const traceId = anyErr?.traceId || anyErr?.trace_id
+      const code = anyErr?.code
+      const details = anyErr?.details
+      setTechError({ code, traceId, details })
+      toast.error(traceId ? `${msg} (traceId: ${traceId})` : msg)
     }
   }
 
@@ -46,7 +54,15 @@ export default function CommissionTab({ userId, targetRole, viewerRole }: Props)
       cancelText: 'Cancelar',
     })
     if (!ok) return
-    try { await update.mutateAsync(EmptyPolicy) } catch (e) { toast.error(getErrorMessage(e)) }
+    try { await update.mutateAsync(EmptyPolicy); setTechError(null) } catch (e) {
+      const anyErr = e as any
+      const msg = getErrorMessage(e)
+      const traceId = anyErr?.traceId || anyErr?.trace_id
+      const code = anyErr?.code
+      const details = anyErr?.details
+      setTechError({ code, traceId, details })
+      toast.error(traceId ? `${msg} (traceId: ${traceId})` : msg)
+    }
   }
 
   return (
@@ -65,6 +81,14 @@ export default function CommissionTab({ userId, targetRole, viewerRole }: Props)
 
       {!(targetRole === 'VENTANA' || targetRole === 'VENDEDOR') && (
         <Text color="$textSecondary">No aplica política por usuario para ADMIN</Text>
+      )}
+
+      {techError?.traceId && (
+        <Card p="$2" bw={1} bc="$borderColor" bg="$backgroundHover">
+          <Text fontSize="$2" color="$textSecondary">Detalles técnicos:</Text>
+          <Text fontSize="$2">traceId: {techError.traceId}</Text>
+          {techError.code && <Text fontSize="$2">code: {techError.code}</Text>}
+        </Card>
       )}
 
       <YStack gap="$3">
