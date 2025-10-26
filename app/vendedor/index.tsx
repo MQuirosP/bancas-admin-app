@@ -6,7 +6,6 @@ import { Package, TrendingUp, Plus, Clock } from '@tamagui/lucide-icons';
 import { useAuthStore } from '../../store/auth.store';
 import { useRouter } from 'expo-router';
 import { formatCurrency } from '@/utils/formatters'
-import { formatCurrency } from '@/utils/formatters'
 
 export default function VendedorDashboard() {
   const user = useAuthStore((state) => state.user);
