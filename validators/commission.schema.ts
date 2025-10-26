@@ -20,7 +20,15 @@ export const CommissionPolicyV1Schema = z.object({
   effectiveTo: isoOrNull,
   defaultPercent: z.number().min(0).max(100),
   rules: z.array(CommissionRuleSchema)
-})
+}).refine(
+  (v) => {
+    if (v.effectiveFrom && v.effectiveTo) {
+      return new Date(v.effectiveFrom) <= new Date(v.effectiveTo)
+    }
+    return true
+  },
+  { message: 'effectiveFrom debe ser <= effectiveTo', path: ['effectiveFrom'] }
+)
 
 export type CommissionPolicyV1Input = z.input<typeof CommissionPolicyV1Schema>
 export type CommissionPolicyV1Output = z.output<typeof CommissionPolicyV1Schema>
@@ -32,4 +40,3 @@ export const EmptyPolicy: CommissionPolicyV1 = {
   defaultPercent: 0,
   rules: [],
 }
-

@@ -21,7 +21,7 @@ export const CommissionPreview: React.FC<Props> = ({ policy }) => {
 
   const result = useMemo(() => {
     const amt = Number(amount) || 0
-    const mult = Number(multiplier) || 0
+    const mult = Number(multiplier)
     if (!policy || !loteriaId) {
       return { percent: 0, commissionAmount: 0, source: 'USER' as const }
     }
@@ -110,3 +110,5 @@ export const CommissionPreview: React.FC<Props> = ({ policy }) => {
 }
 
 export default CommissionPreview
+
+

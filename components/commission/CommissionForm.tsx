@@ -4,13 +4,14 @@ import { Button, Input, Select, DatePicker } from '@/components/ui'
 import type { CommissionPolicyV1, CommissionRule, BetType } from '@/types/commission.types'
 import { CommissionPolicyV1Schema, EmptyPolicy } from '@/validators/commission.schema'
 import { useLoterias } from '@/hooks/useLoterias'
+import { useActiveMultipliersQuery } from '@/hooks/userMultipliers'
+import type { LoteriaMultiplier } from '@/types/api.types'
 
 type RuleUI = {
   id?: string
   loteriaId: string
   betType: '' | BetType
-  min: string
-  max: string
+  multiplierX: string // UI stores X; serialize as min=max
   percent: string
 }
 
@@ -35,8 +36,11 @@ export const CommissionForm: React.FC<Props> = ({ value, readOnly, loading, onSa
       id: r.id,
       loteriaId: r.loteriaId ?? '',
       betType: (r.betType ?? '') as any,
-      min: String(r.multiplierRange?.min ?? ''),
-      max: String(r.multiplierRange?.max ?? ''),
+      multiplierX: String(
+        r?.multiplierRange?.min != null && r?.multiplierRange?.max != null && r.multiplierRange.min === r.multiplierRange.max
+          ? r.multiplierRange.min
+          : (r?.multiplierRange?.min ?? r?.multiplierRange?.max ?? '')
+      ),
       percent: String(r.percent ?? ''),
     }))
   )
@@ -50,8 +54,11 @@ export const CommissionForm: React.FC<Props> = ({ value, readOnly, loading, onSa
       id: r.id,
       loteriaId: r.loteriaId ?? '',
       betType: (r.betType ?? '') as any,
-      min: String(r.multiplierRange?.min ?? ''),
-      max: String(r.multiplierRange?.max ?? ''),
+      multiplierX: String(
+        r?.multiplierRange?.min != null && r?.multiplierRange?.max != null && r.multiplierRange.min === r.multiplierRange.max
+          ? r.multiplierRange.min
+          : (r?.multiplierRange?.min ?? r?.multiplierRange?.max ?? '')
+      ),
       percent: String(r.percent ?? ''),
     })))
     setErrors([])
@@ -67,7 +74,7 @@ export const CommissionForm: React.FC<Props> = ({ value, readOnly, loading, onSa
         id: r.id,
         loteriaId: r.loteriaId || null,
         betType: (r.betType || null) as any,
-        multiplierRange: { min: Number(r.min), max: Number(r.max) },
+        multiplierRange: { min: Number(r.multiplierX), max: Number(r.multiplierX) },
         percent: Number(r.percent) || 0,
       })),
     }
@@ -77,8 +84,39 @@ export const CommissionForm: React.FC<Props> = ({ value, readOnly, loading, onSa
   const upsertRule = (idx: number, patch: Partial<RuleUI>) => {
     setRules((prev) => prev.map((r, i) => (i === idx ? { ...r, ...patch } : r)))
   }
-  const addRule = () => setRules((prev) => [...prev, { loteriaId: '', betType: '', min: '', max: '', percent: '' }])
+  const addRule = () => setRules((prev) => [...prev, { loteriaId: '', betType: '', multiplierX: '', percent: '' }])
   const removeRule = (idx: number) => setRules((prev) => prev.filter((_, i) => i !== idx))
+  const moveRule = (idx: number, dir: -1 | 1) => setRules((prev) => {
+    const next = [...prev]
+    const j = idx + dir
+    if (j < 0 || j >= next.length) return prev
+    const tmp = next[idx]
+    next[idx] = next[j]
+    next[j] = tmp
+    return next
+  })
+
+  // Builder state
+  const [bLoteriaId, setBLoteriaId] = useState<string>('')
+  const [bBetType, setBBetType] = useState<BetType>('NUMERO')
+  const [bSelected, setBSelected] = useState<Record<string, boolean>>({})
+  const [bPercent, setBPercent] = useState<string>('0')
+  const { data: multipliers } = useActiveMultipliersQuery(bLoteriaId || undefined, bBetType)
+  const available: LoteriaMultiplier[] = (multipliers as any) ?? []
+  const toggleSel = (id: string) => setBSelected((p) => ({ ...p, [id]: !p[id] }))
+  const addFromBuilder = () => {
+    const selIds = Object.keys(bSelected).filter((k) => bSelected[k])
+    if (!bLoteriaId || selIds.length === 0) return
+    const percent = Math.min(100, Math.max(0, Number(bPercent) || 0))
+    const rows: RuleUI[] = selIds
+      .map((id) => available.find((m) => m.id === id))
+      .filter((m): m is LoteriaMultiplier => !!m)
+      .map((m) => ({ loteriaId: bLoteriaId, betType: bBetType, multiplierX: String(m.valueX), percent: String(percent) }))
+    if (rows.length) {
+      setRules((prev) => [...prev, ...rows])
+      setBSelected({})
+    }
+  }
 
   const handleSave = () => {
     const payload: CommissionPolicyV1 = {
@@ -138,6 +176,67 @@ export const CommissionForm: React.FC<Props> = ({ value, readOnly, loading, onSa
           </YStack>
         </XStack>
 
+        {/* Constructor de reglas */}
+        <Card p="$3" bw={1} bc="$borderColor" bg="$background">
+          <YStack gap="$2">
+            <Text fontWeight="600">Constructor de reglas</Text>
+            <XStack gap="$2" flexWrap="wrap" ai="flex-end">
+              <YStack minWidth={200} gap="$1">
+                <Text fontSize="$3">Lotería</Text>
+                <Select value={bLoteriaId} onValueChange={setBLoteriaId}>
+                  <Select.Trigger bw={1} bc="$borderColor" bg="$background" px="$3">
+                    <Select.Value placeholder="Selecciona lotería" />
+                  </Select.Trigger>
+                  <Select.Content>
+                    <Select.Viewport>
+                      {(lotResp?.data ?? []).map((l, i) => (
+                        <Select.Item key={l.id} value={l.id} index={i}><Select.ItemText>{l.name}</Select.ItemText></Select.Item>
+                      ))}
+                    </Select.Viewport>
+                  </Select.Content>
+                </Select>
+              </YStack>
+              <YStack minWidth={160} gap="$1">
+                <Text fontSize="$3">Tipo</Text>
+                <Select value={bBetType} onValueChange={(v:any)=> setBBetType(v)}>
+                  <Select.Trigger bw={1} bc="$borderColor" bg="$background" px="$3">
+                    <Select.Value />
+                  </Select.Trigger>
+                  <Select.Content>
+                    <Select.Viewport>
+                      {(['NUMERO','REVENTADO'] as const).map((o,i)=>(
+                        <Select.Item key={o} value={o} index={i}><Select.ItemText>{o}</Select.ItemText></Select.Item>
+                      ))}
+                    </Select.Viewport>
+                  </Select.Content>
+                </Select>
+              </YStack>
+              <YStack minWidth={140} gap="$1">
+                <Text fontSize="$3">%</Text>
+                <Input value={bPercent} onChangeText={setBPercent} keyboardType="number-pad" placeholder="0..100" />
+              </YStack>
+            </XStack>
+            <YStack gap="$1">
+              <Text fontSize="$3" color="$textSecondary">Multiplicadores disponibles</Text>
+              <XStack gap="$2" flexWrap="wrap">
+                {available.map((m) => (
+                  <Button
+                    key={m.id}
+                    variant={bSelected[m.id] ? 'primary' : 'secondary'}
+                    onPress={() => toggleSel(m.id)}
+                  >
+                    {m.name} ({m.valueX}x)
+                  </Button>
+                ))}
+                {available.length === 0 && <Text color="$textSecondary">No hay multiplicadores activos para esta selección</Text>}
+              </XStack>
+              <XStack>
+                <Button variant="primary" onPress={addFromBuilder} disabled={!bLoteriaId}>Agregar reglas</Button>
+              </XStack>
+            </YStack>
+          </YStack>
+        </Card>
+
         {/* Reglas */}
         <YStack gap="$2">
           <Text fontWeight="600">Reglas</Text>
@@ -178,12 +277,8 @@ export const CommissionForm: React.FC<Props> = ({ value, readOnly, loading, onSa
                   </Select>
                 </YStack>
                 <YStack minWidth={140} gap="$1">
-                  <Text fontSize="$3">Min</Text>
-                  <Input value={r.min} onChangeText={(t)=> upsertRule(idx, { min: t })} keyboardType="number-pad" />
-                </YStack>
-                <YStack minWidth={140} gap="$1">
-                  <Text fontSize="$3">Max</Text>
-                  <Input value={r.max} onChangeText={(t)=> upsertRule(idx, { max: t })} keyboardType="number-pad" />
+                  <Text fontSize="$3">Multiplicador X</Text>
+                  <Input value={r.multiplierX} onChangeText={(t)=> upsertRule(idx, { multiplierX: t })} keyboardType="number-pad" />
                 </YStack>
                 <YStack minWidth={140} gap="$1">
                   <Text fontSize="$3">%</Text>
@@ -191,6 +286,12 @@ export const CommissionForm: React.FC<Props> = ({ value, readOnly, loading, onSa
                 </YStack>
                 <YStack>
                   <Button variant="danger" onPress={()=> removeRule(idx)} disabled={!!readOnly}>Eliminar</Button>
+                </YStack>
+                <YStack>
+                  <XStack gap="$1">
+                    <Button variant="secondary" onPress={()=> moveRule(idx, -1)} disabled={idx===0}>↑</Button>
+                    <Button variant="secondary" onPress={()=> moveRule(idx, 1)} disabled={idx===rules.length-1}>↓</Button>
+                  </XStack>
                 </YStack>
               </XStack>
             </Card>
@@ -211,4 +312,3 @@ export const CommissionForm: React.FC<Props> = ({ value, readOnly, loading, onSa
 }
 
 export default CommissionForm
-
