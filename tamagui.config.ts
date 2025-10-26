@@ -40,9 +40,19 @@ const themes = {
     error: '#ef4444',
     info: '#3b82f6',
 
-    // (Opcional) Garantiza explícitamente estos tokens usados:
+    // (Opcional) Garantiza explícitamente la escala cyan usada en UI (1..12)
+    cyan1:   '#ecfeff',
+    cyan2:   '#cffafe',
     cyan3:   '#cffafe',
+    cyan4:   '#a5f3fc',
+    cyan5:   '#67e8f9',
+    cyan6:   '#22d3ee',
+    cyan7:   '#06b6d4',
+    cyan8:   '#0891b2',
+    cyan9:   '#0e7490',
     cyan10:  '#06b6d4',
+    cyan11:  '#0891b2',
+    cyan12:  '#083344',
     indigo3: '#e0e7ff',
     // usado en UI como fondo suave del badge/icono
     indigo4: '#c7d2fe',
@@ -85,9 +95,19 @@ const themes = {
     error: '#f87171',
     info: '#60a5fa',
 
-    // (Opcional) Garantiza explícitamente estos tokens usados:
+    // (Opcional) Garantiza explícitamente la escala cyan usada en UI (1..12)
+    cyan1:   '#083344',
+    cyan2:   '#0b3f4a',
     cyan3:   '#164e63',
+    cyan4:   '#155e75',
+    cyan5:   '#0e7490',
+    cyan6:   '#0891b2',
+    cyan7:   '#06b6d4',
+    cyan8:   '#22d3ee',
+    cyan9:   '#67e8f9',
     cyan10:  '#22d3ee',
+    cyan11:  '#a5f3fc',
+    cyan12:  '#cffafe',
     indigo3: '#312e81',
     // usado en UI como fondo suave del badge/icono
     indigo4: '#3730a3',
