@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { YStack, XStack, Text, ScrollView, Card, Spinner } from 'tamagui';
-import { Button, Input, Select } from '@/components/ui'
+import { Button, Input, Select, DatePicker } from '@/components/ui'
 import { Check, ChevronDown, RefreshCw } from '@tamagui/lucide-icons'
 import { useVentasSummary, useVentasBreakdown, useVentasTimeseries } from '@/hooks/useVentas'
 import { formatCurrency } from '@/utils/formatters'
@@ -10,14 +10,14 @@ type DateFilter = 'today' | 'yesterday' | 'last7' | 'last30' | 'range'
 export default function ReportesScreen() {
   const [dateFilter, setDateFilter] = useState<DateFilter>('today')
   const [dimension, setDimension] = useState<'ventana'|'vendedor'|'loteria'|'sorteo'>('vendedor')
-  const [from, setFrom] = useState('')
-  const [to, setTo] = useState('')
+  const [from, setFrom] = useState<Date | null>(null)
+  const [to, setTo] = useState<Date | null>(null)
 
   const base = useMemo(() => {
     if (dateFilter === 'today' || dateFilter === 'yesterday') return { date: dateFilter }
     if (dateFilter === 'last7') return { date: 'range' as const, from: new Date(Date.now()-7*86400000).toISOString(), to: new Date().toISOString() }
     if (dateFilter === 'last30') return { date: 'range' as const, from: new Date(Date.now()-30*86400000).toISOString(), to: new Date().toISOString() }
-    if (dateFilter === 'range' && from && to) return { date: 'range' as const, from, to }
+    if (dateFilter === 'range' && from && to) return { date: 'range' as const, from: from.toISOString(), to: to.toISOString() }
     return { date: 'today' as const }
   }, [dateFilter, from, to])
 
@@ -60,12 +60,12 @@ export default function ReportesScreen() {
             {dateFilter==='range' && (
               <>
                 <YStack gap="$1">
-                  <Text fontSize="$3">Desde (ISO)</Text>
-                  <Input width={240} value={from} onChangeText={setFrom} placeholder="2025-01-01T00:00:00Z" />
+                  <Text fontSize="$3">Desde</Text>
+                  <DatePicker value={from} onChange={(d)=>setFrom(d)} placeholder="dd/mm/aaaa" />
                 </YStack>
                 <YStack gap="$1">
-                  <Text fontSize="$3">Hasta (ISO)</Text>
-                  <Input width={240} value={to} onChangeText={setTo} placeholder="2025-01-15T23:59:59Z" />
+                  <Text fontSize="$3">Hasta</Text>
+                  <DatePicker value={to} onChange={(d)=>setTo(d)} placeholder="dd/mm/aaaa" />
                 </YStack>
               </>
             )}
