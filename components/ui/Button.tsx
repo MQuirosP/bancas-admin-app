@@ -71,22 +71,37 @@ export const Button: React.FC<UIButtonProps> = ({
 }) => {
   const vs = variantStyles(variant)
   const themeName = useThemeName()
-  const iconColor = '#ffffff'
+  const iconColor = themeName === 'dark' ? '#ffffff' : '#000000'
   const isDisabled = disabled || loading
   const renderChildren = (c: React.ReactNode) => {
     if (typeof c === 'string' || typeof c === 'number') {
-      return <Text color="#ffffff">{c}</Text>
+      return <Text color={iconColor}>{c}</Text>
     }
     return c
   }
   const content = loading ? (
     <XStack ai="center" gap="$2">
-      <Spinner size="small" color="#ffffff" />
-      {typeof loadingText === 'string' ? <Text color="#ffffff">{loadingText}</Text> : renderChildren(children)}
+      <Spinner size="small" color={iconColor} />
+      {typeof loadingText === 'string' ? <Text color={iconColor}>{loadingText}</Text> : renderChildren(children)}
     </XStack>
   ) : (
     renderChildren(children)
   )
+
+  // Ensure nested icon elements inside children also adopt theme color
+  const colorize = (node: React.ReactNode): React.ReactNode => {
+    return React.Children.map(node as any, (child: any) => {
+      if (!React.isValidElement(child)) return child
+      const isIconLike = 'size' in (child.props || {}) && !('children' in (child.props || {}))
+      if (isIconLike && !child.props?.color) {
+        return React.cloneElement(child, { color: iconColor })
+      }
+      if (child.props?.children) {
+        return React.cloneElement(child, { children: colorize(child.props.children) })
+      }
+      return child
+    })
+  }
   // Enforce icon color for built-in icon/iconAfter props
   const anyProps = rest as any
   const OriginalIcon = anyProps.icon as React.ComponentType<any> | undefined
@@ -102,7 +117,7 @@ export const Button: React.FC<UIButtonProps> = ({
 
   return (
     <TButton {...vs} {...rest} icon={WrappedIcon as any} iconAfter={WrappedIconAfter as any} disabled={isDisabled} aria-busy={loading ? true : undefined}>
-      {content}
+      {colorize(content)}
     </TButton>
   )
 }

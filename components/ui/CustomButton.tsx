@@ -1,8 +1,9 @@
 // components/ui/CustomButton.tsx
 import React from 'react'
-import { Button, ButtonProps, Spinner, XStack, Text } from 'tamagui'
+import { Button as UIButton } from './Button'
+import { XStack, Text } from 'tamagui'
 
-interface CustomButtonProps extends Omit<ButtonProps, 'variant'> {
+interface CustomButtonProps extends Omit<React.ComponentProps<typeof UIButton>, 'variant'> {
   variant?: 'primary' | 'secondary' | 'success' | 'danger' | 'warning' | 'ghost'
   loading?: boolean
 }
@@ -74,22 +75,14 @@ export function CustomButton({
       : children
 
   return (
-    <Button
-      {...styles}
-      {...props}
+    <UIButton
+      {...styles as any}
+      {...props as any}
       disabled={disabled || loading}
-      borderRadius="$3"
-      fontWeight="600"
-      shadowColor="$borderColor"
-      shadowOffset={{ width: 0, height: 2 }}
-      shadowOpacity={0.1}
-      shadowRadius={4}
-      disabledStyle={{ opacity: 0.5, cursor: 'not-allowed' }}
     >
       <XStack ai="center" gap="$2">
-        {loading ? <Spinner size="small" color={styles.color as any} /> : null}
         {content}
       </XStack>
-    </Button>
+    </UIButton>
   )
 }
