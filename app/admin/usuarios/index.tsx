@@ -198,7 +198,7 @@ export default function UsuariosListScreen() {
             {isFetching && <Spinner size="small" />}
           </XStack>
           <Button
-            icon={Plus}
+            icon={(p:any)=> <Plus {...p} color={(require('tamagui').useTheme().color as any).get?.() ?? '#000'} />}
             onPress={() => router.push('/admin/usuarios/nuevo')}
             bg="$primary"
             hoverStyle={{ bg: '$primaryHover' }}
@@ -230,7 +230,7 @@ export default function UsuariosListScreen() {
                   <Button
                     size="$2"
                     circular
-                    icon={X}
+                    icon={(p:any)=> <X {...p} color={(require('tamagui').useTheme().color as any).get?.() ?? '#000'} />}
                     position="absolute"
                     // right="$1"
                     onPress={() => setSearchInput('')}
@@ -240,7 +240,7 @@ export default function UsuariosListScreen() {
                 )}
               </XStack>
 
-              <Button icon={Search} onPress={handleSearch} hoverStyle={{ scale: 1.02 }} pressStyle={{ scale: 0.98 }}>
+              <Button icon={(p:any)=> <Search {...p} color={(require('tamagui').useTheme().color as any).get?.() ?? '#000'} />} onPress={handleSearch} hoverStyle={{ scale: 1.02 }} pressStyle={{ scale: 0.98 }}>
                 <Text>Buscar</Text>
               </Button>
 
@@ -268,7 +268,7 @@ export default function UsuariosListScreen() {
               <Separator vertical />
 
               <Button
-                icon={RefreshCw}
+                icon={(p:any)=> <RefreshCw {...p} color={(require('tamagui').useTheme().color as any).get?.() ?? '#000'} />}
                 onPress={() => { setPage(1); refetch() }}
                 backgroundColor={'$green4'}
                 borderColor={'$green8'}
@@ -356,14 +356,14 @@ export default function UsuariosListScreen() {
                           borderColor={'$red8'}
                           hoverStyle={{ backgroundColor: '$red5' }}
                           pressStyle={{ backgroundColor: '$red6', scale: 0.98 }}
-                          icon={Trash2}
+                          icon={(p:any)=> <Trash2 {...p} color={(require('tamagui').useTheme().color as any).get?.() ?? '#000'} />}
                           onPress={(e: any) => { e?.stopPropagation?.(); confirmDelete(u) }}
                         >
                           <Text>Eliminar</Text>
                         </Button>
                       ) : (
                         <Button
-                          icon={RefreshCw}
+                          icon={(p:any)=> <RefreshCw {...p} color={(require('tamagui').useTheme().color as any).get?.() ?? '#000'} />}
                           onPress={(e: any) => { e?.stopPropagation?.(); confirmRestore(u) }}
                           disabled={restore.isPending}
                         >
@@ -415,3 +415,6 @@ export default function UsuariosListScreen() {
     </ScrollView>
   )
 }
+
+
+

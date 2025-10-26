@@ -100,10 +100,10 @@ export const CommissionPreview: React.FC<Props> = ({ policy }) => {
           <Text>Resultado simulado (local):</Text>
           <Text>Percent: {result.percent.toFixed(2)}%</Text>
           <Text>Comisión: {formatCurrency(result.commissionAmount)}</Text>
-          <Text color="$textSecondary">Origen tentativo: USER (el oficial lo define el backend por jugada)</Text>
+          <Text color="$textSecondary">Nota: Este resultado es una estimación para fines informativos.</Text>
         </Card>
 
-        <Text color="$textSecondary">Nota: Este cálculo es solo una simulación local; el cálculo oficial se persiste por jugada en el backend.</Text>
+        <Text color="$textSecondary">El cálculo real se aplicará automáticamente al registrar una jugada.</Text>
       </YStack>
     </Card>
   )

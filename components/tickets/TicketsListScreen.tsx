@@ -4,6 +4,7 @@ import { Button, Input, Card, Select, DatePicker } from '@/components/ui'
 import { useRouter } from 'expo-router'
 import { useQuery } from '@tanstack/react-query'
 import { Search, X, RefreshCw, ChevronDown, Check } from '@tamagui/lucide-icons'
+import { useTheme } from 'tamagui'
 import { subDays, format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { apiClient } from '@/lib/api.client'
@@ -54,6 +55,8 @@ async function fetchTickets(params: any): Promise<{ data: Ticket[]; meta: any }>
 }
 
 export default function TicketsListScreen({ scope }: Props) {
+  const theme = useTheme()
+  const iconColor = (theme?.color as any)?.get?.() ?? '#000'
   const router = useRouter()
 
   const [page, setPage] = useState(1)
@@ -249,13 +252,13 @@ export default function TicketsListScreen({ scope }: Props) {
             <XStack gap="$3" ai="center" flexWrap="wrap">
               <Button
                 size="$3"
-                icon={RefreshCw}
+                icon={(p:any)=> <RefreshCw {...p} color={iconColor} />}
                 onPress={() => { setPage(1); refetch() }}
                 backgroundColor="$green4"
                 borderColor="$green8"
                 borderWidth={1}
                 hoverStyle={{ backgroundColor: '$green5' }}
-                pressStyle={{ backgroundColor: '$green6' }}
+                pressStyle={{ backgroundColor: '$green6', scale: 0.98 }}
               >
                 Refrescar
               </Button>
@@ -395,3 +398,4 @@ export default function TicketsListScreen({ scope }: Props) {
     </ScrollView>
   )
 }
+

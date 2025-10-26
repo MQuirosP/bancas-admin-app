@@ -22,6 +22,7 @@ const themes = {
     textPrimary: '#1a1a1a',
     textSecondary: '#4b5563',
     textTertiary: '#9ca3af',
+    colorIcon: '#ffffff',
 
     borderColor: '#e5e7eb',
     borderColorHover: '#d1d5db',
@@ -77,6 +78,7 @@ const themes = {
     textPrimary: '#f5f5f5',
     textSecondary: '#d4d4d8',
     textTertiary: '#a1a1aa',
+    colorIcon: '#121212',
 
     borderColor: '#2a2a2f',
     borderColorHover: '#35353a',

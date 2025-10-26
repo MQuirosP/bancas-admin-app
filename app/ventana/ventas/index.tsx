@@ -5,10 +5,13 @@ import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '../../../lib/api.client'
 import { formatCurrency } from '../../../utils/formatters'
 import { Check, ChevronDown, RefreshCw } from '@tamagui/lucide-icons'
+import { useTheme } from 'tamagui'
 
 type DateRange = 'today' | 'week' | 'month' | 'range'
 
 export default function MisVentasScreen() {
+  const theme = useTheme()
+  const iconColor = (theme?.color as any)?.get?.() ?? '#000'
   const [dateRange, setDateRange] = useState<DateRange>('today')
   const [page, setPage] = useState(1)
 
@@ -63,7 +66,7 @@ export default function MisVentasScreen() {
 
             <YStack gap="$1">
               <Text fontSize="$3" opacity={0}>Acción</Text>
-              <Button height={36} px="$4" icon={RefreshCw} onPress={() => { setPage(1); refetch() }}
+              <Button height={36} px="$4" icon={(p:any)=> <RefreshCw {...p} color={iconColor} />} onPress={() => { setPage(1); refetch() }}
                 backgroundColor="$green4" borderColor="$green8" borderWidth={1}
                 hoverStyle={{ backgroundColor: '$green5' }} pressStyle={{ backgroundColor: '$green6' }}
               >
@@ -109,3 +112,4 @@ export default function MisVentasScreen() {
     </ScrollView>
   )
 }
+

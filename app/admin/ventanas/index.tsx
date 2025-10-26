@@ -4,6 +4,7 @@ import { YStack, XStack, Text, ScrollView, Spinner, Separator } from 'tamagui'
 import { Button, Input, Card, Toolbar, ActiveBadge } from '@/components/ui'
 import { useRouter } from 'expo-router'
 import { Plus, Search, X, RefreshCw, Trash2, RotateCcw } from '@tamagui/lucide-icons'
+import { useTheme } from 'tamagui'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 // Toolbar y ActiveBadge ahora desde components/ui/index
 import FilterSwitch from '@/components/ui/FilterSwitch'
@@ -12,6 +13,8 @@ import { useToast } from '@/hooks/useToast'
 import { listVentanas, Ventana, softDeleteVentana, restoreVentana } from '@/services/ventanas.service'
 
 export default function VentanasListScreen() {
+  const theme = useTheme()
+  const iconColor = (theme?.color as any)?.get?.() ?? '#000'
   const router = useRouter()
   const toast = useToast()
   const qc = useQueryClient()
@@ -82,7 +85,7 @@ export default function VentanasListScreen() {
             {isFetching && <Spinner size="small" />}
           </XStack>
           <Button
-            icon={Plus}
+            icon={(p:any)=> <Plus {...p} color={iconColor} />}
             onPress={() => router.push('/admin/ventanas/nueva')}
             bg="$primary"
             hoverStyle={{ bg: '$primaryHover' }}
@@ -114,7 +117,7 @@ export default function VentanasListScreen() {
                   <Button
                     size="$2"
                     circular
-                    icon={X}
+                    icon={(p:any)=> <X {...p} color={iconColor} />}
                     position="absolute"
                     right="$2"
                     onPress={() => setSearchInput('')}
@@ -125,7 +128,7 @@ export default function VentanasListScreen() {
               </XStack>
 
               <Button 
-              icon={Search} 
+              icon={(p:any)=> <Search {...p} color={iconColor} />} 
               onPress={handleSearch}  
               pressStyle={{ scale: 0.98 }}>
                 Buscar
@@ -148,7 +151,7 @@ export default function VentanasListScreen() {
               <Separator vertical />
 
               <Button
-                icon={RefreshCw}
+                icon={(p:any)=> <RefreshCw {...p} color={iconColor} />}
                 onPress={() => { setPage(1); refetch() }} backgroundColor={'$green4'}
                 borderColor={'$green8'}
                 hoverStyle={{ backgroundColor: '$green5' }}
@@ -212,7 +215,7 @@ export default function VentanasListScreen() {
                         <Button
                           backgroundColor={'$red4'}
                           borderColor={'$red8'}
-                          icon={Trash2}
+                          icon={(p:any)=> <Trash2 {...p} color={iconColor} />}
                           onPress={(e: any) => { e?.stopPropagation?.(); askDelete(v) }}
                           hoverStyle={{ backgroundColor: '$red5' }}
                           pressStyle={{ scale: 0.98 }}
@@ -254,3 +257,4 @@ export default function VentanasListScreen() {
     </ScrollView>
   )
 }
+

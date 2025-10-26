@@ -1,5 +1,5 @@
 import React from 'react'
-import { Button as TButton, Spinner, XStack, Text } from 'tamagui'
+import { Button as TButton, Spinner, XStack, Text, useTheme } from 'tamagui'
 
 type Variant = 'primary' | 'outlined' | 'ghost' | 'danger' | 'secondary'
 
@@ -70,8 +70,9 @@ export const Button: React.FC<UIButtonProps> = ({
   ...rest
 }) => {
   const vs = variantStyles(variant)
-  // Use theme token so it always matches light/dark text color
-  const iconColor = '$color'
+  // Resolve current theme color to a concrete value (light: black, dark: white)
+  const theme = useTheme()
+  const iconColor = (theme?.color as any)?.get?.() ?? '#000000'
   const isDisabled = disabled || loading
   const renderChildren = (c: React.ReactNode) => {
     if (typeof c === 'string' || typeof c === 'number') {
@@ -81,8 +82,8 @@ export const Button: React.FC<UIButtonProps> = ({
   }
   const content = loading ? (
     <XStack ai="center" gap="$2">
-      <Spinner size="small" color={iconColor as any} />
-      {typeof loadingText === 'string' ? <Text color={iconColor as any}>{loadingText}</Text> : renderChildren(children)}
+      <Spinner size="small" color={iconColor} />
+      {typeof loadingText === 'string' ? <Text color={iconColor}>{loadingText}</Text> : renderChildren(children)}
     </XStack>
   ) : (
     renderChildren(children)
@@ -92,12 +93,14 @@ export const Button: React.FC<UIButtonProps> = ({
   const colorize = (node: React.ReactNode): React.ReactNode => {
     return React.Children.map(node as any, (child: any) => {
       if (!React.isValidElement(child)) return child
-      const isIconLike = 'size' in (child.props || {}) && !('children' in (child.props || {}))
-      if (isIconLike && !child.props?.color) {
-        return React.cloneElement(child, { color: iconColor as any })
+      const props = child.props || {}
+      const isIconLike = 'size' in props && !('children' in props)
+      const shouldColorText = child.type === Text || typeof props.children === 'string'
+      if ((isIconLike || shouldColorText) && props.color === undefined) {
+        return React.cloneElement(child, { color: iconColor, children: colorize(props.children) })
       }
-      if (child.props?.children) {
-        return React.cloneElement(child, { children: colorize(child.props.children) })
+      if (props.children) {
+        return React.cloneElement(child, { children: colorize(props.children) })
       }
       return child
     })

@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { YStack, XStack, Text, Card } from 'tamagui'
 import { Button, Input, Select, DatePicker } from '@/components/ui'
+import { useTheme } from 'tamagui'
+import { Trash2 } from '@tamagui/lucide-icons'
 import type { CommissionPolicyV1, CommissionRule, BetType } from '@/types/commission.types'
 import { CommissionPolicyV1Schema, EmptyPolicy } from '@/validators/commission.schema'
 import { useLoterias } from '@/hooks/useLoterias'
@@ -25,6 +27,8 @@ type Props = {
 }
 
 export const CommissionForm: React.FC<Props> = ({ value, readOnly, loading, onSave, onCancel, onReset }) => {
+  const theme = useTheme()
+  const iconColor = (theme?.color as any)?.get?.() ?? '#000'
   const { data: lotResp } = useLoterias({ page: 1, pageSize: 100 })
 
   const initial = useMemo(() => value ?? EmptyPolicy, [value])
@@ -86,15 +90,7 @@ export const CommissionForm: React.FC<Props> = ({ value, readOnly, loading, onSa
   }
   const addRule = () => setRules((prev) => [...prev, { loteriaId: '', betType: '', multiplierX: '', percent: '' }])
   const removeRule = (idx: number) => setRules((prev) => prev.filter((_, i) => i !== idx))
-  const moveRule = (idx: number, dir: -1 | 1) => setRules((prev) => {
-    const next = [...prev]
-    const j = idx + dir
-    if (j < 0 || j >= next.length) return prev
-    const tmp = next[idx]
-    next[idx] = next[j]
-    next[j] = tmp
-    return next
-  })
+  // (Reordenamiento por botones eliminado según solicitud)
 
   // Builder state
   const [bLoteriaId, setBLoteriaId] = useState<string>('')
@@ -244,57 +240,15 @@ export const CommissionForm: React.FC<Props> = ({ value, readOnly, loading, onSa
             <Text color="$textSecondary">Sin reglas. Se usará el Default %.</Text>
           )}
           {rules.map((r, idx) => (
-            <Card key={idx} p="$2" bw={1} bc="$borderColor" bg="$background">
-              <XStack gap="$2" flexWrap="wrap" ai="flex-end">
-                <YStack minWidth={200} gap="$1">
-                  <Text fontSize="$3">Lotería</Text>
-                  <Select value={r.loteriaId} onValueChange={(v)=> upsertRule(idx, { loteriaId: v })}>
-                    <Select.Trigger bw={1} bc="$borderColor" bg="$background" px="$3">
-                      <Select.Value placeholder="Selecciona lotería" />
-                    </Select.Trigger>
-                    <Select.Content>
-                      <Select.Viewport>
-                        {(lotResp?.data ?? []).map((l, i) => (
-                          <Select.Item key={l.id} value={l.id} index={i}><Select.ItemText>{l.name}</Select.ItemText></Select.Item>
-                        ))}
-                      </Select.Viewport>
-                    </Select.Content>
-                  </Select>
-                </YStack>
-                <YStack minWidth={160} gap="$1">
-                  <Text fontSize="$3">Tipo</Text>
-                  <Select value={r.betType || ''} onValueChange={(v:any)=> upsertRule(idx, { betType: v })}>
-                    <Select.Trigger bw={1} bc="$borderColor" bg="$background" px="$3">
-                      <Select.Value />
-                    </Select.Trigger>
-                    <Select.Content>
-                      <Select.Viewport>
-                        {[{v:'',l:'Cualquiera'},{v:'NUMERO',l:'NUMERO'},{v:'REVENTADO',l:'REVENTADO'}].map((o,i)=>(
-                          <Select.Item key={o.v} value={o.v} index={i}><Select.ItemText>{o.l}</Select.ItemText></Select.Item>
-                        ))}
-                      </Select.Viewport>
-                    </Select.Content>
-                  </Select>
-                </YStack>
-                <YStack minWidth={140} gap="$1">
-                  <Text fontSize="$3">Multiplicador X</Text>
-                  <Input value={r.multiplierX} onChangeText={(t)=> upsertRule(idx, { multiplierX: t })} keyboardType="number-pad" />
-                </YStack>
-                <YStack minWidth={140} gap="$1">
-                  <Text fontSize="$3">%</Text>
-                  <Input value={r.percent} onChangeText={(t)=> upsertRule(idx, { percent: t })} keyboardType="number-pad" />
-                </YStack>
-                <YStack>
-                  <Button variant="danger" onPress={()=> removeRule(idx)} disabled={!!readOnly}>Eliminar</Button>
-                </YStack>
-                <YStack>
-                  <XStack gap="$1">
-                    <Button variant="secondary" onPress={()=> moveRule(idx, -1)} disabled={idx===0}>↑</Button>
-                    <Button variant="secondary" onPress={()=> moveRule(idx, 1)} disabled={idx===rules.length-1}>↓</Button>
-                  </XStack>
-                </YStack>
-              </XStack>
-            </Card>
+            <RuleRow
+              key={idx}
+              idx={idx}
+              row={r}
+              loterias={lotResp?.data ?? []}
+              readOnly={!!readOnly}
+              onChange={upsertRule}
+              onRemove={removeRule}
+            />
           ))}
           <XStack>
             <Button variant="primary" onPress={addRule} disabled={!!readOnly}>Agregar regla</Button>
@@ -312,3 +266,103 @@ export const CommissionForm: React.FC<Props> = ({ value, readOnly, loading, onSa
 }
 
 export default CommissionForm
+
+// === Subcomponente por fila (usa hook de multiplicadores por lotería/tipo) ===
+function RuleRow({
+  idx,
+  row,
+  loterias,
+  readOnly,
+  onChange,
+  onRemove,
+}: {
+  idx: number
+  row: RuleUI
+  loterias: Array<{ id: string; name: string }>
+  readOnly: boolean
+  onChange: (idx: number, patch: Partial<RuleUI>) => void
+  onRemove: (idx: number) => void
+}) {
+  const loteriaId = row.loteriaId || undefined
+  const kind = (row.betType || undefined) as any
+  const { data: avail } = useActiveMultipliersQuery(loteriaId, kind)
+  const items: Array<{ id: string; label: string; value: string }> = (avail ?? []).map((m: any) => ({ id: m.id, label: `${m.name} (${m.valueX}x)`, value: String(m.valueX) }))
+  const showCustom = row.multiplierX === '' || !items.some(i => i.value === row.multiplierX)
+
+  return (
+    <Card p="$2" bw={1} bc="$borderColor" bg="$background">
+      <XStack gap="$2" flexWrap="wrap" ai="flex-end">
+        <YStack minWidth={200} gap="$1">
+          <Text fontSize="$3">Lotería</Text>
+          <Select value={row.loteriaId} onValueChange={(v)=> onChange(idx, { loteriaId: v })}>
+            <Select.Trigger bw={1} bc="$borderColor" bg="$background" px="$3">
+              <Select.Value placeholder="Selecciona lotería" />
+            </Select.Trigger>
+            <Select.Content>
+              <Select.Viewport>
+                {loterias.map((l, i) => (
+                  <Select.Item key={l.id} value={l.id} index={i}><Select.ItemText>{l.name}</Select.ItemText></Select.Item>
+                ))}
+              </Select.Viewport>
+            </Select.Content>
+          </Select>
+        </YStack>
+        <YStack minWidth={160} gap="$1">
+          <Text fontSize="$3">Tipo</Text>
+          <Select value={row.betType || ''} onValueChange={(v:any)=> onChange(idx, { betType: v })}>
+            <Select.Trigger bw={1} bc="$borderColor" bg="$background" px="$3">
+              <Select.Value />
+            </Select.Trigger>
+            <Select.Content>
+              <Select.Viewport>
+                {[{v:'',l:'Cualquiera'},{v:'NUMERO',l:'NUMERO'},{v:'REVENTADO',l:'REVENTADO'}].map((o,i)=>(
+                  <Select.Item key={o.v} value={o.v} index={i}><Select.ItemText>{o.l}</Select.ItemText></Select.Item>
+                ))}
+              </Select.Viewport>
+            </Select.Content>
+          </Select>
+        </YStack>
+        <YStack minWidth={200} gap="$1">
+          <Text fontSize="$3">Multiplicador X</Text>
+          <Select value={showCustom ? 'custom' : row.multiplierX} onValueChange={(v:any)=> {
+            if (v === 'custom') onChange(idx, { multiplierX: '' })
+            else onChange(idx, { multiplierX: v })
+          }}>
+            <Select.Trigger bw={1} bc="$borderColor" bg="$background" px="$3">
+              <Select.Value />
+            </Select.Trigger>
+            <Select.Content>
+              <Select.Viewport>
+                {items.map((it, i) => (
+                  <Select.Item key={it.id} value={it.value} index={i}><Select.ItemText>{it.label}</Select.ItemText></Select.Item>
+                ))}
+                <Select.Item value={'custom'} index={items.length}><Select.ItemText>Personalizado…</Select.ItemText></Select.Item>
+              </Select.Viewport>
+            </Select.Content>
+          </Select>
+          {showCustom && (
+            <Input mt="$1" value={row.multiplierX} onChangeText={(t)=> onChange(idx, { multiplierX: t })} keyboardType="number-pad" placeholder="Ej. 90" />
+          )}
+        </YStack>
+        <YStack minWidth={140} gap="$1">
+          <Text fontSize="$3">%</Text>
+          <Input value={row.percent} onChangeText={(t)=> onChange(idx, { percent: t })} keyboardType="number-pad" />
+        </YStack>
+        <YStack>
+          <Button
+            circular
+            onPress={()=> onRemove(idx)}
+            backgroundColor="$red4"
+            borderColor="$red8"
+            borderWidth={1}
+            hoverStyle={{ backgroundColor: '$red5' }}
+            pressStyle={{ backgroundColor: '$red6', scale: 0.98 }}
+            aria-label="Eliminar regla"
+          >
+            <Trash2 size={16} color={iconColor} />
+          </Button>
+        </YStack>
+      </XStack>
+    </Card>
+  )
+}

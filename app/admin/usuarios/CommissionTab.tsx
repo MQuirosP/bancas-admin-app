@@ -3,6 +3,7 @@ import React from 'react'
 import { YStack, XStack, Text } from 'tamagui'
 import { Toolbar, Button } from '@/components/ui'
 import { RefreshCw, HelpCircle } from '@tamagui/lucide-icons'
+import { useTheme } from 'tamagui'
 import { useCommissionPolicy, useUpdateCommissionPolicy } from '@/hooks/useCommissionPolicy'
 import { CommissionForm } from '@/components/commission/CommissionForm'
 import { CommissionPreview } from '@/components/commission/CommissionPreview'
@@ -22,6 +23,8 @@ export default function CommissionTab({ userId, targetRole, viewerRole }: Props)
   const { confirm, ConfirmRoot } = useConfirm()
   const { data: policy, isFetching, refetch } = useCommissionPolicy(userId)
   const update = useUpdateCommissionPolicy(userId)
+  const theme = useTheme()
+  const iconColor = (theme?.color as any)?.get?.() ?? '#000'
   const [techError, setTechError] = React.useState<{ code?: string; traceId?: string; details?: any[] } | null>(null)
 
   const readOnly = viewerRole !== 'ADMIN' || !(targetRole === 'VENTANA' || targetRole === 'VENDEDOR')
@@ -74,8 +77,19 @@ export default function CommissionTab({ userId, targetRole, viewerRole }: Props)
           <Text fontSize="$2" color="$textSecondary">Política por usuario (v1)</Text>
         </XStack>
         <XStack gap="$2" ai="center">
-          <Button variant="primary" icon={RefreshCw} onPress={() => refetch()} loading={isFetching || update.isPending}>Refrescar</Button>
-          <Button variant="secondary" icon={HelpCircle} onPress={() => toast.info('Consulta la documentación interna de comisiones')}>Ayuda</Button>
+          <Button
+            icon={(p:any)=> <RefreshCw {...p} color={iconColor} />}
+            onPress={() => refetch()}
+            loading={isFetching || update.isPending}
+            backgroundColor="$green4"
+            borderColor="$green8"
+            borderWidth={1}
+            hoverStyle={{ backgroundColor: '$green5' }}
+            pressStyle={{ backgroundColor: '$green6', scale: 0.98 }}
+          >
+            Refrescar
+          </Button>
+          <Button variant="secondary" icon={(p:any)=> <HelpCircle {...p} color={iconColor} />} onPress={() => toast.info('Consulta la documentación interna de comisiones')}>Ayuda</Button>
         </XStack>
       </Toolbar>
 

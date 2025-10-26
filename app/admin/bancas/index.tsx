@@ -5,6 +5,7 @@ import { Button, Input, Card, Toolbar, ActiveBadge } from '@/components/ui';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { Plus, Search, X, RefreshCw, Trash2 } from '@tamagui/lucide-icons';
+import { useTheme } from 'tamagui';
 import { apiClient, ApiErrorClass } from '@/lib/api.client';
 // Usar Toolbar y ActiveBadge desde components/ui
 import { useToast } from '@/hooks/useToast';
@@ -39,6 +40,8 @@ async function fetchBancas(page: number, search: string): Promise<PaginatedRespo
 }
 
 export default function BancasListScreen() {
+  const theme = useTheme();
+  const iconColor = (theme?.color as any)?.get?.() ?? '#000';
   const router = useRouter();
   const toast = useToast();
   const qc = useQueryClient();
@@ -119,7 +122,7 @@ export default function BancasListScreen() {
             {isFetching && <Spinner size="small" />}
           </XStack>
           <Button
-            icon={Plus}
+            icon={(p:any)=> <Plus {...p} color={iconColor} />}
             onPress={() => router.push('/admin/bancas/nueva')}
             bg="$primary"
             hoverStyle={{ scale: 1.02 }}
@@ -158,7 +161,7 @@ export default function BancasListScreen() {
           <Button
             size="$2"
             circular
-            icon={X}
+            icon={(p:any)=> <X {...p} color={iconColor} />}
             position="absolute"
             right="$2"
             onPress={() => setSearchInput('')}
@@ -172,7 +175,7 @@ export default function BancasListScreen() {
       {/* Botonera: no se encoge ni se monta; salta a la siguiente línea si no cabe */}
       <XStack gap="$2" ml="auto" flexShrink={0} flexWrap="wrap">
         <Button
-          icon={Search}
+          icon={(p:any)=> <Search {...p} color={iconColor} />}
           onPress={handleSearchClick}
           flexShrink={0}
         >
@@ -180,12 +183,12 @@ export default function BancasListScreen() {
         </Button>
 
         <Button
-          icon={RefreshCw}
+          icon={(p:any)=> <RefreshCw {...p} color={iconColor} />}
           onPress={() => { setPage(1); refetch() }}
           backgroundColor="$green4"
           borderColor="$green8"
           hoverStyle={{ backgroundColor: '$green5' }}
-          pressStyle={{ scale: 0.98 }}
+          pressStyle={{ backgroundColor: '$green6', scale: 0.98 }}
           flexShrink={0}
         >
           <Text>Refrescar</Text>
@@ -241,7 +244,7 @@ export default function BancasListScreen() {
                     <XStack gap="$2">
                       {active ? (
                         <Button
-                          icon={Trash2}
+                          icon={(p:any)=> <Trash2 {...p} color={iconColor} />}
                           backgroundColor="$red3"
                           borderColor="$red8"
                           hoverStyle={{ backgroundColor: '$red5' }}
@@ -252,7 +255,7 @@ export default function BancasListScreen() {
                         </Button>
                       ) : (
                         <Button
-                          icon={RefreshCw}
+                          icon={(p:any)=> <RefreshCw {...p} color={iconColor} />}
                           onPress={(e: any) => { e?.stopPropagation?.(); askRestore(banca); }}
                           disabled={restore.isPending}
                         >
@@ -283,3 +286,5 @@ export default function BancasListScreen() {
     </ScrollView>
   );
 }
+
+
