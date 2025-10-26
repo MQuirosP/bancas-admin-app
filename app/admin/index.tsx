@@ -236,7 +236,7 @@ export default function AdminDashboard() {
                 borderRadius="$3"
                 borderWidth={1}
                 borderColor="$borderColor"
-                hoverStyle={{ borderColor: '$borderColorHover' }}
+                hoverStyle={{ borderColor: '#39FF14', shadowColor: '#39FF14', shadowOpacity: 0.25, shadowRadius: 10 }}
                 pressStyle={{ backgroundColor: '$backgroundHover' }}
                 animation="quick"
                 cursor="pointer"
