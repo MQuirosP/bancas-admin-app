@@ -32,10 +32,11 @@ export const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, mode = 
   if (Platform.OS === 'web') {
     const webValue = formatForWeb(value ?? null, mode)
     return (
-      <YStack gap="$1" style={style}>
+      <YStack style={style}>
         <input
           type={inputType as any}
           value={webValue}
+          placeholder={placeholder}
           onChange={(e) => {
             const v = e.currentTarget.value
             if (!v) return
@@ -48,9 +49,10 @@ export const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, mode = 
             borderColor: 'var(--color-borderColor)',
             backgroundColor: 'var(--color-background)',
             borderRadius: 6,
+            color: 'var(--color-color)',
+            caretColor: 'var(--color-color)'
           }}
         />
-        <Text fontSize="$2" color="$textSecondary">{webValue || placeholder}</Text>
       </YStack>
     )
   }
@@ -65,6 +67,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, mode = 
       value={value ?? new Date()}
       onChange={(_e: any, d?: Date) => d && onChange(d)}
       style={style}
+      {...(Platform.OS === 'ios' ? { textColor: '#ffffff' } : {})}
     />
   )
 }
