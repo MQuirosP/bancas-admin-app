@@ -2,7 +2,7 @@
 import React, { useMemo, useRef, useState, useCallback, useEffect } from 'react'
 import { Platform } from 'react-native'
 import { YStack, XStack, Text, Card, Separator } from 'tamagui'
-import { Button } from '@/components/ui'
+import { Button } from './Button'
 import { CheckCircle, Info, AlertTriangle, X } from '@tamagui/lucide-icons'
 import { AnimatePresence } from '@tamagui/animate-presence'
 import { Portal } from '@tamagui/portal'

@@ -2,7 +2,7 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react'
 import { Modal, Pressable } from 'react-native'
 import { YStack, XStack, Card, Text } from 'tamagui'
-import { Button } from '@/components/ui'
+import { Button } from './Button'
 
 export type ConfirmOptions = {
   title?: string
