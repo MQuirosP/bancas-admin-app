@@ -182,25 +182,35 @@ export default function AdminDashboard() {
         </YStack>
 
         {/* Quick Stats (arriba) */}
-        <XStack gap="$3" flexWrap="wrap" marginTop="$2">
-          {stats.map((s) => {
-            const isOpen = openIds.has(s.key)
+        {/* Quick Stats en misma grilla (4 columnas) que el panel de abajo */}
+        <YStack gap="$3" marginTop="$2">
+          {[...Array(Math.ceil(stats.length / 4))].map((_, rowIndex) => {
+            const row = stats.slice(rowIndex * 4, rowIndex * 4 + 4)
             return (
-              <Card
-                key={s.key}
-                flex={1}
-                minWidth={180}
-                padding="$3"
-                backgroundColor="$backgroundStrong"
-                borderRadius="$3"
-                borderWidth={1}
-                borderColor="$borderColor"
-                hoverStyle={{ borderColor: '$borderColorHover', scale: 1.01 }}
-                pressStyle={{ scale: 0.98 }}
-                animation="quick"
-                cursor="pointer"
-                onPress={() => toggleStat(s.key)}
-              >
+              <XStack key={rowIndex} gap="$3" flexWrap="wrap">
+                {row.map((s) => {
+                  const isOpen = openIds.has(s.key)
+                  return (
+                    <Card
+                      key={s.key}
+                      // Sizing consistente con cards de panel (4 columnas)
+                      minWidth={220}
+                      maxWidth="24%"
+                      $md={{ maxWidth: '32%' }}
+                      $sm={{ maxWidth: '48%' }}
+                      $xs={{ maxWidth: '100%' }}
+                      padding="$3"
+                      backgroundColor="$backgroundStrong"
+                      borderRadius="$3"
+                      borderWidth={1}
+                      borderColor="$borderColor"
+                      hoverStyle={{ borderColor: '$borderColorHover' }}
+                      pressStyle={{ backgroundColor: '$backgroundHover' }}
+                      animation="quick"
+                      cursor="pointer"
+                      position="relative"
+                      onPress={() => toggleStat(s.key)}
+                    >
                 {/* Close (visible cuando está abierto) */}
                 {isOpen && (
                   <Button
@@ -248,9 +258,12 @@ export default function AdminDashboard() {
                   )}
                 </AnimatePresence>
               </Card>
+                  )
+                })}
+              </XStack>
             )
           })}
-        </XStack>
+        </YStack>
 
         {/* 🔥 CARDS EN 4 COLUMNAS - Grid Responsivo */}
         <YStack gap="$3">
