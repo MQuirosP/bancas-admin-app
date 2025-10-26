@@ -17,8 +17,12 @@ export function useMultipliersQuery(params?: MultipliersQueryParams) {
     queryKey: queryKeys.multipliers.list(params),
     queryFn: async () => {
       const queryString = params ? apiClient.buildQueryString(params) : '';
-      return apiClient.get<LoteriaMultiplier[]>(`/multipliers${queryString}`);
+      const res: any = await apiClient.get<any>(`/multipliers${queryString}`);
+      if (Array.isArray(res)) return res as LoteriaMultiplier[];
+      if (res && Array.isArray(res.data)) return res.data as LoteriaMultiplier[];
+      return [] as LoteriaMultiplier[];
     },
+    placeholderData: [] as LoteriaMultiplier[],
     enabled: true,
   });
 }
@@ -28,7 +32,7 @@ export function useMultipliersQuery(params?: MultipliersQueryParams) {
  */
 export function useActiveMultipliersQuery(loteriaId?: string, kind?: 'NUMERO' | 'REVENTADO') {
   return useQuery({
-    queryKey: queryKeys.multipliers.active(kind),
+    queryKey: ['multipliers', 'active', { loteriaId: loteriaId ?? null, kind: kind ?? null }],
     queryFn: async () => {
       const params: MultipliersQueryParams = {
         isActive: true,
@@ -36,9 +40,13 @@ export function useActiveMultipliersQuery(loteriaId?: string, kind?: 'NUMERO' | 
         ...(kind && { kind }),
       };
       const queryString = apiClient.buildQueryString(params);
-      return apiClient.get<LoteriaMultiplier[]>(`/multipliers${queryString}`);
+      const res: any = await apiClient.get<any>(`/multipliers${queryString}`);
+      if (Array.isArray(res)) return res as LoteriaMultiplier[];
+      if (res && Array.isArray(res.data)) return res.data as LoteriaMultiplier[];
+      return [] as LoteriaMultiplier[];
     },
-    enabled: true,
+    placeholderData: [] as LoteriaMultiplier[],
+    enabled: !!loteriaId && !!kind,
   });
 }
 
