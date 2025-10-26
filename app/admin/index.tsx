@@ -223,9 +223,9 @@ export default function AdminDashboard() {
                 key={s.key}
                 minWidth={160}
                 // Más angostas y bajas para caber en una sola fila con mayor separación
-                flexBasis="17.5%"
-                maxWidth="17.5%"
-                $lg={{ flexBasis: '17.5%', maxWidth: '17.5%' }}
+                flexBasis="16.3%"
+                maxWidth="16.3%"
+                $lg={{ flexBasis: '16.3%', maxWidth: '16.3%' }}
                 $md={{ flexBasis: '20%', maxWidth: '20%' }}
                 $sm={{ flexBasis: '33.33%', maxWidth: '33.33%' }}
                 $xs={{ flexBasis: '50%', maxWidth: '50%' }}
