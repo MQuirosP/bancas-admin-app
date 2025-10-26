@@ -10,6 +10,8 @@ import { useVentanasInfinite } from '@/hooks/useVentanasInfinite'
 import { getErrorMessage } from '../../../lib/errors'
 import { safeBack } from '../../../lib/navigation'
 import { safe } from '../../../utils/safe'
+import CommissionTab from './CommissionTab'
+import { useAuthStore } from '@/store/auth.store'
 
 export default function UsuarioDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
@@ -76,7 +78,7 @@ export default function UsuarioDetailScreen() {
 
   return (
     <ScrollView flex={1} backgroundColor={'$background'}>
-      <YStack padding="$4" gap="$4" maxWidth={700} alignSelf="center" width="100%">
+      <YStack padding="$4" gap="$4" maxWidth={900} alignSelf="center" width="100%">
         <Text fontSize="$8" fontWeight="bold">Editar Usuario</Text>
 
         <UserForm
@@ -91,6 +93,10 @@ export default function UsuarioDetailScreen() {
           errorVentanas={vError}
           onRetryVentanas={() => vRefetch()}
         />
+
+        {(data.role === 'VENTANA' || data.role === 'VENDEDOR') && (
+          <CommissionTab userId={id} targetRole={data.role as any} viewerRole={(useAuthStore.getState().user?.role as any) ?? 'ADMIN'} />
+        )}
 
         {hasNextPage && (
           <Button

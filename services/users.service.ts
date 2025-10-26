@@ -129,6 +129,21 @@ export const usersService = {
     const res = await apiClient.patch<ApiItemResponse<Usuario> | Usuario>(`/users/${id}/restore`, {})
     return unwrapItem<Usuario>(res)
   },
+
+  // Commission Policy
+  getCommissionPolicy: async (id: string) => {
+    const res = await apiClient.get<any>(`/users/${id}/commission-policy`)
+    const body = res as any
+    if (body?.data !== undefined) return body.data
+    return body
+  },
+
+  updateCommissionPolicy: async (id: string, payload: any) => {
+    const res = await apiClient.put<any>(`/users/${id}/commission-policy`, payload)
+    const body = res as any
+    if (body?.data !== undefined) return body.data
+    return body
+  },
 }
 
 export type { Usuario }
