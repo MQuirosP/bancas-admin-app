@@ -5,9 +5,14 @@ import { Card } from '@/components/ui'
 import { Package, TrendingUp, Users, Clock } from '@tamagui/lucide-icons';
 import { formatCurrency } from '@/utils/formatters'
 import { useAuthStore } from '../../store/auth.store';
+import { useVentasSummary, useVentasBreakdown } from '@/hooks/useVentas'
+import { parseISO, formatDistanceToNowStrict } from 'date-fns'
+import { es } from 'date-fns/locale'
 
 export default function VentanaDashboard() {
   const user = useAuthStore((state) => state.user);
+  const { data: summary } = useVentasSummary({ scope: 'mine', date: 'today' })
+  const { data: bySeller } = useVentasBreakdown({ dimension: 'vendedor', top: 100, scope: 'mine', date: 'today' })
 
   return (
     <ScrollView flex={1} backgroundColor="$background">
@@ -26,10 +31,10 @@ export default function VentanaDashboard() {
         <YStack gap="$3">
           {(
             [
-              { icon: Package, title: 'Tickets Hoy', value: '42', change: '+5 desde ayer', color: '$green10' },
-              { icon: TrendingUp, title: 'Ventas Hoy', value: formatCurrency(1250), change: '+15%', color: '$purple10' },
-              { icon: Users, title: 'Vendedores Activos', value: '8', change: 'De 10 totales', color: '$yellow10' },
-              { icon: Clock, title: 'Último Ticket', value: '5 min', change: 'Hace 5 minutos', color: '$indigo10' },
+              { icon: Package, title: 'Tickets Hoy', value: String(summary?.ticketsCount ?? 0), change: '', color: '$green10' },
+              { icon: TrendingUp, title: 'Ventas Hoy', value: formatCurrency(summary?.ventasTotal ?? 0), change: '', color: '$purple10' },
+              { icon: Users, title: 'Vendedores Activos', value: String(bySeller?.length ?? 0), change: '', color: '$yellow10' },
+              { icon: Clock, title: 'Último Ticket', value: summary?.lastTicketAt ? formatDistanceToNowStrict(parseISO(summary.lastTicketAt), { locale: es }) : '—', change: '', color: '$indigo10' },
             ] as const
           ).reduce((rows: any[][], card, index) => {
             if (index % 2 === 0) rows.push([card]); else rows[rows.length - 1].push(card); return rows;

@@ -7,11 +7,15 @@ import { useThemeName } from 'tamagui'
 import { useAuthStore } from '../../store/auth.store';
 import { useRouter } from 'expo-router';
 import { formatCurrency } from '@/utils/formatters'
+import { useVentasSummary } from '@/hooks/useVentas'
+import { parseISO, formatDistanceToNowStrict } from 'date-fns'
+import { es } from 'date-fns/locale'
 
 export default function VendedorDashboard() {
   const user = useAuthStore((state) => state.user);
   const router = useRouter();
   const themeName = useThemeName()
+  const { data: summary } = useVentasSummary({ scope: 'mine', date: 'today' })
 
   return (
     <ScrollView flex={1} backgroundColor="$background">
@@ -54,9 +58,9 @@ export default function VendedorDashboard() {
         <YStack gap="$3">
           {(
             [
-              { icon: Package, title: 'Mis Tickets Hoy', value: '12', change: '+3 desde ayer', color: '$yellow10' },
-              { icon: TrendingUp, title: 'Total Vendido Hoy', value: formatCurrency(450), change: `+${formatCurrency(50)}`, color: '$purple10' },
-              { icon: Clock, title: 'Último Ticket', value: '10 min', change: 'Hace 10 minutos', color: '$indigo10' },
+              { icon: Package, title: 'Mis Tickets Hoy', value: String(summary?.ticketsCount ?? 0), change: '', color: '$yellow10' },
+              { icon: TrendingUp, title: 'Total Vendido Hoy', value: formatCurrency(summary?.ventasTotal ?? 0), change: '', color: '$purple10' },
+              { icon: Clock, title: 'Último Ticket', value: summary?.lastTicketAt ? formatDistanceToNowStrict(parseISO(summary.lastTicketAt), { locale: es }) : '—', change: '', color: '$indigo10' },
             ] as const
           ).reduce((rows: any[][], card, index) => {
             if (index % 2 === 0) rows.push([card]); else rows[rows.length - 1].push(card); return rows;
