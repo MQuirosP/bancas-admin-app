@@ -229,7 +229,7 @@ export default function AdminDashboard() {
                 $md={{ flexBasis: '20%', maxWidth: '20%' }}
                 $sm={{ flexBasis: '33.33%', maxWidth: '33.33%' }}
                 $xs={{ flexBasis: '50%', maxWidth: '50%' }}
-                minHeight={95}
+                minHeight={isOpen ? 95 : 90}
                 padding="$2"
                 backgroundColor="$backgroundStrong"
                 borderRadius="$3"
