@@ -73,13 +73,19 @@ export const Button: React.FC<UIButtonProps> = ({
   const themeName = useThemeName()
   const iconColor = '#ffffff'
   const isDisabled = disabled || loading
+  const renderChildren = (c: React.ReactNode) => {
+    if (typeof c === 'string' || typeof c === 'number') {
+      return <Text color="#ffffff">{c}</Text>
+    }
+    return c
+  }
   const content = loading ? (
     <XStack ai="center" gap="$2">
       <Spinner size="small" color="#ffffff" />
-      {typeof loadingText === 'string' ? <Text>{loadingText}</Text> : children}
+      {typeof loadingText === 'string' ? <Text color="#ffffff">{loadingText}</Text> : renderChildren(children)}
     </XStack>
   ) : (
-    children
+    renderChildren(children)
   )
   // Enforce icon color for built-in icon/iconAfter props
   const anyProps = rest as any
