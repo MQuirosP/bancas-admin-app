@@ -46,6 +46,7 @@ const variantStyles = (variant: Variant): Partial<React.ComponentProps<typeof TB
         bg: '$red4',
         bc: '$red8',
         bw: 1,
+        color: '$background',
         hoverStyle: { bg: '$red5' },
         pressStyle: { bg: '$red6', scale: 0.98 },
       }
@@ -53,6 +54,7 @@ const variantStyles = (variant: Variant): Partial<React.ComponentProps<typeof TB
     default:
       return {
         bg: '$primary',
+        color: '$background',
         hoverStyle: { bg: '$primaryHover' },
         pressStyle: { bg: '$primaryPress', scale: 0.98 },
       }

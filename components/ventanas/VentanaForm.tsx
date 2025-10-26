@@ -317,9 +317,6 @@ export default function VentanaForm({
                 placeholder="(506) 8888-8888"
                 keyboardType="phone-pad"
                 value={values.phone}
-                onFocus={() => {
-                  if (!values.phone?.trim()) setField('phone', '(506) ')
-                }}
                 onChangeText={(t) => setField('phone', formatPhoneCR(t))}
                 editable={!submitting}
               />
