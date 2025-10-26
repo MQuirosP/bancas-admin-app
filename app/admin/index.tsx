@@ -256,28 +256,28 @@ export default function AdminDashboard() {
                   )}
                 </YStack>
 
-                <AnimatePresence>
-                  {isOpen && (
-                    <YStack
-                      gap="$1"
-                      mt="$3"
-                      animation="bouncy"
-                      enterStyle={{ opacity: 0, y: -6 }}
-                      exitStyle={{ opacity: 0, y: -6 }}
-                      style={{ transition: 'all 240ms ease' }}
-                    >
-                      <Text color="$textSecondary">
-                        Hoy: {s.key === 'payout' ? `${(s.detail.hoy as number).toFixed(2)}%` : formatCurrency(s.detail.hoy as number)}
-                      </Text>
-                      <Text color="$textSecondary">
-                        Ayer: {s.key === 'payout' ? `${(s.detail.ayer as number).toFixed(2)}%` : formatCurrency(s.detail.ayer as number)}
-                      </Text>
-                      <Text color={s.delta >= 0 ? '$green10' : '$red10'} fontWeight="600">
-                        Tendencia: {s.delta >= 0 ? '↑' : '↓'} {Math.abs(s.delta).toFixed(1)}%
-                      </Text>
-                    </YStack>
-                  )}
-                </AnimatePresence>
+                {/* Collapsible content with smooth height/opacity to reduce layout jank */}
+                <YStack
+                  gap="$1"
+                  mt="$2"
+                  overflow="hidden"
+                  style={{
+                    maxHeight: isOpen ? 110 : 0,
+                    opacity: isOpen ? 1 : 0,
+                    transition: 'max-height 260ms ease, opacity 260ms ease',
+                    willChange: 'max-height, opacity',
+                  }}
+                >
+                  <Text color="$textSecondary">
+                    Hoy: {s.key === 'payout' ? `${(s.detail.hoy as number).toFixed(2)}%` : formatCurrency(s.detail.hoy as number)}
+                  </Text>
+                  <Text color="$textSecondary">
+                    Ayer: {s.key === 'payout' ? `${(s.detail.ayer as number).toFixed(2)}%` : formatCurrency(s.detail.ayer as number)}
+                  </Text>
+                  <Text color={s.delta >= 0 ? '$green10' : '$red10'} fontWeight="600">
+                    Tendencia: {s.delta >= 0 ? '↑' : '↓'} {Math.abs(s.delta).toFixed(1)}%
+                  </Text>
+                </YStack>
               </Card>
             )
           })}
