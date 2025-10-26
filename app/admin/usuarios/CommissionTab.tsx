@@ -4,7 +4,7 @@ import { YStack, XStack, Text } from 'tamagui'
 import { Toolbar, Button } from '@/components/ui'
 import { RefreshCw, HelpCircle } from '@tamagui/lucide-icons'
 import { useCommissionPolicy, useUpdateCommissionPolicy } from '@/hooks/useCommissionPolicy'
-import { CommissionEditor } from '@/components/commission/CommissionEditor'
+import { CommissionForm } from '@/components/commission/CommissionForm'
 import { CommissionPreview } from '@/components/commission/CommissionPreview'
 import { CommissionPolicyV1Schema, EmptyPolicy } from '@/validators/commission.schema'
 import { useToast } from '@/hooks/useToast'
@@ -51,11 +51,14 @@ export default function CommissionTab({ userId, targetRole, viewerRole }: Props)
 
   return (
     <YStack gap="$3">
-      <Toolbar>
-        <XStack gap="$2">
-          <Button icon={RefreshCw} onPress={() => refetch()} loading={isFetching || update.isPending}>Refrescar</Button>
+      {/* Toolbar estándar: distribución horizontal */}
+      <Toolbar fd="row" jc="space-between" ai="center">
+        <XStack gap="$2" ai="center">
+          <Text fontSize="$6" fontWeight="700">Comisiones</Text>
+          <Text fontSize="$2" color="$textSecondary">Política por usuario (v1)</Text>
         </XStack>
-        <XStack gap="$2">
+        <XStack gap="$2" ai="center">
+          <Button variant="primary" icon={RefreshCw} onPress={() => refetch()} loading={isFetching || update.isPending}>Refrescar</Button>
           <Button variant="secondary" icon={HelpCircle} onPress={() => toast.info('Consulta la documentación interna de comisiones')}>Ayuda</Button>
         </XStack>
       </Toolbar>
@@ -65,7 +68,7 @@ export default function CommissionTab({ userId, targetRole, viewerRole }: Props)
       )}
 
       <YStack gap="$3">
-        <CommissionEditor
+        <CommissionForm
           value={policy ?? null}
           readOnly={readOnly}
           loading={update.isPending}
@@ -80,4 +83,3 @@ export default function CommissionTab({ userId, targetRole, viewerRole }: Props)
     </YStack>
   )
 }
-

@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from 'react'
 import { YStack, XStack, Text, Card } from 'tamagui'
-import { Button, Input, Select } from '@/components/ui'
+import { Button, Input, Select, DatePicker } from '@/components/ui'
 import type { CommissionPolicyV1, BetType } from '@/types/commission.types'
 import { formatCurrency } from '@/utils/formatters'
+import { useLoterias } from '@/hooks/useLoterias'
 
 type Props = {
   policy: CommissionPolicyV1 | null
@@ -13,14 +14,15 @@ export const CommissionPreview: React.FC<Props> = ({ policy }) => {
   const [betType, setBetType] = useState<BetType>('NUMERO')
   const [multiplier, setMultiplier] = useState<string>('90')
   const [loteriaId, setLoteriaId] = useState<string>('')
-  const [nowIso, setNowIso] = useState<string>('')
+  const [nowDate, setNowDate] = useState<Date | null>(null)
+  const { data: lotResp } = useLoterias({ page: 1, pageSize: 100 })
 
-  const now = useMemo(() => (nowIso ? new Date(nowIso) : new Date()), [nowIso])
+  const now = useMemo(() => (nowDate ? nowDate : new Date()), [nowDate])
 
   const result = useMemo(() => {
     const amt = Number(amount) || 0
     const mult = Number(multiplier) || 0
-    if (!policy) {
+    if (!policy || !loteriaId) {
       return { percent: 0, commissionAmount: 0, source: 'USER' as const }
     }
 
@@ -32,7 +34,7 @@ export const CommissionPreview: React.FC<Props> = ({ policy }) => {
     let percent = policy.defaultPercent ?? 0
     if (inWindow) {
       const match = (policy.rules ?? []).find(r => {
-        const loteriaOk = r.loteriaId == null || (loteriaId && r.loteriaId === loteriaId) || (r.loteriaId === null && !loteriaId)
+        const loteriaOk = r.loteriaId == null || r.loteriaId === loteriaId
         const betOk = r.betType == null || r.betType === betType
         const range = r.multiplierRange || { min: -Infinity, max: Infinity }
         const rangeOk = mult >= range.min && mult <= range.max
@@ -74,12 +76,23 @@ export const CommissionPreview: React.FC<Props> = ({ policy }) => {
             <Input value={multiplier} onChangeText={setMultiplier} keyboardType="number-pad" />
           </YStack>
           <YStack minWidth={220} gap="$1">
-            <Text fontSize="$3">Lotería (UUID opcional)</Text>
-            <Input value={loteriaId} onChangeText={setLoteriaId} placeholder="uuid o vacío" autoCapitalize="none" />
+            <Text fontSize="$3">Lotería (obligatorio)</Text>
+            <Select value={loteriaId} onValueChange={setLoteriaId}>
+              <Select.Trigger bw={1} bc="$borderColor" bg="$background" px="$3">
+                <Select.Value placeholder="Selecciona lotería" />
+              </Select.Trigger>
+              <Select.Content>
+                <Select.Viewport>
+                  {(lotResp?.data ?? []).map((l, idx) => (
+                    <Select.Item key={l.id} value={l.id} index={idx}><Select.ItemText>{l.name}</Select.ItemText></Select.Item>
+                  ))}
+                </Select.Viewport>
+              </Select.Content>
+            </Select>
           </YStack>
-          <YStack minWidth={240} gap="$1">
-            <Text fontSize="$3">Fecha ahora (ISO opcional)</Text>
-            <Input value={nowIso} onChangeText={setNowIso} placeholder="YYYY-MM-DDTHH:mm:ssZ" autoCapitalize="none" />
+          <YStack minWidth={220} gap="$1">
+            <Text fontSize="$3">Fecha (opcional)</Text>
+            <DatePicker value={nowDate} onChange={setNowDate} mode="datetime" placeholder="yyyy-mm-dd hh:mm" />
           </YStack>
         </XStack>
 
@@ -97,4 +110,3 @@ export const CommissionPreview: React.FC<Props> = ({ policy }) => {
 }
 
 export default CommissionPreview
-

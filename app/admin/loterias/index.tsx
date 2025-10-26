@@ -92,7 +92,7 @@ export default function LoteriasListScreen() {
 
   return (
     <ScrollView flex={1} backgroundColor="$background" contentContainerStyle={{ flexGrow: 1 }}>
-      <YStack flex={1} padding="$4" gap="$4">
+      <YStack padding="$4" gap="$4" maxWidth={1200} alignSelf="center" width="100%">
         <XStack jc="space-between" ai="center" gap="$3" flexWrap="wrap">
           <XStack ai="center" gap="$2">
             <Text fontSize="$8" fontWeight="bold">Loterías</Text>
@@ -143,9 +143,9 @@ export default function LoteriasListScreen() {
               </XStack>
 
               <Button icon={Search} onPress={handleSearch}
-              pressStyle={{ scale: 0.98 }}>
+                pressStyle={{ scale: 0.98 }}>
                 <Text>Buscar</Text>
-                </Button>
+              </Button>
 
               <Separator vertical />
 
@@ -154,12 +154,12 @@ export default function LoteriasListScreen() {
 
               {/* Front-only: Activas (default true) */}
               {/* <XStack ai="center" gap="$2" minWidth={220} ml="$2"> */}
-                <FilterSwitch
-                  label="Activas:"
-                  checked={activeOnly}
-                  onCheckedChange={(v) => { setActiveOnly(!!v); setPage(1) }}
-                />
-                {/* <Text color="$textSecondary" fontSize="$2">
+              <FilterSwitch
+                label="Activas:"
+                checked={activeOnly}
+                onCheckedChange={(v) => { setActiveOnly(!!v); setPage(1) }}
+              />
+              {/* <Text color="$textSecondary" fontSize="$2">
                 </Text> */}
               {/* </XStack> */}
 
@@ -175,10 +175,10 @@ export default function LoteriasListScreen() {
               >
                 Refrescar
               </Button>
-              
-              <Button 
-              onPress={clearFilters}
-              backgroundColor={'$gray4'}
+
+              <Button
+                onPress={clearFilters}
+                backgroundColor={'$gray4'}
                 borderColor={'$gray8'}
                 hoverStyle={{ backgroundColor: '$gray5' }}
                 pressStyle={{ scale: 0.98 }}

@@ -74,7 +74,7 @@ export default function VentanasListScreen() {
 
   return (
     <ScrollView flex={1} backgroundColor="$background" contentContainerStyle={{ flexGrow: 1 }}>
-      <YStack flex={1} padding="$4" gap="$4">
+      <YStack padding="$4" gap="$4" maxWidth={1200} alignSelf="center" width="100%">
         {/* Header */}
         <XStack jc="space-between" ai="center" gap="$3" flexWrap="wrap">
           <XStack ai="center" gap="$2">
