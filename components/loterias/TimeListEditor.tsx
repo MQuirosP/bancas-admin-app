@@ -1,6 +1,7 @@
 // src/components/loterias/TimeListEditor.tsx
 import React, { useState } from 'react'
-import { XStack, YStack, Button, Text, Card } from 'tamagui'
+import { XStack, YStack, Text, Card } from 'tamagui'
+import { Button } from '@/components/ui'
 import TimeInput from './TimeInput'
 import { useUiSettings } from '../../hooks/useUiSettings'
 

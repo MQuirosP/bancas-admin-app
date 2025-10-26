@@ -1,7 +1,8 @@
 // components/ui/Confirm.tsx
 import React, { useCallback, useMemo, useRef, useState } from 'react'
 import { Modal, Pressable } from 'react-native'
-import { YStack, XStack, Card, Button, Text } from 'tamagui'
+import { YStack, XStack, Card, Text } from 'tamagui'
+import { Button } from '@/components/ui'
 
 export type ConfirmOptions = {
   title?: string

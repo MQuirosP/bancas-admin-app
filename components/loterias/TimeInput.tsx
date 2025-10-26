@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react'
-import { XStack, Input, Select, Text, Button } from 'tamagui'
+import { XStack, Input, Select, Text } from 'tamagui'
+import { Button } from '@/components/ui'
 import { ChevronDown } from '@tamagui/lucide-icons'
 import { Platform } from 'react-native'
 

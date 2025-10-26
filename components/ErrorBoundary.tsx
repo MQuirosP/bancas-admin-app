@@ -1,6 +1,7 @@
 // components/ErrorBoundary.tsx
 import React from 'react'
-import { YStack, Text, Button, Card } from 'tamagui'
+import { YStack, Text, Card } from 'tamagui'
+import { Button } from '@/components/ui'
 
 type Props = { children: React.ReactNode }
 type State = { hasError: boolean; error?: any }

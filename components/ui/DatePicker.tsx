@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react'
 import { Platform, ViewStyle } from 'react-native'
-import { Button, Text, YStack } from 'tamagui'
+import { Text, YStack } from 'tamagui'
+import { Button } from '@/components/ui'
 
 type Mode = 'date' | 'time' | 'datetime'
 

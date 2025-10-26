@@ -18,26 +18,26 @@ const variantStyles = (variant: Variant): Partial<React.ComponentProps<typeof TB
   switch (variant) {
     case 'secondary':
       return {
-        bg: '$background',
+        bg: '$gray10',
         bw: 1,
-        bc: '$borderColor',
-        color: '$textSecondary',
-        hoverStyle: { bg: '$backgroundHover' },
-        pressStyle: { bg: '$backgroundPress', scale: 0.98 },
+        bc: '$gray11',
+        color: '#fff',
+        hoverStyle: { bg: '$gray9' },
+        pressStyle: { bg: '$gray8', scale: 0.98 },
       }
     case 'outlined':
       return {
-        bg: '$background',
+        bg: '$gray10',
         bw: 1,
         bc: '$borderColor',
-        color: '$color',
-        hoverStyle: { bg: '$backgroundHover' },
-        pressStyle: { bg: '$backgroundPress', scale: 0.98 },
+        color: '#fff',
+        hoverStyle: { bg: '$gray9' },
+        pressStyle: { bg: '$gray8', scale: 0.98 },
       }
     case 'ghost':
       return {
         chromeless: true,
-        color: '$color',
+        color: '#fff',
         hoverStyle: { bg: '$backgroundHover' },
         pressStyle: { bg: '$backgroundPress' },
       }
@@ -46,7 +46,7 @@ const variantStyles = (variant: Variant): Partial<React.ComponentProps<typeof TB
         bg: '$red4',
         bc: '$red8',
         bw: 1,
-        color: '$background',
+        color: '#fff',
         hoverStyle: { bg: '$red5' },
         pressStyle: { bg: '$red6', scale: 0.98 },
       }
@@ -54,7 +54,7 @@ const variantStyles = (variant: Variant): Partial<React.ComponentProps<typeof TB
     default:
       return {
         bg: '$primary',
-        color: '$background',
+        color: '#fff',
         hoverStyle: { bg: '$primaryHover' },
         pressStyle: { bg: '$primaryPress', scale: 0.98 },
       }
@@ -71,11 +71,11 @@ export const Button: React.FC<UIButtonProps> = ({
 }) => {
   const vs = variantStyles(variant)
   const themeName = useThemeName()
-  const iconColor = themeName === 'dark' ? '#ffffff' : '#000000'
+  const iconColor = '#ffffff'
   const isDisabled = disabled || loading
   const content = loading ? (
     <XStack ai="center" gap="$2">
-      <Spinner size="small" />
+      <Spinner size="small" color="#ffffff" />
       {typeof loadingText === 'string' ? <Text>{loadingText}</Text> : children}
     </XStack>
   ) : (

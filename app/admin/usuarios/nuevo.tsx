@@ -1,6 +1,7 @@
 // app/admin/usuarios/nuevo.tsx
 import React, { useMemo } from 'react'
-import { YStack, Text, ScrollView, Button } from 'tamagui'
+import { YStack, Text, ScrollView } from 'tamagui'
+import { Button } from '@/components/ui'
 import { useCreateUser } from '@/hooks/useUsers'
 import { useToast } from '@/hooks/useToast'
 import { safeBack, goToList } from '@/lib/navigation'

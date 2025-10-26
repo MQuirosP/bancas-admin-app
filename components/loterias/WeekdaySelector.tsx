@@ -1,6 +1,7 @@
 // components/loterias/WeekdaySelector.tsx
 import React from 'react'
-import { XStack, Button, Text, useThemeName } from 'tamagui'
+import { XStack, Text, useThemeName } from 'tamagui'
+import { Button } from '@/components/ui'
 import type { Weekday } from '@/types/loteriaRules'
 
 const DAYS = ['D','L','M','X','J','V','S'] as const
