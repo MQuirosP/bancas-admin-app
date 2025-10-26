@@ -15,7 +15,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { isAdmin } from '@/utils/role'
 import { apiClient } from '@/lib/api.client'
 import { safeBack } from '@/lib/navigation'
-import { Trash2, RotateCcw } from '@tamagui/lucide-icons'
+import { Trash2, RotateCcw, ArrowLeft } from '@tamagui/lucide-icons'
 
 export default function SorteoDetailScreen() {
   // ⚠️ TODOS los hooks deben ir arriba, antes de cualquier return condicional
@@ -165,6 +165,15 @@ export default function SorteoDetailScreen() {
         {/* Header */}
         <XStack jc="space-between" ai="center" gap="$2" flexWrap="wrap">
           <XStack ai="center" gap="$2">
+            <Button
+              size="$3"
+              icon={(p:any)=> <ArrowLeft {...p} size={24} />}
+              onPress={() => safeBack('/admin/sorteos')}
+              backgroundColor="transparent"
+              borderWidth={0}
+              hoverStyle={{ backgroundColor: 'transparent' }}
+              pressStyle={{ scale: 0.98 }}
+            />
             <Text fontSize="$8" fontWeight="bold">{s.name}</Text>
             <ActiveBadge active={rowActive} />
             {(isLoading || lotFetching) && <Spinner size="small" />}

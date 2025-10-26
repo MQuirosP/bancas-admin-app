@@ -1,6 +1,9 @@
 import React from 'react';
 import { YStack, XStack, Text, ScrollView, Card } from 'tamagui';
 import { useRouter } from 'expo-router'
+import { ArrowLeft } from '@tamagui/lucide-icons'
+import { Button } from '@/components/ui'
+import { useTheme } from 'tamagui'
 import { Trophy, TrendingUp, Users, Store, FileText } from '@tamagui/lucide-icons'
 
 type ReportCard = { title: string; description: string; icon: any; href: string; color: string }
@@ -15,10 +18,25 @@ const reports: ReportCard[] = [
 
 export default function ReportesHub() {
   const router = useRouter()
+  const theme = useTheme()
+  const iconColor = (theme?.color as any)?.get?.() ?? '#000'
   return (
     <ScrollView flex={1} backgroundColor="$background">
       <YStack padding="$4" gap="$4" maxWidth={1200} alignSelf="center" width="100%">
-        <Text fontSize="$8" fontWeight="bold">Reportes</Text>
+        <XStack ai="center" gap="$2" jc="space-between" flexWrap="wrap">
+          <XStack ai="center" gap="$2">
+            <Button
+              size="$3"
+              icon={(p:any)=> <ArrowLeft {...p} size={24} color={iconColor} />}
+              onPress={()=> router.push('/admin')}
+              backgroundColor="transparent"
+              borderWidth={0}
+              hoverStyle={{ backgroundColor: 'transparent' }}
+              pressStyle={{ scale: 0.98 }}
+            />
+            <Text fontSize="$8" fontWeight="bold">Reportes</Text>
+          </XStack>
+        </XStack>
 
         <YStack gap="$3">
           {reports.reduce((rows: ReportCard[][], r, i) => {

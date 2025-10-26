@@ -1,17 +1,34 @@
 import React, { useState } from 'react';
 import { YStack, Text, Switch, ScrollView, XStack } from 'tamagui';
 import { Button, Input, Card } from '@/components/ui';
+import { useRouter } from 'expo-router'
+import { useTheme } from 'tamagui'
+import { ArrowLeft } from '@tamagui/lucide-icons'
 
 export default function ConfiguracionScreen() {
   const [defaultCutoff, setDefaultCutoff] = useState('5');
   const [enableDebug, setEnableDebug] = useState(false);
+  const router = useRouter()
+  const theme = useTheme()
+  const iconColor = (theme?.color as any)?.get?.() ?? '#000'
 
   return (
     <ScrollView flex={1} backgroundColor="$background">
       <YStack padding="$4" gap="$4" maxWidth={600} alignSelf="center" width="100%">
-        <Text fontSize="$8" fontWeight="bold" color="$color">
-          Configuración Global
-        </Text>
+        <XStack ai="center" gap="$2">
+          <Button
+            size="$3"
+            icon={(p:any)=> <ArrowLeft {...p} size={24} color={iconColor} />}
+            onPress={()=> router.push('/admin')}
+            backgroundColor="transparent"
+            borderWidth={0}
+            hoverStyle={{ backgroundColor: 'transparent' }}
+            pressStyle={{ scale: 0.98 }}
+          />
+          <Text fontSize="$8" fontWeight="bold" color="$color">
+            Configuración Global
+          </Text>
+        </XStack>
 
         <Card padding="$4">
           <YStack gap="$4">

@@ -10,7 +10,10 @@ export function useVentasSummary(q: Omit<VentasListQuery, 'page' | 'pageSize'>) 
       return r?.data ?? r ?? { ventasTotal: 0, ticketsCount: 0, jugadasCount: 0, payoutTotal: 0, neto: 0, lastTicketAt: null }
     },
     placeholderData: { ventasTotal: 0, ticketsCount: 0, jugadasCount: 0, payoutTotal: 0, neto: 0, lastTicketAt: null },
-    staleTime: 30_000,
+    staleTime: 60_000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: true,
+    retry: 1,
   })
 }
 
@@ -22,7 +25,10 @@ export function useVentasBreakdown(q: Omit<VentasListQuery, 'page' | 'pageSize'>
       return r?.data ?? r ?? []
     },
     placeholderData: [],
-    staleTime: 30_000,
+    staleTime: 60_000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: true,
+    retry: 1,
   })
 }
 
@@ -34,6 +40,9 @@ export function useVentasTimeseries(q: Omit<VentasListQuery, 'page' | 'pageSize'
       return r?.data ?? r ?? []
     },
     placeholderData: [],
-    staleTime: 30_000,
+    staleTime: 60_000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: true,
+    retry: 1,
   })
 }

@@ -4,7 +4,8 @@ import { YStack, XStack, Text, Spinner, Separator, Sheet, ScrollView } from 'tam
 import { Button, Card, Input, Select, Toolbar, ActiveBadge } from '@/components/ui'
 import { useRouter } from 'expo-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plus, Search, X, RefreshCw, ChevronDown, Check, Trash2, RotateCcw, Calendar } from '@tamagui/lucide-icons'
+import { Plus, Search, X, RefreshCw, ChevronDown, Check, Trash2, RotateCcw, Calendar, ArrowLeft } from '@tamagui/lucide-icons'
+import { useTheme } from 'tamagui'
 // UI unificada desde components/ui
 import { useToast } from '@/hooks/useToast'
 import { useConfirm } from '@/components/ui/Confirm'
@@ -93,6 +94,8 @@ function StatusSelect({
 }
 
 export default function SorteosListScreen() {
+  const theme = useTheme()
+  const iconColor = (theme?.color as any)?.get?.() ?? '#000'
   const router = useRouter()
   const toast = useToast()
   const qc = useQueryClient()
@@ -234,11 +237,20 @@ export default function SorteosListScreen() {
         {/* Header */}
         <XStack justifyContent="space-between" ai="center" gap="$3" flexWrap="wrap">
           <XStack ai="center" gap="$2">
+            <Button
+              size="$3"
+              icon={(p:any)=> <ArrowLeft {...p} size={24} color={iconColor} />}
+              onPress={()=> router.push('/admin')}
+              backgroundColor="transparent"
+              borderWidth={0}
+              hoverStyle={{ backgroundColor: 'transparent' }}
+              pressStyle={{ scale: 0.98 }}
+            />
             <Text fontSize="$8" fontWeight="bold">Sorteos</Text>
             {isFetching && <Spinner size="small" />}
           </XStack>
           {admin && (
-            <XStack gap="$2">
+            <XStack gap="$2" ai="center">
               {/* Selector de lotería + botón Preview */}
               <XStack ai="center" gap="$2">
                 <Select
@@ -309,7 +321,7 @@ export default function SorteosListScreen() {
 
                 <Button
                   size="$3"
-                  icon={Calendar}
+                  icon={(p:any)=> <Calendar {...p} color={iconColor} />}
                   onPress={() => {
                     if (!selectedLoteriaForPreview) {
                       toast.error('Selecciona una lotería primero')
@@ -332,7 +344,7 @@ export default function SorteosListScreen() {
 
               <Button
                 size="$3"
-                icon={Plus}
+                icon={(p:any)=> <Plus {...p} color={iconColor} />}
                 onPress={() => router.push('/admin/sorteos/nuevo')}
                 bg="$primary"
                 hoverStyle={{ bg: '$primaryHover' }}
@@ -366,7 +378,7 @@ export default function SorteosListScreen() {
                   <Button
                     size="$2"
                     circular
-                    icon={X}
+                    icon={(p:any)=> <X {...p} color={iconColor} />}
                     position="absolute"
                     right="$2"
                     onPress={() => setSearchInput('')}
@@ -376,7 +388,7 @@ export default function SorteosListScreen() {
                 )}
               </XStack>
 
-              <Button icon={Search} onPress={handleSearch}
+              <Button icon={(p:any)=> <Search {...p} color={iconColor} />} onPress={handleSearch}
               pressStyle={{ scale: 0.98 }}>
                 Buscar
               </Button>
@@ -407,7 +419,7 @@ export default function SorteosListScreen() {
               <Separator vertical />
 
               <Button
-                icon={RefreshCw}
+                icon={(p:any)=> <RefreshCw {...p} color={iconColor} />}
                 onPress={() => { setPage(1); refetch() }}
                 backgroundColor={'$green4'}
                 borderColor={'$green8'}
@@ -615,22 +627,22 @@ export default function SorteosListScreen() {
 
                         {!isFinal ? (
                           isActive ? (
-                            <Button
-                              size="$3"
-                              backgroundColor="$red4"
-                              borderColor="$red8"
-                              borderWidth={1}
-                              icon={Trash2}
-                              hoverStyle={{ backgroundColor: '$red5' }}
-                              pressStyle={{ backgroundColor: '$red6' }}
-                              onPress={(e: any) => { e?.stopPropagation?.(); askDelete(s) }}
-                            >
-                              Eliminar
-                            </Button>
+                          <Button
+                            size="$3"
+                            backgroundColor="$red4"
+                            borderColor="$red8"
+                            borderWidth={1}
+                            icon={(p:any)=> <Trash2 {...p} color={iconColor} />}
+                            hoverStyle={{ backgroundColor: '$red5' }}
+                            pressStyle={{ backgroundColor: '$red6' }}
+                            onPress={(e: any) => { e?.stopPropagation?.(); askDelete(s) }}
+                          >
+                            Eliminar
+                          </Button>
                           ) : (
                             <Button
                               size="$3"
-                              icon={RotateCcw}
+                              icon={(p:any)=> <RotateCcw {...p} color={iconColor} />}
                               onPress={(e: any) => { e?.stopPropagation?.(); askRestore(s) }}
                               disabled={mRestore.isPending}
                             >

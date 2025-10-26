@@ -125,6 +125,15 @@ Admin dashboard for lottery “bancas”, built with Expo Router, Tamagui, React
   - `lib/patch-animated.ts` filters noisy `useNativeDriver` warnings on web
 - Network/auth issues:
   - The API client refreshes tokens on 401; ensure refresh endpoint is reachable
+  - Rate limits (429): the client now retries briefly (respecting `Retry-After` if present). Hooks for ventas increase `staleTime` and reduce refetches.
+
+## Recent Changes (highlights)
+
+- Drawer: simplified admin menu (Dashboard, Panel Administrativo, Configuración + user block), top-down animation, subtle hover transition, 75% opaque background.
+- Dark/Light icons: button icons now take theme color across admin lists (Ventanas, Bancas, Loterías, Usuarios, Sorteos, Restricciones, Multipliers, Tickets).
+- Back button: added icon-only “back to panel” on admin section headers (no background/border, press scale only).
+- Commissions: cleaned CommissionForm UI, removed duplicate builder, added per-field validations with stable row height, live simulator wired to form.
+- Ventas API usage: clamp `top` to <= 50; hooks reduce refetch noise and handle 429 more gracefully.
 
 ## Contributing
 

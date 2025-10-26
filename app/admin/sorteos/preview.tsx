@@ -139,12 +139,13 @@ export default function PreviewSorteosScreen() {
           <XStack ai="center" gap="$2">
             <Button
               size="$3"
-              icon={ArrowLeft}
+              icon={(p:any)=> <ArrowLeft {...p} size={24} />}
               onPress={() => safeBack('/admin/sorteos')}
-              chromeless
-            >
-              Volver
-            </Button>
+              backgroundColor="transparent"
+              borderWidth={0}
+              hoverStyle={{ backgroundColor: 'transparent' }}
+              pressStyle={{ scale: 0.98 }}
+            />
             <Text fontSize="$8" fontWeight="bold">Preview de Sorteos</Text>
           </XStack>
         </XStack>

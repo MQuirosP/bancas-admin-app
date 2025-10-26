@@ -4,7 +4,8 @@ import { YStack, XStack, Text, ScrollView, Spinner, Separator } from 'tamagui'
 import { Button, Input, Card, Toolbar, ActiveBadge } from '@/components/ui'
 import { Badge } from '@/components/ui/Badge'
 import { useRouter } from 'expo-router'
-import { Plus, Search, X, RefreshCw, Trash2 } from '@tamagui/lucide-icons'
+import { Plus, Search, X, RefreshCw, Trash2, ArrowLeft } from '@tamagui/lucide-icons'
+import { useTheme } from 'tamagui'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient, ApiErrorClass } from '@/lib/api.client'
 import type { Loteria } from '@/types/models.types'
@@ -24,6 +25,8 @@ async function fetchLoterias(params: ListParams): Promise<{ data: Loteria[]; met
 }
 
 export default function LoteriasListScreen() {
+  const theme = useTheme()
+  const iconColor = (theme?.color as any)?.get?.() ?? '#000'
   const router = useRouter()
   const toast = useToast()
   const qc = useQueryClient()
@@ -95,14 +98,23 @@ export default function LoteriasListScreen() {
       <YStack padding="$4" gap="$4" maxWidth={1200} alignSelf="center" width="100%">
         <XStack jc="space-between" ai="center" gap="$3" flexWrap="wrap">
           <XStack ai="center" gap="$2">
+            <Button
+              size="$3"
+              icon={(p:any)=> <ArrowLeft {...p} size={24} color={iconColor} />}
+              onPress={()=> router.push('/admin')}
+              backgroundColor="transparent"
+              borderWidth={0}
+              hoverStyle={{ backgroundColor: 'transparent' }}
+              pressStyle={{ scale: 0.98 }}
+            />
             <Text fontSize="$8" fontWeight="bold">Loterías</Text>
             {isFetching && <Spinner size="small" />}
           </XStack>
           <Button
-            icon={Plus}
+            icon={(p:any)=> <Plus {...p} color={iconColor} />}
             onPress={() => router.push('/admin/loterias/nueva')}
             bg="$primary"
-            hoverStyle={{ scale: 1.02 }}
+            hoverStyle={{ bg: '$primaryHover' }}
             pressStyle={{ bg: '$primaryPress', scale: 0.98 }}
           >
             <Text>Agregar</Text>
@@ -131,7 +143,7 @@ export default function LoteriasListScreen() {
                   <Button
                     size="$2"
                     circular
-                    icon={X}
+                    icon={(p:any)=> <X {...p} color={iconColor} />}
                     position="absolute"
                     right="$2"
                     onPress={() => setSearchInput('')}
@@ -142,7 +154,7 @@ export default function LoteriasListScreen() {
                 )}
               </XStack>
 
-              <Button icon={Search} onPress={handleSearch}
+              <Button icon={(p:any)=> <Search {...p} color={iconColor} />} onPress={handleSearch}
                 pressStyle={{ scale: 0.98 }}>
                 <Text>Buscar</Text>
               </Button>
@@ -166,12 +178,12 @@ export default function LoteriasListScreen() {
               <Separator vertical />
 
               <Button
-                icon={RefreshCw}
+                icon={(p:any)=> <RefreshCw {...p} color={iconColor} />}
                 onPress={() => { setPage(1); refetch() }}
                 backgroundColor={'$green4'}
                 borderColor={'$green8'}
                 hoverStyle={{ backgroundColor: '$green5' }}
-                pressStyle={{ scale: 0.98 }}
+                pressStyle={{ backgroundColor: '$green6', scale: 0.98 }}
               >
                 Refrescar
               </Button>

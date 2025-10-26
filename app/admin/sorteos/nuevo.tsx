@@ -211,8 +211,19 @@ export default function NuevoSorteoScreen() {
 
         {/* Header */}
         <XStack jc="space-between" ai="center" gap="$3" flexWrap="wrap">
-          <Text fontSize="$8" fontWeight="bold">Nuevo Sorteo</Text>
-          {loadingLoterias && <Spinner size="small" />}
+          <XStack ai="center" gap="$2">
+            <Button
+              size="$3"
+              icon={(p:any)=> <ArrowLeft {...p} size={24} />}
+              onPress={() => safeBack('/admin/sorteos')}
+              backgroundColor="transparent"
+              borderWidth={0}
+              hoverStyle={{ backgroundColor: 'transparent' }}
+              pressStyle={{ scale: 0.98 }}
+            />
+            <Text fontSize="$8" fontWeight="bold">Nuevo Sorteo</Text>
+            {loadingLoterias && <Spinner size="small" />}
+          </XStack>
         </XStack>
 
         <Card padding="$4" bg="$backgroundHover" borderColor="$borderColor" borderWidth={1}>

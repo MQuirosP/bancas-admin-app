@@ -4,7 +4,7 @@ import { YStack, XStack, Text, ScrollView, Spinner } from 'tamagui';
 import { Button, Input, Card, Toolbar, ActiveBadge } from '@/components/ui';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { Plus, Search, X, RefreshCw, Trash2 } from '@tamagui/lucide-icons';
+import { Plus, Search, X, RefreshCw, Trash2, ArrowLeft } from '@tamagui/lucide-icons';
 import { useTheme } from 'tamagui';
 import { apiClient, ApiErrorClass } from '@/lib/api.client';
 // Usar Toolbar y ActiveBadge desde components/ui
@@ -118,6 +118,15 @@ export default function BancasListScreen() {
         {/* Header */}
         <XStack justifyContent="space-between" alignItems="center" flexWrap="wrap" gap="$3">
           <XStack ai="center" gap="$2">
+            <Button
+              size="$3"
+              icon={(p:any)=> <ArrowLeft {...p} size={24} color={iconColor} />}
+              onPress={()=> router.push('/admin')}
+              backgroundColor="transparent"
+              borderWidth={0}
+              hoverStyle={{ backgroundColor: 'transparent' }}
+              pressStyle={{ scale: 0.98 }}
+            />
             <Text fontSize="$8" fontWeight="bold" color="$color">Bancas</Text>
             {isFetching && <Spinner size="small" />}
           </XStack>

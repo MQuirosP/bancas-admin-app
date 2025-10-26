@@ -3,7 +3,7 @@ import React, { useMemo, useState } from 'react'
 import { YStack, XStack, Text, ScrollView, Spinner, Separator } from 'tamagui'
 import { Button, Input, Card, Toolbar, ActiveBadge } from '@/components/ui'
 import { useRouter } from 'expo-router'
-import { Plus, Search, X, RefreshCw, Trash2, RotateCcw } from '@tamagui/lucide-icons'
+import { Plus, Search, X, RefreshCw, Trash2, RotateCcw, ArrowLeft } from '@tamagui/lucide-icons'
 import { useTheme } from 'tamagui'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 // Toolbar y ActiveBadge ahora desde components/ui/index
@@ -81,6 +81,15 @@ export default function VentanasListScreen() {
         {/* Header */}
         <XStack jc="space-between" ai="center" gap="$3" flexWrap="wrap">
           <XStack ai="center" gap="$2">
+            <Button
+              size="$3"
+              icon={(p:any)=> <ArrowLeft {...p} size={24} color={iconColor} />}
+              onPress={()=> router.push('/admin')}
+              backgroundColor="transparent"
+              borderWidth={0}
+              hoverStyle={{ backgroundColor: 'transparent' }}
+              pressStyle={{ scale: 0.98 }}
+            />
             <Text fontSize="$8" fontWeight="bold">Ventanas</Text>
             {isFetching && <Spinner size="small" />}
           </XStack>

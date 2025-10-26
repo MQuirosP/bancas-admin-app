@@ -3,7 +3,7 @@ import React, { useMemo, useState } from 'react'
 import { YStack, XStack, Text, ScrollView, Spinner, Separator, Sheet } from 'tamagui'
 import { Button, Input, Card, Select, Toolbar } from '@/components/ui'
 import { useRouter } from 'expo-router'
-import { Plus, Search, X, Trash2, RefreshCw, ChevronDown, Check } from '@tamagui/lucide-icons'
+import { Plus, Search, X, Trash2, RefreshCw, ChevronDown, Check, ArrowLeft } from '@tamagui/lucide-icons'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient, ApiErrorClass } from '@/lib/api.client'
 import type { Usuario } from '@/types/models.types'
@@ -194,6 +194,15 @@ export default function UsuariosListScreen() {
         {/* Header */}
         <XStack justifyContent="space-between" ai="center" gap="$3" flexWrap="wrap">
           <XStack ai="center" gap="$2">
+            <Button
+              size="$3"
+              icon={(p:any)=> <ArrowLeft {...p} size={24} color={(require('tamagui').useTheme().color as any).get?.() ?? '#000'} />}
+              onPress={()=> (require('expo-router').router).push('/admin')}
+              backgroundColor="transparent"
+              borderWidth={0}
+              hoverStyle={{ backgroundColor: 'transparent' }}
+              pressStyle={{ scale: 0.98 }}
+            />
             <Text fontSize="$8" fontWeight="bold">Usuarios</Text>
             {isFetching && <Spinner size="small" />}
           </XStack>

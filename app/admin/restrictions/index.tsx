@@ -1,10 +1,10 @@
 // app/admin/restrictions/index.tsx
 import React, { useMemo, useState } from 'react'
-import { ScrollView, YStack, XStack, Text, Spinner } from 'tamagui'
+import { ScrollView, YStack, XStack, Text, Spinner, useTheme } from 'tamagui'
 import { Button, Card, Input, Select } from '@/components/ui'
 import { useRouter } from 'expo-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Check, ChevronDown, Plus, Trash2, RotateCcw } from '@tamagui/lucide-icons'
+import { Check, ChevronDown, Plus, Trash2, RotateCcw, ArrowLeft } from '@tamagui/lucide-icons'
 import { listRestrictions, deleteRestriction, restoreRestriction } from '@/lib/api.restrictions'
 import type { RestrictionRule } from '@/types/models.types'
 import { useToast } from '@/hooks/useToast'
@@ -45,6 +45,8 @@ const labelIf = (prefix: string, value?: string | null) =>
   ) : null
 
 export default function RestrictionsListScreen() {
+  const theme = useTheme()
+  const iconColor = (theme?.color as any)?.get?.() ?? '#000'
   const router = useRouter()
   const toast = useToast()
   const qc = useQueryClient()
@@ -92,12 +94,23 @@ export default function RestrictionsListScreen() {
     <ScrollView flex={1} backgroundColor="$background">
       <YStack padding="$4" gap="$4" maxWidth={1200} alignSelf="center" width="100%">
         {/* Header */}
-        <XStack jc="space-between" ai="center" gap="$3" flexWrap="wrap">
-          <Text fontSize="$8" fontWeight="bold" color="$color">
-            Reglas de Restricción
-          </Text>
+          <XStack jc="space-between" ai="center" gap="$3" flexWrap="wrap">
+          <XStack ai="center" gap="$2">
+            <Button
+              size="$3"
+              icon={(p:any)=> <ArrowLeft {...p} size={24} color={(require('tamagui').useTheme().color as any).get?.() ?? '#000'} />}
+              onPress={()=> (require('expo-router').router).push('/admin')}
+              backgroundColor="transparent"
+              borderWidth={0}
+              hoverStyle={{ backgroundColor: 'transparent' }}
+              pressStyle={{ scale: 0.98 }}
+            />
+            <Text fontSize="$8" fontWeight="bold" color="$color">
+              Reglas de Restricción
+            </Text>
+          </XStack>
           <Button
-            icon={Plus}
+            icon={(p:any)=> <Plus {...p} color={iconColor} />}
             backgroundColor="$blue4"
             borderColor="$blue8"
             borderWidth={1}
@@ -246,7 +259,7 @@ export default function RestrictionsListScreen() {
                     <XStack>
                       {!r.isActive ? (
                         <Button
-                          icon={RotateCcw}
+                          icon={(p:any)=> <RotateCcw {...p} color={iconColor} />}
                           onPress={(e: any) => {
                             e?.stopPropagation?.()
                             restoreMut.mutate(r.id)
@@ -257,7 +270,7 @@ export default function RestrictionsListScreen() {
                         </Button>
                       ) : (
                         <Button
-                          icon={Trash2}
+                          icon={(p:any)=> <Trash2 {...p} color={iconColor} />}
                           backgroundColor="$red4"
                           borderColor="$red8"
                           borderWidth={1}

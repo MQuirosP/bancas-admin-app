@@ -132,8 +132,8 @@ export default function AdminDashboard() {
 
   const { data: today } = useVentasSummary(current)
   const { data: prev } = useVentasSummary(previous)
-  const { data: ventanasToday } = useVentasBreakdown({ date: 'today', dimension: 'ventana', top: 100 })
-  const { data: ventanasYesterday } = useVentasBreakdown({ date: 'yesterday', dimension: 'ventana', top: 100 })
+  const { data: ventanasToday } = useVentasBreakdown({ date: 'today', dimension: 'ventana', top: 50 })
+  const { data: ventanasYesterday } = useVentasBreakdown({ date: 'yesterday', dimension: 'ventana', top: 50 })
 
   // Serie de últimos 7 días para tarjeta de tendencia
   const sevenDaysAgo = React.useMemo(() => new Date(Date.now() - 6 * 24 * 60 * 60 * 1000), [])

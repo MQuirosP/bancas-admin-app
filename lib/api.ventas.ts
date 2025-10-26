@@ -52,9 +52,12 @@ export const VentasApi = {
     apiClient.get<{ success?: boolean; data: VentasSummary }>('/ventas/summary', compact(q)),
   breakdown: (
     q: Omit<VentasListQuery, 'page' | 'pageSize'> & { dimension: 'ventana' | 'vendedor' | 'loteria' | 'sorteo' | 'numero'; top?: number }
-  ) => apiClient.get<{ success?: boolean; data: BreakdownItem[] }>('/ventas/breakdown', compact(q)),
+  ) => {
+    const top = typeof q.top === 'number' ? Math.min(Math.max(1, Math.floor(q.top)), 50) : undefined
+    const payload = { ...q, ...(top ? { top } : {}) }
+    return apiClient.get<{ success?: boolean; data: BreakdownItem[] }>('/ventas/breakdown', compact(payload))
+  },
   timeseries: (
     q: Omit<VentasListQuery, 'page' | 'pageSize'> & { granularity?: 'hour' | 'day' | 'week'; dimension?: string }
   ) => apiClient.get<{ success?: boolean; data: TimeseriesPoint[] }>('/ventas/timeseries', compact(q)),
 }
-

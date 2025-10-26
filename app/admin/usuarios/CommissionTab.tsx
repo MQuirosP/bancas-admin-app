@@ -1,13 +1,14 @@
 // app/admin/usuarios/CommissionTab.tsx
 import React from 'react'
 import { YStack, XStack, Text } from 'tamagui'
-import { Toolbar, Button } from '@/components/ui'
+import { Toolbar, Button, Card } from '@/components/ui'
 import { RefreshCw, HelpCircle } from '@tamagui/lucide-icons'
 import { useTheme } from 'tamagui'
 import { useCommissionPolicy, useUpdateCommissionPolicy } from '@/hooks/useCommissionPolicy'
 import { CommissionForm } from '@/components/commission/CommissionForm'
 import { CommissionPreview } from '@/components/commission/CommissionPreview'
-import { CommissionPolicyV1Schema, EmptyPolicy } from '@/validators/commission.schema'
+import { EmptyPolicy } from '@/validators/commission.schema'
+import type { CommissionPolicyV1 } from '@/types/commission.types'
 import { useToast } from '@/hooks/useToast'
 import { useConfirm } from '@/components/ui/Confirm'
 import { getErrorMessage } from '@/lib/errors'
@@ -26,17 +27,13 @@ export default function CommissionTab({ userId, targetRole, viewerRole }: Props)
   const theme = useTheme()
   const iconColor = (theme?.color as any)?.get?.() ?? '#000'
   const [techError, setTechError] = React.useState<{ code?: string; traceId?: string; details?: any[] } | null>(null)
+  const [previewPolicy, setPreviewPolicy] = React.useState<CommissionPolicyV1 | null>(null)
 
   const readOnly = viewerRole !== 'ADMIN' || !(targetRole === 'VENTANA' || targetRole === 'VENDEDOR')
 
-  const handleSave = async (v: any) => {
-    const parsed = CommissionPolicyV1Schema.safeParse(v)
-    if (!parsed.success) {
-      toast.error('Revisa el JSON: datos inválidos')
-      return
-    }
+  const handleSave = async (v: CommissionPolicyV1) => {
     try {
-      await update.mutateAsync(parsed.data)
+      await update.mutateAsync(v)
       setTechError(null)
     } catch (e) {
       const anyErr = e as any
@@ -113,9 +110,10 @@ export default function CommissionTab({ userId, targetRole, viewerRole }: Props)
           onSave={handleSave}
           onCancel={() => refetch()}
           onReset={readOnly ? undefined : handleReset}
+          onChangePolicy={setPreviewPolicy}
         />
 
-        <CommissionPreview policy={policy ?? null} />
+        <CommissionPreview policy={previewPolicy ?? policy ?? null} />
       </YStack>
       <ConfirmRoot />
     </YStack>

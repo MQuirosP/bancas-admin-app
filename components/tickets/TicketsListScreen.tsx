@@ -3,7 +3,7 @@ import { YStack, XStack, Text, ScrollView, Spinner, Separator } from 'tamagui'
 import { Button, Input, Card, Select, DatePicker } from '@/components/ui'
 import { useRouter } from 'expo-router'
 import { useQuery } from '@tanstack/react-query'
-import { Search, X, RefreshCw, ChevronDown, Check } from '@tamagui/lucide-icons'
+import { Search, X, RefreshCw, ChevronDown, Check, ArrowLeft } from '@tamagui/lucide-icons'
 import { useTheme } from 'tamagui'
 import { subDays, format } from 'date-fns'
 import { es } from 'date-fns/locale'
@@ -121,6 +121,17 @@ export default function TicketsListScreen({ scope }: Props) {
       <YStack padding="$4" gap="$4" maxWidth={1200} alignSelf="center" width="100%">
         <XStack justifyContent="space-between" ai="center" gap="$3" flexWrap="wrap">
           <XStack ai="center" gap="$2">
+            {scope === 'admin' && (
+              <Button
+                size="$3"
+                icon={(p:any)=> <ArrowLeft {...p} size={24} color={iconColor} />}
+                onPress={()=> router.push('/admin')}
+                backgroundColor="transparent"
+                borderWidth={0}
+                hoverStyle={{ backgroundColor: 'transparent' }}
+                pressStyle={{ scale: 0.98 }}
+              />
+            )}
             <Text fontSize="$8" fontWeight="bold">
               {scope === 'admin' ? 'Tickets (Admin)' : 'Tickets de la Ventana'}
             </Text>

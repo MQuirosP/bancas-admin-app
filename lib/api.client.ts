@@ -146,7 +146,22 @@ export class ApiClient {
       endpoint.includes('/auth/refresh') ||
       endpoint.includes('/auth/register')
 
-    let res = await fetch(url, { ...options, headers })
+    const doFetch = async (): Promise<Response> => {
+      let attempt = 0
+      const max = 2
+      let resp = await fetch(url, { ...options, headers })
+      // Manejo simple de 429 con pequeño backoff respetando Retry-After
+      while (resp.status === 429 && attempt < max) {
+        attempt++
+        const ra = resp.headers.get('retry-after')
+        const delayMs = ra ? Math.min(5000, Math.max(500, Number(ra) * 1000 || 1000)) : 1000 * attempt
+        await new Promise((r) => setTimeout(r, delayMs))
+        resp = await fetch(url, { ...options, headers })
+      }
+      return resp
+    }
+
+    let res = await doFetch()
 
     // Reintento si 401 y no es endpoint de auth
     if (res.status === 401 && !isAuthEndpoint) {
@@ -160,7 +175,7 @@ export class ApiClient {
           this.onTokenRefreshed(newToken)
 
           headers['Authorization'] = `Bearer ${newToken}`
-          res = await fetch(url, { ...options, headers })
+          res = await doFetch()
         } catch (error) {
           this.isRefreshing = false
           console.error('❌ Refresh token falló, cerrando sesión')
@@ -178,8 +193,8 @@ export class ApiClient {
           setTimeout(() => reject(new Error('Refresh timeout')), 10000)
         })
         headers['Authorization'] = `Bearer ${newToken}`
-        res = await fetch(url, { ...options, headers })
-      }
+        res = await doFetch()
+    }
     }
 
     let data: any = null

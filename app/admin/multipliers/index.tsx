@@ -1,9 +1,9 @@
 // app/admin/multipliers/index.tsx
 import React, { useMemo, useState } from 'react'
-import { YStack, XStack, Text, ScrollView, Spinner, Separator, Select, Sheet } from 'tamagui'
+import { YStack, XStack, Text, ScrollView, Spinner, Separator, Select, Sheet, useTheme } from 'tamagui'
 import { Button, Card, Input, Toolbar, ActiveBadge } from '@/components/ui'
 import { useRouter } from 'expo-router'
-import { Plus, Search, X, RefreshCw, Check, ChevronDown, Trash2 } from '@tamagui/lucide-icons'
+import { Plus, Search, X, RefreshCw, Check, ChevronDown, Trash2, ArrowLeft } from '@tamagui/lucide-icons'
 import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api.client'
 import type { Loteria } from '@/types/models.types'
@@ -12,6 +12,8 @@ import { MultipliersApi } from '@/lib/api.multipliers'
 import FilterSwitch from '@/components/ui/FilterSwitch'
 
 export default function MultipliersListScreen() {
+  const theme = useTheme()
+  const iconColor = (theme?.color as any)?.get?.() ?? '#000'
   const router = useRouter()
 
   const [searchInput, setSearchInput] = useState('')
@@ -71,11 +73,20 @@ export default function MultipliersListScreen() {
         {/* Header */}
         <XStack jc="space-between" ai="center" gap="$3" fw="wrap">
           <XStack ai="center" gap="$2">
+            <Button
+              size="$3"
+              icon={(p:any)=> <ArrowLeft {...p} size={24} color={iconColor} />}
+              onPress={()=> router.push('/admin')}
+              backgroundColor="transparent"
+              borderWidth={0}
+              hoverStyle={{ backgroundColor: 'transparent' }}
+              pressStyle={{ scale: 0.98 }}
+            />
             <Text fontSize="$8" fontWeight="bold">Multiplicadores</Text>
             {(isFetching || lotFetching) && <Spinner size="small" />}
           </XStack>
           <Button
-            icon={Plus}
+            icon={(p:any)=> <Plus {...p} color={iconColor} />}
             onPress={() => router.push('/admin/multipliers/nuevo')}
             bg="$primary"
             borderColor="$primaryPress"
@@ -108,7 +119,7 @@ export default function MultipliersListScreen() {
                   <Button
                     size="$2"
                     circular
-                    icon={X}
+                    icon={(p:any)=> <X {...p} color={iconColor} />}
                     position="absolute"
                     right="$2"
                     onPress={() => setSearchInput('')}
@@ -119,7 +130,7 @@ export default function MultipliersListScreen() {
               </XStack>
 
               <Button
-                icon={Search}
+                icon={(p:any)=> <Search {...p} color={iconColor} />}
                 onPress={handleSearch}
                 hoverStyle={{ scale: 1.02 }}
                 pressStyle={{ scale: 0.98 }}
@@ -232,7 +243,7 @@ export default function MultipliersListScreen() {
               <Separator vertical />
 
               <Button
-                icon={RefreshCw}
+                icon={(p:any)=> <RefreshCw {...p} color={iconColor} />}
                 onPress={() => refetch()}
                 backgroundColor={'$green4'}
                 borderColor={'$green8'}
@@ -299,7 +310,7 @@ export default function MultipliersListScreen() {
                       {/* Eliminar (rojo) - placeholder de acción */}
                       <Button
                         // size="$2"
-                        icon={Trash2}
+                        icon={(p:any)=> <Trash2 {...p} color={iconColor} />}
                         backgroundColor={'$red4'}
                         borderColor={'$red8'}
                         hoverStyle={{ backgroundColor: '$red5' }}

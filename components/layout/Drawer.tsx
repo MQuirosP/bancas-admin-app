@@ -4,7 +4,6 @@ import { Animated, Pressable, StyleSheet, Easing } from 'react-native';
 import { useRouter } from 'expo-router';
 import { YStack, XStack, Text, ScrollView, useThemeName } from 'tamagui';
 import { Button } from '@/components/ui'
-import { AnimatePresence } from '@tamagui/animate-presence'
 import {
   Home,
   Building2,
@@ -21,8 +20,6 @@ import {
   Ticket,
   DollarSign,
   Calendar,
-  ChevronDown,
-  ChevronRight,
 } from '@tamagui/lucide-icons';
 import { useAuthStore } from '../../store/auth.store';
 
@@ -47,6 +44,9 @@ export default function Drawer({ isOpen, onClose }: DrawerProps) {
   const router = useRouter();
   const themeName = useThemeName()
   const iconColor = themeName === 'dark' ? '#ffffff' : '#000000'
+  const isDark = themeName === 'dark'
+  const panelBg = isDark ? 'rgba(20,20,24,0.75)' : 'rgba(255,255,255,0.75)'
+  const hoverBorder = isDark ? 'rgba(255,255,255,0.28)' : 'rgba(120,120,120,0.28)'
 
   // ========== MENÚ POR ROL ==========
   const getMenuItems = (): MenuItem[] => {
@@ -207,7 +207,6 @@ export default function Drawer({ isOpen, onClose }: DrawerProps) {
 
   const menuItems = getMenuItems();
   const isAdmin = user?.role === 'ADMIN'
-  const [panelOpen, setPanelOpen] = React.useState(false)
 
   // ========== NAVEGACIÓN ==========
   const handleNavigate = (route?: string) => {
@@ -227,7 +226,7 @@ export default function Drawer({ isOpen, onClose }: DrawerProps) {
   // ========== ANIMACIONES ==========
   const [rendered, setRendered] = React.useState(isOpen);
   const overlayOpacity = React.useRef(new Animated.Value(isOpen ? 1 : 0)).current;
-  const panelX = React.useRef(new Animated.Value(isOpen ? 0 : -24)).current;
+  const panelY = React.useRef(new Animated.Value(isOpen ? 0 : -40)).current;
   const panelOpacity = React.useRef(new Animated.Value(isOpen ? 1 : 0)).current;
 
   React.useEffect(() => {
@@ -240,9 +239,9 @@ export default function Drawer({ isOpen, onClose }: DrawerProps) {
           easing: Easing.out(Easing.quad),
           useNativeDriver: true,
         }),
-        Animated.timing(panelX, {
+        Animated.timing(panelY, {
           toValue: 0,
-          duration: 200,
+          duration: 220,
           easing: Easing.out(Easing.cubic),
           useNativeDriver: true,
         }),
@@ -261,10 +260,10 @@ export default function Drawer({ isOpen, onClose }: DrawerProps) {
           easing: Easing.in(Easing.quad),
           useNativeDriver: true,
         }),
-        Animated.timing(panelX, {
-          toValue: -12,
-          duration: 160,
-          easing: Easing.in(Easing.cubic),
+        Animated.timing(panelY, {
+          toValue: -24,
+          duration: 180,
+          easing: Easing.inOut(Easing.cubic),
           useNativeDriver: true,
         }),
         Animated.timing(panelOpacity, {
@@ -277,7 +276,7 @@ export default function Drawer({ isOpen, onClose }: DrawerProps) {
         if (finished) setRendered(false);
       });
     }
-  }, [isOpen, rendered, overlayOpacity, panelX, panelOpacity]);
+  }, [isOpen, rendered, overlayOpacity, panelY, panelOpacity]);
 
   if (!rendered) return null;
 
@@ -303,21 +302,16 @@ export default function Drawer({ isOpen, onClose }: DrawerProps) {
           position: 'absolute',
           top: 0,
           left: 0,
-          bottom: 0,
-          width: 280,
+          width: 300,
           zIndex: 50,
-          transform: [{ translateX: panelX }],
+          transform: [{ translateY: panelY }],
           opacity: panelOpacity,
         }}
       >
         <YStack
-          f={1}
-          backgroundColor="$backgroundHover"
+          backgroundColor={panelBg as any}
           borderRightWidth={1}
           borderRightColor="$borderColor"
-          shadowColor="$color"
-          shadowRadius={20}
-          shadowOpacity={0.35}
         >
           {/* Header */}
           <XStack
@@ -344,198 +338,54 @@ export default function Drawer({ isOpen, onClose }: DrawerProps) {
             </Button>
           </XStack>
 
-          {/* Lista de items */}
-          <ScrollView flex={1}>
-            <YStack padding="$3" gap="$1">
-              {isAdmin ? (
-                <>
-                  {/* Dashboard fijo */}
-                  <Button
-                    backgroundColor="transparent"
-                    justifyContent="flex-start"
-                    paddingHorizontal="$4"
-                    paddingVertical="$3"
-                    borderRadius="$3"
-                    pressStyle={{ backgroundColor: '$backgroundPress' }}
-                    hoverStyle={{ backgroundColor: '$backgroundPress' }}
-                    onPress={() => handleNavigate('/admin/dashboard')}
-                  >
-                    <XStack gap="$3" alignItems="center" width="100%">
-                      <Home size={20} color={iconColor} />
-                      <Text fontSize="$4" fontWeight="500" color="$textPrimary">Dashboard</Text>
-                    </XStack>
-                  </Button>
+          {/* Lista de items mínima: Dashboard, Panel Administrativo, Configuración + usuario */}
+          <YStack padding="$3" gap="$1">
+            {isAdmin ? (
+              <>
+                {/* Dashboard (métricas) */}
+                <Button backgroundColor="transparent" justifyContent="flex-start" paddingHorizontal="$4" paddingVertical="$3" borderRadius="$3" bw={1} bc="transparent" animation="quick" style={{ transition: 'all 160ms ease' }} pressStyle={{ backgroundColor: '$backgroundPress' }} hoverStyle={{ backgroundColor: '$backgroundPress', borderColor: hoverBorder, shadowColor: hoverBorder as any, shadowOpacity: 0.35, shadowRadius: 8 }} onPress={() => handleNavigate('/admin/dashboard')}>
+                  <XStack gap="$3" alignItems="center" width="100%"><Home size={20} color={iconColor} /><Text fontSize="$4" fontWeight="500" color="$textPrimary">Dashboard</Text></XStack>
+                </Button>
 
-                  {/* Panel Administrativo (colapsable) */}
-                  <Button
-                    variant="ghost"
-                    justifyContent="flex-start"
-                    paddingHorizontal="$4"
-                    paddingVertical="$3"
-                    borderRadius="$3"
-                    pressStyle={{ backgroundColor: '$backgroundPress' }}
-                    hoverStyle={{ backgroundColor: '$backgroundPress' }}
-                    onPress={() => setPanelOpen(v => !v)}
-                  >
-                    <XStack gap="$3" alignItems="center" width="100%" jc="space-between">
-                      <XStack gap="$3" alignItems="center">
-                        <Store size={20} color={iconColor} />
-                        <Text fontSize="$4" fontWeight="500" color="$textPrimary">Panel Administrativo</Text>
-                      </XStack>
-                      {panelOpen ? <ChevronDown size={18} color={iconColor} /> : <ChevronRight size={18} color={iconColor} />}
-                    </XStack>
-                  </Button>
-                  <AnimatePresence>
-                  {panelOpen && (
-                    <YStack
-                      pl="$6"
-                      gap="$1"
-                      animation="quick"
-                      enterStyle={{ opacity: 0, y: -4 }}
-                      exitStyle={{ opacity: 0, y: -4 }}
-                    >
-                      {[
-                        { id: 'panel-hub', label: 'Panel', icon: Store, route: '/admin' },
-                        { id: 'bancas', label: 'Bancas', icon: Building2, route: '/admin/bancas' },
-                        { id: 'ventanas', label: 'Ventanas', icon: Store, route: '/admin/ventanas' },
-                        { id: 'usuarios', label: 'Usuarios', icon: Users, route: '/admin/usuarios' },
-                        { id: 'loterias', label: 'Loterías', icon: Trophy, route: '/admin/loterias' },
-                        { id: 'sorteos', label: 'Sorteos', icon: Calendar, route: '/admin/sorteos' },
-                        { id: 'multipliers', label: 'Multiplicadores', icon: BarChart3, route: '/admin/multipliers' },
-                        { id: 'restrictions', label: 'Restricciones', icon: Shield, route: '/admin/restrictions' },
-                        { id: 'tickets', label: 'Tickets', icon: Ticket, route: '/admin/tickets' },
-                      ].map((it) => (
-                        <Button
-                          variant="ghost"
-                          key={it.id}
-                          justifyContent="flex-start"
-                          paddingHorizontal="$4"
-                          paddingVertical="$3"
-                          borderRadius="$3"
-                          pressStyle={{ backgroundColor: '$backgroundPress' }}
-                          hoverStyle={{ backgroundColor: '$backgroundPress' }}
-                          onPress={() => handleNavigate(it.route)}
-                        >
-                          <XStack gap="$3" alignItems="center" width="100%">
-                            <it.icon size={18} color={iconColor} />
-                            <Text fontSize="$3" color="$textPrimary">{it.label}</Text>
-                          </XStack>
-                        </Button>
-                      ))}
-                    </YStack>
-                  )}
-                  </AnimatePresence>
+                {/* Panel Administrativo (hub) */}
+                <Button variant="ghost" justifyContent="flex-start" paddingHorizontal="$4" paddingVertical="$3" borderRadius="$3" bw={1} bc="transparent" animation="quick" style={{ transition: 'all 160ms ease' }} pressStyle={{ backgroundColor: '$backgroundPress' }} hoverStyle={{ backgroundColor: '$backgroundPress', borderColor: hoverBorder, shadowColor: hoverBorder as any, shadowOpacity: 0.35, shadowRadius: 8 }} onPress={() => handleNavigate('/admin')}>
+                  <XStack gap="$3" alignItems="center" width="100%"><Store size={20} color={iconColor} /><Text fontSize="$4" fontWeight="500" color="$textPrimary">Panel Administrativo</Text></XStack>
+                </Button>
 
-                  {/* Reportes hub */}
-                  <Button
-                    variant="ghost"
-                    justifyContent="flex-start"
-                    paddingHorizontal="$4"
-                    paddingVertical="$3"
-                    borderRadius="$3"
-                    pressStyle={{ backgroundColor: '$backgroundPress' }}
-                    hoverStyle={{ backgroundColor: '$backgroundPress' }}
-                    onPress={() => handleNavigate('/admin/reportes')}
-                  >
-                    <XStack gap="$3" alignItems="center" width="100%">
-                      <TrendingUp size={20} color={iconColor} />
-                      <Text fontSize="$4" fontWeight="500" color="$textPrimary">Reportes</Text>
-                    </XStack>
-                  </Button>
+                {/* Configuración */}
+                <YStack height={1} backgroundColor="$borderColor" marginVertical="$2" />
+                <Button variant="ghost" justifyContent="flex-start" paddingHorizontal="$4" paddingVertical="$3" borderRadius="$3" bw={1} bc="transparent" animation="quick" style={{ transition: 'all 160ms ease' }} pressStyle={{ backgroundColor: '$backgroundPress' }} hoverStyle={{ backgroundColor: '$backgroundPress', borderColor: hoverBorder, shadowColor: hoverBorder as any, shadowOpacity: 0.35, shadowRadius: 8 }} onPress={() => handleNavigate('/admin/configuracion')}>
+                  <XStack gap="$3" alignItems="center" width="100%"><Settings size={20} color={iconColor} /><Text fontSize="$4" fontWeight="500" color="$textPrimary">Configuración</Text></XStack>
+                </Button>
 
-                  {/* Separador y Configuración al final */}
-                  <YStack height={1} backgroundColor="$borderColor" marginVertical="$2" />
-                  <Button
-                    variant="ghost"
-                    justifyContent="flex-start"
-                    paddingHorizontal="$4"
-                    paddingVertical="$3"
-                    borderRadius="$3"
-                    pressStyle={{ backgroundColor: '$backgroundPress' }}
-                    hoverStyle={{ backgroundColor: '$backgroundPress' }}
-                    onPress={() => handleNavigate('/admin/configuracion')}
-                  >
-                    <XStack gap="$3" alignItems="center" width="100%">
-                      <Settings size={20} color={iconColor} />
-                      <Text fontSize="$4" fontWeight="500" color="$textPrimary">Configuración</Text>
-                    </XStack>
-                  </Button>
-                </>
-              ) : (
-                // Para otros roles, lista plana existente
-                menuItems.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <React.Fragment key={item.id}>
-                      <Button
-                        variant="ghost"
-                        backgroundColor="transparent"
-                        justifyContent="flex-start"
-                        paddingHorizontal="$4"
-                        paddingVertical="$3"
-                        borderRadius="$3"
-                        pressStyle={{ backgroundColor: '$backgroundPress' }}
-                        hoverStyle={{ backgroundColor: '$backgroundPress' }}
-                        onPress={() => handleNavigate(item.route)}
-                      >
-                        <XStack gap="$3" alignItems="center" width="100%">
-                          <Icon size={20} color={iconColor} />
-                          <Text fontSize="$4" fontWeight="500" color="$textPrimary">
-                            {item.label}
-                          </Text>
-                        </XStack>
-                      </Button>
-
-                      {/* Separador visual */}
-                      {item.dividerAfter && (
-                        <YStack
-                          height={1}
-                          backgroundColor="$borderColor"
-                          marginVertical="$2"
-                        />
-                      )}
-                    </React.Fragment>
-                  );
-                })
-              )}
-            </YStack>
-          </ScrollView>
-
-          {/* Footer con info del usuario */}
-          <YStack
-            padding="$4"
-            borderTopWidth={1}
-            borderTopColor="$borderColor"
-            backgroundColor="$backgroundStrong"
-          >
-            <XStack gap="$3" alignItems="center">
-              <YStack
-                width={40}
-                height={40}
-                backgroundColor="$primary"
-                borderRadius="$4"
-                alignItems="center"
-                justifyContent="center"
-              >
-                <Text fontSize="$5" fontWeight="600" color="white">
-                  {user?.name?.charAt(0).toUpperCase() || 'U'}
-                </Text>
-              </YStack>
-              <YStack f={1}>
-                <Text 
-                  fontSize="$4" 
-                  fontWeight="600" 
-                  color="$textPrimary" 
-                  numberOfLines={1}
-                >
-                  {user?.name || 'Usuario'}
-                </Text>
-                <Text fontSize="$2" color="$textTertiary">
-                  {user?.role || 'ROL'}
-                </Text>
-              </YStack>
-            </XStack>
+                {/* Usuario */}
+                <YStack height={1} backgroundColor="$borderColor" marginVertical="$2" />
+                <XStack gap="$3" alignItems="center" paddingHorizontal="$4" paddingVertical="$3">
+                  <YStack width={40} height={40} backgroundColor="$primary" borderRadius="$4" alignItems="center" justifyContent="center">
+                    <Text fontSize="$5" fontWeight="600" color="white">{user?.name?.charAt(0).toUpperCase() || 'U'}</Text>
+                  </YStack>
+                  <YStack>
+                    <Text fontSize="$4" fontWeight="600" color="$textPrimary" numberOfLines={1}>{user?.name || 'Usuario'}</Text>
+                    <Text fontSize="$2" color="$textTertiary">{user?.role || 'ROL'}</Text>
+                  </YStack>
+                </XStack>
+              </>
+            ) : (
+              menuItems.map((item) => {
+                const Icon = item.icon
+                return (
+                  <React.Fragment key={item.id}>
+                    <Button variant="ghost" backgroundColor="transparent" justifyContent="flex-start" paddingHorizontal="$4" paddingVertical="$3" borderRadius="$3" bw={1} bc="transparent" animation="quick" style={{ transition: 'all 160ms ease' }} pressStyle={{ backgroundColor: '$backgroundPress' }} hoverStyle={{ backgroundColor: '$backgroundPress', borderColor: hoverBorder, shadowColor: hoverBorder as any, shadowOpacity: 0.35, shadowRadius: 8 }} onPress={() => handleNavigate(item.route)}>
+                      <XStack gap="$3" alignItems="center" width="100%"><Icon size={20} color={iconColor} /><Text fontSize="$4" fontWeight="500" color="$textPrimary">{item.label}</Text></XStack>
+                    </Button>
+                    {item.dividerAfter && (<YStack height={1} backgroundColor="$borderColor" marginVertical="$2" />)}
+                  </React.Fragment>
+                )
+              })
+            )}
           </YStack>
+
+          
         </YStack>
       </Animated.View>
     </>

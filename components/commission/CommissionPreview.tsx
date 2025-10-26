@@ -4,25 +4,28 @@ import { Button, Input, Select, DatePicker } from '@/components/ui'
 import type { CommissionPolicyV1, BetType } from '@/types/commission.types'
 import { formatCurrency } from '@/utils/formatters'
 import { useLoterias } from '@/hooks/useLoterias'
+import { useActiveMultipliersQuery } from '@/hooks/userMultipliers'
 
 type Props = {
   policy: CommissionPolicyV1 | null
 }
 
 export const CommissionPreview: React.FC<Props> = ({ policy }) => {
+  const [loteriaId, setLoteriaId] = useState<string>('')
+  const [multiplier, setMultiplier] = useState<string>('')
   const [amount, setAmount] = useState<string>('1000')
   const [betType, setBetType] = useState<BetType>('NUMERO')
-  const [multiplier, setMultiplier] = useState<string>('90')
-  const [loteriaId, setLoteriaId] = useState<string>('')
   const [nowDate, setNowDate] = useState<Date | null>(null)
   const { data: lotResp } = useLoterias({ page: 1, pageSize: 100 })
+  const { data: avail } = useActiveMultipliersQuery(loteriaId || undefined, betType)
+  const items: Array<{ id: string; label: string; value: string }> = (avail ?? []).map((m: any) => ({ id: m.id, label: `${m.name} (${m.valueX}x)`, value: String(m.valueX) }))
 
   const now = useMemo(() => (nowDate ? nowDate : new Date()), [nowDate])
 
   const result = useMemo(() => {
     const amt = Number(amount) || 0
     const mult = Number(multiplier)
-    if (!policy || !loteriaId) {
+    if (!policy || !loteriaId || !isFinite(mult)) {
       return { percent: 0, commissionAmount: 0, source: 'USER' as const }
     }
 
@@ -52,32 +55,9 @@ export const CommissionPreview: React.FC<Props> = ({ policy }) => {
       <YStack gap="$2">
         <Text fontSize="$5" fontWeight="600">Probar política (simulación local)</Text>
         <XStack gap="$2" flexWrap="wrap">
-          <YStack minWidth={140} gap="$1">
-            <Text fontSize="$3">Monto</Text>
-            <Input value={amount} onChangeText={setAmount} keyboardType="number-pad" />
-          </YStack>
-          <YStack minWidth={160} gap="$1">
-            <Text fontSize="$3">Tipo apuesta</Text>
-            <Select value={betType} onValueChange={(v:any)=>setBetType(v)}>
-              <Select.Trigger bw={1} bc="$borderColor" bg="$background" px="$3">
-                <Select.Value />
-              </Select.Trigger>
-              <Select.Content>
-                <Select.Viewport>
-                  {(['NUMERO','REVENTADO'] as const).map((bt,idx)=> (
-                    <Select.Item key={bt} value={bt} index={idx}><Select.ItemText>{bt}</Select.ItemText></Select.Item>
-                  ))}
-                </Select.Viewport>
-              </Select.Content>
-            </Select>
-          </YStack>
-          <YStack minWidth={160} gap="$1">
-            <Text fontSize="$3">Multiplicador final (X)</Text>
-            <Input value={multiplier} onChangeText={setMultiplier} keyboardType="number-pad" />
-          </YStack>
           <YStack minWidth={220} gap="$1">
             <Text fontSize="$3">Lotería (obligatorio)</Text>
-            <Select value={loteriaId} onValueChange={setLoteriaId}>
+            <Select value={loteriaId} onValueChange={(v)=> { setLoteriaId(v); setMultiplier('') }}>
               <Select.Trigger bw={1} bc="$borderColor" bg="$background" px="$3">
                 <Select.Value placeholder="Selecciona lotería" />
               </Select.Trigger>
@@ -90,6 +70,44 @@ export const CommissionPreview: React.FC<Props> = ({ policy }) => {
               </Select.Content>
             </Select>
           </YStack>
+
+          <YStack minWidth={220} gap="$1">
+            <Text fontSize="$3">Multiplicador (de la lotería)</Text>
+            <Select value={items.some(i => i.value === multiplier) ? multiplier : ''} onValueChange={(v)=> setMultiplier(v)}>
+              <Select.Trigger bw={1} bc="$borderColor" bg="$background" px="$3">
+                <Select.Value placeholder={loteriaId ? 'Selecciona un multiplicador' : 'Elige lotería primero'} />
+              </Select.Trigger>
+              <Select.Content>
+                <Select.Viewport>
+                  {items.map((it, i) => (
+                    <Select.Item key={it.id} value={it.value} index={i}><Select.ItemText>{it.label}</Select.ItemText></Select.Item>
+                  ))}
+                </Select.Viewport>
+              </Select.Content>
+            </Select>
+          </YStack>
+
+          <YStack minWidth={140} gap="$1">
+            <Text fontSize="$3">Monto</Text>
+            <Input value={amount} onChangeText={setAmount} keyboardType="number-pad" />
+          </YStack>
+
+          <YStack minWidth={160} gap="$1">
+            <Text fontSize="$3">Tipo apuesta</Text>
+            <Select value={betType} onValueChange={(v:any)=>{ setBetType(v); /* no cambiamos multiplier automáticamente */ }}>
+              <Select.Trigger bw={1} bc="$borderColor" bg="$background" px="$3">
+                <Select.Value />
+              </Select.Trigger>
+              <Select.Content>
+                <Select.Viewport>
+                  {(['NUMERO','REVENTADO'] as const).map((bt,idx)=> (
+                    <Select.Item key={bt} value={bt} index={idx}><Select.ItemText>{bt}</Select.ItemText></Select.Item>
+                  ))}
+                </Select.Viewport>
+              </Select.Content>
+            </Select>
+          </YStack>
+
           <YStack minWidth={220} gap="$1">
             <Text fontSize="$3">Fecha (opcional)</Text>
             <DatePicker value={nowDate} onChange={setNowDate} mode="datetime" placeholder="yyyy-mm-dd hh:mm" />
