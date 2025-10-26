@@ -1,17 +1,7 @@
 // app/admin/sorteos/preview.tsx
 import React, { useState, useMemo } from 'react'
-import {
-  YStack,
-  XStack,
-  Text,
-  Button,
-  Input,
-  ScrollView,
-  Spinner,
-  Checkbox,
-  Separator,
-  Card,
-} from 'tamagui'
+import { YStack, XStack, Text, Input, ScrollView, Spinner, Checkbox, Separator, Card } from 'tamagui'
+import { Button } from '@/components/ui'
 import { ArrowLeft, Calendar, Check, CheckCircle2, RefreshCw } from '@tamagui/lucide-icons'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useLocalSearchParams } from 'expo-router'
@@ -190,9 +180,10 @@ export default function PreviewSorteosScreen() {
               size="$3"
               icon={RefreshCw}
               onPress={() => refetch()}
-              disabled={isFetching}
+              loading={isFetching}
+              loadingText="Actualizando..."
             >
-              {isFetching ? 'Actualizando...' : 'Actualizar'}
+              Actualizar
             </Button>
 
             {data?.meta && (
@@ -297,6 +288,7 @@ export default function PreviewSorteosScreen() {
             <XStack gap="$3" jc="flex-end" flexWrap="wrap">
               <Button
                 size="$3"
+                variant="secondary"
                 onPress={() => safeBack('/admin/sorteos')}
                 disabled={mSeed.isPending}
               >
@@ -310,18 +302,13 @@ export default function PreviewSorteosScreen() {
                 borderWidth={1}
                 icon={CheckCircle2}
                 onPress={handleSeed}
-                disabled={selectedIds.size === 0 || mSeed.isPending}
+                disabled={selectedIds.size === 0}
+                loading={mSeed.isPending}
+                loadingText="Creando..."
                 hoverStyle={{ bg: '$green5' }}
                 pressStyle={{ bg: '$green6' }}
               >
-                {mSeed.isPending ? (
-                  <>
-                    <Spinner size="small" />
-                    <Text ml="$2">Creando...</Text>
-                  </>
-                ) : (
-                  `Crear ${selectedIds.size} sorteo(s)`
-                )}
+                {`Crear ${selectedIds.size} sorteo(s)`}
               </Button>
             </XStack>
           </>
