@@ -1,7 +1,7 @@
 // app/admin/index.tsx
 import React, { useMemo, useState } from 'react';
 import { useRouter } from 'expo-router';
-import { YStack, XStack, Text, ScrollView, Dialog } from 'tamagui';
+import { YStack, XStack, Text, ScrollView } from 'tamagui';
 import { Card, Button } from '@/components/ui';
 import {
   Users,
@@ -12,11 +12,12 @@ import {
   Settings,
   Shield,
   BarChart3,
+  X as CloseIcon,
 } from '@tamagui/lucide-icons';
 import { useAuthStore } from '../../store/auth.store';
 import { useVentasSummary, useVentasBreakdown } from '@/hooks/useVentas'
 import { formatCurrency } from '@/utils/formatters'
-import SafeDialogContent from '@/components/ui/SafeDialogContent'
+import { AnimatePresence } from '@tamagui/animate-presence'
 import { useUIStore } from '@/store/ui.store'
 
 interface DashboardCard {
@@ -153,6 +154,16 @@ export default function AdminDashboard() {
     ]
   }, [today, prev, ventanasToday, ventanasYesterday])
 
+  // Estado local: stats desplegables por card
+  const [openIds, setOpenIds] = useState<Set<string>>(new Set())
+  const toggleStat = (key: string) => {
+    setOpenIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key); else next.add(key)
+      return next
+    })
+  }
+
   const handleCardPress = (href: string) => {
     router.push(href as any);
   };
@@ -172,46 +183,73 @@ export default function AdminDashboard() {
 
         {/* Quick Stats (arriba) */}
         <XStack gap="$3" flexWrap="wrap" marginTop="$2">
-          {stats.map((s) => (
-            <Dialog key={s.key}>
-              <Dialog.Trigger asChild>
-                <Card
-                  flex={1}
-                  minWidth={180}
-                  padding="$3"
-                  backgroundColor="$backgroundStrong"
-                  borderRadius="$3"
-                  borderWidth={1}
-                  borderColor="$borderColor"
-                  hoverStyle={{ borderColor: '$borderColorHover', scale: 1.01 }}
-                  pressStyle={{ scale: 0.98 }}
-                  animation="quick"
-                  cursor="pointer"
-                >
-                  <YStack gap="$1">
-                    <Text fontSize="$2" color="$textSecondary" fontWeight="500">{s.title}</Text>
-                    <XStack ai="baseline" jc="space-between">
-                      <Text fontSize="$7" fontWeight="bold" color="$textPrimary">{s.value}</Text>
-                      <Text fontSize="$2" color={s.delta >= 0 ? '$green10' : '$red10'} fontWeight="700">
-                        {s.delta >= 0 ? '↑' : '↓'} {Math.abs(s.delta).toFixed(1)}%
-                      </Text>
-                    </XStack>
-                  </YStack>
-                </Card>
-              </Dialog.Trigger>
-              <SafeDialogContent bg="$background" bw={1} bc="$borderColor" br="$4" p="$3" elevate enterStyle={{ opacity: 0, scale: 0.98 }} exitStyle={{ opacity: 0, scale: 0.98 }}>
-                <YStack gap="$2" maxWidth={360}>
-                  <Text fontSize="$5" fontWeight="700">{s.title}</Text>
-                  <Text color="$textSecondary">Hoy: {s.key === 'payout' ? `${(s.detail.hoy as number).toFixed(2)}%` : formatCurrency(s.detail.hoy as number)}</Text>
-                  <Text color="$textSecondary">Ayer: {s.key === 'payout' ? `${(s.detail.ayer as number).toFixed(2)}%` : formatCurrency(s.detail.ayer as number)}</Text>
-                  <Text color={s.delta >= 0 ? '$green10' : '$red10'} fontWeight="600">Tendencia: {s.delta >= 0 ? '↑' : '↓'} {Math.abs(s.delta).toFixed(1)}%</Text>
-                  <Dialog.Close asChild>
-                    <Button variant="secondary">Cerrar</Button>
-                  </Dialog.Close>
+          {stats.map((s) => {
+            const isOpen = openIds.has(s.key)
+            return (
+              <Card
+                key={s.key}
+                flex={1}
+                minWidth={180}
+                padding="$3"
+                backgroundColor="$backgroundStrong"
+                borderRadius="$3"
+                borderWidth={1}
+                borderColor="$borderColor"
+                hoverStyle={{ borderColor: '$borderColorHover', scale: 1.01 }}
+                pressStyle={{ scale: 0.98 }}
+                animation="quick"
+                cursor="pointer"
+                onPress={() => toggleStat(s.key)}
+              >
+                {/* Close (visible cuando está abierto) */}
+                {isOpen && (
+                  <Button
+                    size="$2"
+                    circular
+                    variant="secondary"
+                    icon={CloseIcon}
+                    position="absolute"
+                    top="$2"
+                    right="$2"
+                    onPress={(e: any) => { e?.stopPropagation?.(); toggleStat(s.key) }}
+                    aria-label={`Cerrar ${s.title}`}
+                  />
+                )}
+
+                <YStack gap="$1">
+                  <Text fontSize="$2" color="$textSecondary" fontWeight="500">{s.title}</Text>
+                  <XStack ai="baseline" jc="space-between">
+                    <Text fontSize="$7" fontWeight="bold" color="$textPrimary">{s.value}</Text>
+                    <Text fontSize="$2" color={s.delta >= 0 ? '$green10' : '$red10'} fontWeight="700">
+                      {s.delta >= 0 ? '↑' : '↓'} {Math.abs(s.delta).toFixed(1)}%
+                    </Text>
+                  </XStack>
                 </YStack>
-              </SafeDialogContent>
-            </Dialog>
-          ))}
+
+                <AnimatePresence>
+                  {isOpen && (
+                    <YStack
+                      gap="$1"
+                      mt="$3"
+                      animation="medium"
+                      enterStyle={{ opacity: 0, y: -4 }}
+                      exitStyle={{ opacity: 0, y: -4 }}
+                    >
+                      <Text color="$textSecondary">
+                        Hoy: {s.key === 'payout' ? `${(s.detail.hoy as number).toFixed(2)}%` : formatCurrency(s.detail.hoy as number)}
+                      </Text>
+                      <Text color="$textSecondary">
+                        Ayer: {s.key === 'payout' ? `${(s.detail.ayer as number).toFixed(2)}%` : formatCurrency(s.detail.ayer as number)}
+                      </Text>
+                      <Text color={s.delta >= 0 ? '$green10' : '$red10'} fontWeight="600">
+                        Tendencia: {s.delta >= 0 ? '↑' : '↓'} {Math.abs(s.delta).toFixed(1)}%
+                      </Text>
+                    </YStack>
+                  )}
+                </AnimatePresence>
+              </Card>
+            )
+          })}
         </XStack>
 
         {/* 🔥 CARDS EN 4 COLUMNAS - Grid Responsivo */}
