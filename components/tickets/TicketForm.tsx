@@ -384,42 +384,73 @@ export default function TicketForm({ sorteos, restrictions, user, restrictionsLo
       {useMemo(() => {
         if (jugadas.length === 0) return null
 
-        const grupos = new Map<string, JugadaForm[]>()
+        // Agrupar por amount, mostrando numeros y reventados asociados
+        const gruposPorMonto = new Map<string, { numeros: string[]; reventados: Map<string, number> }>()
         jugadas.forEach((j) => {
-          const key = `${j.type}-${j.amount}`
-          if (!grupos.has(key)) grupos.set(key, [])
-          grupos.get(key)!.push(j)
+          if (!gruposPorMonto.has(j.amount)) {
+            gruposPorMonto.set(j.amount, { numeros: [], reventados: new Map() })
+          }
+          const grupo = gruposPorMonto.get(j.amount)!
+          if (j.type === 'NUMERO' && !grupo.numeros.includes(j.number!)) {
+            grupo.numeros.push(j.number!)
+          } else if (j.type === 'REVENTADO' && j.reventadoNumber) {
+            grupo.reventados.set(j.reventadoNumber, Number(j.amount))
+          }
         })
 
         return (
           <Card padding="$4" backgroundColor="$background" borderColor="$borderColor" borderWidth={1}>
             <YStack gap="$3">
               <Text fontSize="$5" fontWeight="600">Jugadas Agregadas</Text>
-              {Array.from(grupos.entries()).map(([key, grupo], idx) => (
-                <YStack key={key} gap="$2" borderBottomWidth={idx < grupos.size - 1 ? 1 : 0} borderBottomColor="$borderColor" paddingBottom={idx < grupos.size - 1 ? '$3' : 0}>
-                  <XStack ai="center" jc="space-between">
-                    <Text fontSize="$4" fontWeight="600" color="$primary">
-                      {grupo[0].type === 'REVENTADO' ? 'Reventado' : 'Número'} - {formatCurrency(Number(grupo[0].amount))}
-                    </Text>
-                    <Text fontSize="$3" color="$textSecondary">({grupo.length} {grupo.length === 1 ? 'apuesta' : 'apuestas'})</Text>
-                  </XStack>
-                  <XStack gap="$2" flexWrap="wrap">
-                    {grupo.map((j, i) => (
-                      <Card key={`${key}-${i}`} px="$3" py="$2" br="$3" bw={1} bc="$borderColor" bg="$backgroundHover">
-                        <XStack ai="center" gap="$2">
-                          <Text fontWeight="600" fontSize="$3">{j.number}</Text>
-                          <Button
-                            size="$2"
-                            variant="ghost"
-                            onPress={() => removeJugada(jugadas.indexOf(j))}
-                            icon={(p: any) => <X {...p} size={16} color="$red10" />}
-                          />
-                        </XStack>
-                      </Card>
-                    ))}
-                  </XStack>
-                </YStack>
-              ))}
+              {Array.from(gruposPorMonto.entries()).map(([monto, grupo], idx) => {
+                const montoNum = Number(monto)
+                const tieneReventado = grupo.reventados.size > 0
+                const montoReventado = tieneReventado ? Array.from(grupo.reventados.values())[0] : null
+
+                return (
+                  <YStack key={monto} gap="$2" borderBottomWidth={idx < gruposPorMonto.size - 1 ? 1 : 0} borderBottomColor="$borderColor" paddingBottom={idx < gruposPorMonto.size - 1 ? '$3' : 0}>
+                    {/* Header: Numero - ¢XXX | Reventado - ¢YYY */}
+                    <XStack ai="center" gap="$2" flexWrap="wrap">
+                      <Text fontSize="$4" fontWeight="600" color="$primary">
+                        Número - {formatCurrency(montoNum)}
+                      </Text>
+                      {tieneReventado && (
+                        <>
+                          <Text fontSize="$4" color="$textSecondary">|</Text>
+                          <Text fontSize="$4" fontWeight="600" color="$orange10">
+                            Reventado - {formatCurrency(montoReventado!)}
+                          </Text>
+                        </>
+                      )}
+                    </XStack>
+
+                    {/* Números clickeables para eliminar */}
+                    <XStack gap="$2" flexWrap="wrap">
+                      {grupo.numeros.map((num) => {
+                        const indexInJugadas = jugadas.findIndex((j) => j.type === 'NUMERO' && j.number === num && j.amount === monto)
+                        return (
+                          <Card
+                            key={num}
+                            px="$2"
+                            py="$1"
+                            br="$2"
+                            bw={1}
+                            bc="$borderColor"
+                            bg="$backgroundHover"
+                            cursor="pointer"
+                            hoverStyle={{ backgroundColor: '$primary', borderColor: '$primary' }}
+                            onPress={() => removeJugada(indexInJugadas)}
+                          >
+                            <Text fontWeight="600" fontSize="$3" color="$textPrimary">
+                              {num}
+                            </Text>
+                          </Card>
+                        )
+                      })}
+                    </XStack>
+                  </YStack>
+                )
+              })}
             </YStack>
           </Card>
         )
