@@ -1,14 +1,18 @@
 import React, { useState } from 'react'
-import { ScrollView, YStack, XStack, Text, Spinner } from 'tamagui'
+import { ScrollView, YStack, XStack, Text, Spinner, useTheme } from 'tamagui'
 import { Button, Card, Input, Select } from '@/components/ui'
 import { useQuery } from '@tanstack/react-query'
-import { Check, ChevronDown } from '@tamagui/lucide-icons'
+import { Check, ChevronDown, ArrowLeft } from '@tamagui/lucide-icons'
 import { listRestrictions } from '@/lib/api.restrictions'
 import type { RestrictionRule } from '@/types/models.types'
 import ActiveBadge from '@/components/ui/ActiveBadge'
 import { formatCurrency } from '@/utils/formatters'
+import { useRouter } from 'expo-router'
 
 export default function VentanaRestrictionsScreen() {
+  const router = useRouter()
+  const theme = useTheme()
+  const iconColor = (theme?.color as any)?.get?.() ?? '#000'
   // filtros remotos mínimos (solo lectura)
   const [scope, setScope] = useState<'all' | 'cutoff' | 'amount'>('all')
   const [searchNumber, setSearchNumber] = useState('')
@@ -35,9 +39,19 @@ export default function VentanaRestrictionsScreen() {
       <YStack padding="$4" gap="$4" maxWidth={1000} alignSelf="center" width="100%">
         {/* Header */}
         <XStack jc="space-between" ai="center" gap="$3" flexWrap="wrap">
-          <Text fontSize="$8" fontWeight="bold" color="$color">
-            Restricciones (Ventana)
-          </Text>
+          <XStack ai="center" gap="$2">
+            <Button
+              size="$3"
+              circular
+              backgroundColor="transparent"
+              borderWidth={0}
+              icon={(p: any) => <ArrowLeft {...p} color={iconColor} size={20} />}
+              onPress={() => router.back()}
+            />
+            <Text fontSize="$8" fontWeight="bold" color="$color">
+              Restricciones (Ventana)
+            </Text>
+          </XStack>
         </XStack>
 
         {/* Toolbar de filtros (solo lectura) */}

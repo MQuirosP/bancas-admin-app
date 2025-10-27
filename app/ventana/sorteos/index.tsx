@@ -1,12 +1,16 @@
 import React, { useMemo, useState } from 'react'
-import { YStack, XStack, Text, ScrollView, Spinner } from 'tamagui'
+import { YStack, XStack, Text, ScrollView, Spinner, useTheme } from 'tamagui'
 import { Card, Select, Input, Button } from '@/components/ui'
 import { useQuery } from '@tanstack/react-query'
 import { SorteosApi } from '@/lib/api.sorteos'
 import type { Sorteo } from '@/types/models.types'
-import { Check, ChevronDown, RefreshCw } from '@tamagui/lucide-icons'
+import { Check, ChevronDown, RefreshCw, ArrowLeft } from '@tamagui/lucide-icons'
+import { useRouter } from 'expo-router'
 
 export default function VentanaSorteosScreen() {
+  const router = useRouter()
+  const theme = useTheme()
+  const iconColor = (theme?.color as any)?.get?.() ?? '#000'
   const [status, setStatus] = useState<'SCHEDULED' | 'OPEN' | 'EVALUATED' | 'CLOSED'>('OPEN')
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
@@ -25,7 +29,17 @@ export default function VentanaSorteosScreen() {
     <ScrollView flex={1} backgroundColor="$background">
       <YStack padding="$4" gap="$4" maxWidth={1200} alignSelf="center" width="100%">
         <XStack jc="space-between" ai="center" gap="$3" flexWrap="wrap">
-          <Text fontSize="$8" fontWeight="bold" color="$color">Sorteos</Text>
+          <XStack ai="center" gap="$2">
+            <Button
+              size="$3"
+              circular
+              backgroundColor="transparent"
+              borderWidth={0}
+              icon={(p: any) => <ArrowLeft {...p} color={iconColor} size={20} />}
+              onPress={() => router.back()}
+            />
+            <Text fontSize="$8" fontWeight="bold" color="$color">Sorteos</Text>
+          </XStack>
           {isFetching && <Spinner size="small" />}
         </XStack>
 

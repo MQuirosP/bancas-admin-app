@@ -4,13 +4,15 @@ import { Card, Select, Button } from '@/components/ui'
 import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '../../../lib/api.client'
 import { formatCurrency } from '../../../utils/formatters'
-import { Check, ChevronDown, RefreshCw } from '@tamagui/lucide-icons'
+import { Check, ChevronDown, RefreshCw, ArrowLeft } from '@tamagui/lucide-icons'
 import { useTheme } from 'tamagui'
+import { useRouter } from 'expo-router'
 
 type DateRange = 'today' | 'week' | 'month' | 'range'
 
 export default function MisVentasScreen() {
   const theme = useTheme()
+  const router = useRouter()
   const iconColor = (theme?.color as any)?.get?.() ?? '#000'
   const [dateRange, setDateRange] = useState<DateRange>('today')
   const [page, setPage] = useState(1)
@@ -39,7 +41,17 @@ export default function MisVentasScreen() {
     <ScrollView flex={1} backgroundColor={'$background'}>
       <YStack padding="$4" gap="$4" maxWidth={1200} alignSelf="center" width="100%">
         <XStack jc="space-between" ai="center" gap="$3" flexWrap="wrap">
-          <Text fontSize="$8" fontWeight="bold" color="$color">Mis Ventas</Text>
+          <XStack ai="center" gap="$2">
+            <Button
+              size="$3"
+              circular
+              backgroundColor="transparent"
+              borderWidth={0}
+              icon={(p: any) => <ArrowLeft {...p} color={iconColor} size={20} />}
+              onPress={() => router.back()}
+            />
+            <Text fontSize="$8" fontWeight="bold" color="$color">Mis Ventas</Text>
+          </XStack>
           {isFetching && <Spinner size="small" />}
         </XStack>
 

@@ -125,11 +125,11 @@ export default function TicketsListScreen({ scope }: Props) {
       <YStack padding="$4" gap="$4" maxWidth={1200} alignSelf="center" width="100%">
         <XStack justifyContent="space-between" ai="center" gap="$3" flexWrap="wrap">
           <XStack ai="center" gap="$2">
-            {scope === 'admin' && (
+            {(scope === 'admin' || scope === 'ventana') && (
               <Button
                 size="$3"
                 icon={(p:any)=> <ArrowLeft {...p} size={24} color={iconColor} />}
-                onPress={()=> router.push('/admin')}
+                onPress={()=> router.push(scope === 'admin' ? '/admin' : '/ventana')}
                 backgroundColor="transparent"
                 borderWidth={0}
                 hoverStyle={{ backgroundColor: 'transparent' }}

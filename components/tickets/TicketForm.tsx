@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { YStack, XStack, Text, Select, Card, Spinner } from 'tamagui'
+import { YStack, XStack, Text, Select, Card, Spinner, useTheme } from 'tamagui'
 import { Button } from '@/components/ui'
 import JugadaRow, { JugadaForm, JugadaErrors } from './JugadaRow'
 import QuickBetEditor from './QuickBetEditor'
@@ -7,7 +7,8 @@ import { JugadaType, Sorteo, RestrictionRule, CreateTicketRequest, Usuario } fro
 import { formatCurrency } from '@/utils/formatters'
 import { getSalesCutoffMinutes, canCreateTicket } from '@/utils/cutoff'
 import { validateReventadoReferences } from '@/utils/validation'
-import { Check, ChevronDown, AlertCircle, Plus } from '@tamagui/lucide-icons'
+import { Check, ChevronDown, AlertCircle, Plus, ArrowLeft } from '@tamagui/lucide-icons'
+import { useRouter } from 'expo-router'
 // vendors are loaded with manual pagination to avoid infiniteQuery edge-cases
 import { apiClient } from '@/lib/api.client'
 import { usersService } from '@/services/users.service'
@@ -27,6 +28,9 @@ type Props = {
 const sanitizeNumber = (val: string) => val.replace(/\D/g, '').slice(0, 2)
 
 export default function TicketForm({ sorteos, restrictions, user, restrictionsLoading, loading, onSubmit, onCancel, vendorMode = 'none' }: Props) {
+  const router = useRouter()
+  const theme = useTheme()
+  const iconColor = (theme?.color as any)?.get?.() ?? '#000'
   const [sorteoId, setSorteoId] = useState('')
   const [jugadas, setJugadas] = useState<JugadaForm[]>([])
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -265,7 +269,17 @@ export default function TicketForm({ sorteos, restrictions, user, restrictionsLo
 
   return (
     <YStack gap="$4" width="100%" maxWidth={1200} alignSelf="center">
-      <Text fontSize="$8" fontWeight="bold" color="$color">Crear Nuevo Tiquete</Text>
+      <XStack ai="center" gap="$2">
+        <Button
+          size="$3"
+          circular
+          backgroundColor="transparent"
+          borderWidth={0}
+          icon={(p: any) => <ArrowLeft {...p} color={iconColor} size={20} />}
+          onPress={() => router.back()}
+        />
+        <Text fontSize="$8" fontWeight="bold" color="$color">Crear Nuevo Tiquete</Text>
+      </XStack>
 
       {cutoffMsg ? (
         <Card padding="$3" backgroundColor="$red2" borderWidth={1} borderColor="$red8">
