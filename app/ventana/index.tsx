@@ -8,9 +8,11 @@ import { useAuthStore } from '../../store/auth.store';
 import { useVentasSummary, useVentasBreakdown } from '@/hooks/useVentas'
 import { parseISO, formatDistanceToNowStrict } from 'date-fns'
 import { es } from 'date-fns/locale'
+import { useRouter } from 'expo-router'
 
 export default function VentanaDashboard() {
   const user = useAuthStore((state) => state.user);
+  const router = useRouter();
   const { data: summary } = useVentasSummary({ scope: 'mine', date: 'today' })
   const { data: bySeller } = useVentasBreakdown({ dimension: 'vendedor', top: 100, scope: 'mine', date: 'today' })
 
@@ -54,11 +56,11 @@ export default function VentanaDashboard() {
           <Text fontSize="$6" fontWeight="600" color="$textPrimary">
             Acciones Rápidas
           </Text>
-          
+
           <XStack gap="$3" flexWrap="wrap">
-            <QuickActionButton icon={Package} label="Ver Tickets" color="$cyan10" />
-            <QuickActionButton icon={Users} label="Vendedores" color="$yellow10" />
-            <QuickActionButton icon={TrendingUp} label="Ventas" color="$purple10" />
+            <QuickActionButton icon={Package} label="Ver Tickets" color="$cyan10" onPress={() => router.push('/ventana/tickets')} />
+            <QuickActionButton icon={Users} label="Vendedores" color="$yellow10" onPress={() => router.push('/ventana/vendedores')} />
+            <QuickActionButton icon={TrendingUp} label="Ventas" color="$purple10" onPress={() => router.push('/ventana/ventas')} />
           </XStack>
         </YStack>
       </YStack>
@@ -129,9 +131,10 @@ interface QuickActionButtonProps {
   icon: any;
   label: string;
   color?: string; // Tamagui token ej. '$cyan10'
+  onPress?: () => void;
 }
 
-function QuickActionButton({ icon: Icon, label, color = '$primary' }: QuickActionButtonProps) {
+function QuickActionButton({ icon: Icon, label, color = '$primary', onPress }: QuickActionButtonProps) {
   const bgSoft = String(color).replace('10', '4') as any
   return (
     <Card
@@ -154,6 +157,7 @@ function QuickActionButton({ icon: Icon, label, color = '$primary' }: QuickActio
       }}
       cursor="pointer"
       animation="quick"
+      onPress={onPress}
     >
       <YStack width={56} height={56} br="$3" ai="center" jc="center" backgroundColor={bgSoft}>
         <Icon size={28} color={color} />
