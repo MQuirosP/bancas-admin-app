@@ -48,6 +48,8 @@ const TICKET_STATUSES = [
   { value: 'CANCELED', label: 'Cancelados' },
 ]
 
+const STATUS_LABEL_MAP = Object.fromEntries(TICKET_STATUSES.map(s => [s.value, s.label]))
+
 // Rango personalizado utilizará DatePicker (web/nativo)
 
 async function fetchTickets(params: any): Promise<{ data: Ticket[]; meta: any }> {
@@ -274,7 +276,7 @@ export default function TicketsListScreen({ scope }: Props) {
                       focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
                       iconAfter={ChevronDown}
                     >
-                      <Select.Value>{TICKET_STATUSES.find(s => s.value === statusFilter)?.label || 'Todos'}</Select.Value>
+                      <Select.Value>{STATUS_LABEL_MAP[statusFilter as keyof typeof STATUS_LABEL_MAP] || 'Todos'}</Select.Value>
                     </Select.Trigger>
 
                     <Select.Content zIndex={1000}>
