@@ -7,10 +7,9 @@ import { listRestrictions } from '@/lib/api.restrictions'
 import type { RestrictionRule } from '@/types/models.types'
 import ActiveBadge from '@/components/ui/ActiveBadge'
 import { formatCurrency } from '@/utils/formatters'
-import { useRouter } from 'expo-router'
+import { safeBack } from '../../../lib/navigation'
 
 export default function VentanaRestrictionsScreen() {
-  const router = useRouter()
   const theme = useTheme()
   const iconColor = (theme?.color as any)?.get?.() ?? '#000'
   // filtros remotos mínimos (solo lectura)
@@ -46,7 +45,7 @@ export default function VentanaRestrictionsScreen() {
               backgroundColor="transparent"
               borderWidth={0}
               icon={(p: any) => <ArrowLeft {...p} color={iconColor} size={20} />}
-              onPress={() => router.back()}
+              onPress={() => safeBack('/ventana')}
             />
             <Text fontSize="$8" fontWeight="bold" color="$color">
               Restricciones (Ventana)

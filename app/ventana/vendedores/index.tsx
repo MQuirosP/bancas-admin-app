@@ -6,19 +6,17 @@ import { apiClient } from '../../../lib/api.client'
 import { formatCurrency } from '../../../utils/formatters'
 import { ArrowLeft, RefreshCw, TrendingUp } from '@tamagui/lucide-icons'
 import { useTheme } from 'tamagui'
-import { useRouter } from 'expo-router'
+import { safeBack } from '../../../lib/navigation'
 
 export default function VendedoresScreen() {
-  const router = useRouter()
   const theme = useTheme()
   const iconColor = (theme?.color as any)?.get?.() ?? '#000'
-  const [page, setPage] = useState(1)
 
-  const params = useMemo(() => ({ page, pageSize: 50, date: 'today', scope: 'mine' }), [page])
+  const params = useMemo(() => ({ date: 'today', scope: 'mine', dimension: 'vendedor', top: 100 }), [])
 
   const { data, isLoading, isFetching, refetch } = useQuery({
     queryKey: ['vendedores', params],
-    queryFn: () => apiClient.get('/ventas/breakdown', { ...params, dimension: 'vendedor' }),
+    queryFn: () => apiClient.get('/ventas/breakdown', params),
     staleTime: 60_000,
   })
 
@@ -45,7 +43,7 @@ export default function VendedoresScreen() {
               backgroundColor="transparent"
               borderWidth={0}
               icon={(p: any) => <ArrowLeft {...p} color={iconColor} size={20} />}
-              onPress={() => router.back()}
+              onPress={() => safeBack('/ventana')}
             />
             <Text fontSize="$8" fontWeight="bold" color="$color">Vendedores</Text>
           </XStack>
@@ -61,7 +59,7 @@ export default function VendedoresScreen() {
             </YStack>
             <YStack gap="$1">
               <Text fontSize="$3" opacity={0}>Acción</Text>
-              <Button height={36} px="$4" icon={(p: any) => <RefreshCw {...p} color={iconColor} />} onPress={() => { setPage(1); refetch() }}
+              <Button height={36} px="$4" icon={(p: any) => <RefreshCw {...p} color={iconColor} />} onPress={() => refetch()}
                 backgroundColor="$green4" borderColor="$green8" borderWidth={1}
                 hoverStyle={{ backgroundColor: '$green5' }} pressStyle={{ backgroundColor: '$green6' }}
               >

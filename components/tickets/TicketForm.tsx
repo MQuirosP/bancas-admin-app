@@ -8,7 +8,7 @@ import { formatCurrency } from '@/utils/formatters'
 import { getSalesCutoffMinutes, canCreateTicket } from '@/utils/cutoff'
 import { validateReventadoReferences } from '@/utils/validation'
 import { Check, ChevronDown, AlertCircle, Plus, ArrowLeft } from '@tamagui/lucide-icons'
-import { useRouter } from 'expo-router'
+import { safeBack } from '@/lib/navigation'
 // vendors are loaded with manual pagination to avoid infiniteQuery edge-cases
 import { apiClient } from '@/lib/api.client'
 import { usersService } from '@/services/users.service'
@@ -28,7 +28,6 @@ type Props = {
 const sanitizeNumber = (val: string) => val.replace(/\D/g, '').slice(0, 2)
 
 export default function TicketForm({ sorteos, restrictions, user, restrictionsLoading, loading, onSubmit, onCancel, vendorMode = 'none' }: Props) {
-  const router = useRouter()
   const theme = useTheme()
   const iconColor = (theme?.color as any)?.get?.() ?? '#000'
   const [sorteoId, setSorteoId] = useState('')
@@ -276,7 +275,7 @@ export default function TicketForm({ sorteos, restrictions, user, restrictionsLo
           backgroundColor="transparent"
           borderWidth={0}
           icon={(p: any) => <ArrowLeft {...p} color={iconColor} size={20} />}
-          onPress={() => router.back()}
+          onPress={() => safeBack('/ventana/tickets')}
         />
         <Text fontSize="$8" fontWeight="bold" color="$color">Crear Nuevo Tiquete</Text>
       </XStack>

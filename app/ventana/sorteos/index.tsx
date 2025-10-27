@@ -5,10 +5,9 @@ import { useQuery } from '@tanstack/react-query'
 import { SorteosApi } from '@/lib/api.sorteos'
 import type { Sorteo } from '@/types/models.types'
 import { Check, ChevronDown, RefreshCw, ArrowLeft } from '@tamagui/lucide-icons'
-import { useRouter } from 'expo-router'
+import { safeBack } from '../../../lib/navigation'
 
 export default function VentanaSorteosScreen() {
-  const router = useRouter()
   const theme = useTheme()
   const iconColor = (theme?.color as any)?.get?.() ?? '#000'
   const [status, setStatus] = useState<'SCHEDULED' | 'OPEN' | 'EVALUATED' | 'CLOSED'>('OPEN')
@@ -36,7 +35,7 @@ export default function VentanaSorteosScreen() {
               backgroundColor="transparent"
               borderWidth={0}
               icon={(p: any) => <ArrowLeft {...p} color={iconColor} size={20} />}
-              onPress={() => router.back()}
+              onPress={() => safeBack('/ventana')}
             />
             <Text fontSize="$8" fontWeight="bold" color="$color">Sorteos</Text>
           </XStack>

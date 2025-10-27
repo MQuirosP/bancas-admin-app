@@ -1,9 +1,9 @@
 import React, { useMemo, useState } from 'react'
 import { YStack, XStack, Text, ScrollView, Spinner, Separator } from 'tamagui'
 import { Button, Input, Card, Select, DatePicker } from '@/components/ui'
-import { useRouter } from 'expo-router'
 import { useQuery } from '@tanstack/react-query'
 import { Search, X, RefreshCw, ChevronDown, Check, ArrowLeft } from '@tamagui/lucide-icons'
+import { safeBack } from '@/lib/navigation'
 import { useTheme } from 'tamagui'
 import { subDays, format } from 'date-fns'
 import { es } from 'date-fns/locale'
@@ -57,7 +57,6 @@ async function fetchTickets(params: any): Promise<{ data: Ticket[]; meta: any }>
 export default function TicketsListScreen({ scope }: Props) {
   const theme = useTheme()
   const iconColor = (theme?.color as any)?.get?.() ?? '#000'
-  const router = useRouter()
 
   const [page, setPage] = useState(1)
   const [pageSize] = useState(20)
@@ -129,7 +128,7 @@ export default function TicketsListScreen({ scope }: Props) {
               <Button
                 size="$3"
                 icon={(p:any)=> <ArrowLeft {...p} size={24} color={iconColor} />}
-                onPress={()=> router.push(scope === 'admin' ? '/admin' : '/ventana')}
+                onPress={()=> safeBack(scope === 'admin' ? '/admin' : '/ventana')}
                 backgroundColor="transparent"
                 borderWidth={0}
                 hoverStyle={{ backgroundColor: 'transparent' }}

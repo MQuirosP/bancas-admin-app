@@ -6,13 +6,12 @@ import { apiClient } from '../../../lib/api.client'
 import { formatCurrency } from '../../../utils/formatters'
 import { Check, ChevronDown, RefreshCw, ArrowLeft } from '@tamagui/lucide-icons'
 import { useTheme } from 'tamagui'
-import { useRouter } from 'expo-router'
+import { safeBack } from '../../../lib/navigation'
 
 type DateRange = 'today' | 'week' | 'month' | 'range'
 
 export default function MisVentasScreen() {
   const theme = useTheme()
-  const router = useRouter()
   const iconColor = (theme?.color as any)?.get?.() ?? '#000'
   const [dateRange, setDateRange] = useState<DateRange>('today')
   const [page, setPage] = useState(1)
@@ -48,7 +47,7 @@ export default function MisVentasScreen() {
               backgroundColor="transparent"
               borderWidth={0}
               icon={(p: any) => <ArrowLeft {...p} color={iconColor} size={20} />}
-              onPress={() => router.back()}
+              onPress={() => safeBack('/ventana')}
             />
             <Text fontSize="$8" fontWeight="bold" color="$color">Mis Ventas</Text>
           </XStack>
