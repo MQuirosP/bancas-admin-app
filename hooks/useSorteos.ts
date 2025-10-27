@@ -2,6 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../lib/api.client';
 import { queryKeys } from '../lib/queryClient';
+import { cacheSorteos, getCachedSorteos } from '../lib/cache';
 import type {
   Sorteo,
   CreateSorteoRequest,
@@ -31,24 +32,44 @@ export function useSorteosQuery(params?: {
 
 /**
  * Hook para obtener sorteos activos (SCHEDULED u OPEN)
+ * Con caché en localStorage para evitar pérdida de datos
  */
 export function useActiveSorteosQuery(loteriaId?: string) {
   return useQuery({
     queryKey: queryKeys.sorteos.active,
     queryFn: async () => {
-      const scheduled = await apiClient.get<Sorteo[]>('/sorteos?status=SCHEDULED');
-      const open = await apiClient.get<Sorteo[]>('/sorteos?status=OPEN');
-      
-      const combined = [...scheduled, ...open];
-      
-      if (loteriaId) {
-        return combined.filter(s => s.loteriaId === loteriaId);
+      try {
+        const scheduled = await apiClient.get<Sorteo[]>('/sorteos?status=SCHEDULED');
+        const open = await apiClient.get<Sorteo[]>('/sorteos?status=OPEN');
+
+        const combined = [...scheduled, ...open];
+
+        // Guardar en caché después de éxito
+        cacheSorteos(combined);
+
+        if (loteriaId) {
+          return combined.filter(s => s.loteriaId === loteriaId);
+        }
+
+        return combined;
+      } catch (error) {
+        console.error('Error fetching sorteos:', error);
+        // Intentar recuperar del caché en caso de error
+        const cached = getCachedSorteos();
+        if (cached) {
+          console.log('Using cached sorteos as fallback');
+          if (loteriaId) {
+            return cached.filter((s: any) => s.loteriaId === loteriaId);
+          }
+          return cached;
+        }
+        throw error;
       }
-      
-      return combined;
     },
+    initialData: getCachedSorteos() ?? undefined,
     enabled: true,
     refetchInterval: 60000,
+    staleTime: 30000,
   });
 }
 
