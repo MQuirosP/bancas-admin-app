@@ -18,7 +18,7 @@ import { useVentasSummary, useVentasBreakdown, useVentasTimeseries } from '@/hoo
 import { formatCurrency } from '@/utils/formatters'
 import { AnimatePresence } from '@tamagui/animate-presence'
 import { useUIStore } from '@/store/ui.store'
-import { getDateParam, formatDateYYYYMMDD } from '@/lib/dateFormat'
+import { getDateParam, formatDateYYYYMMDD, type DateToken } from '@/lib/dateFormat'
 
 interface DashboardCard {
   title: string;
@@ -106,29 +106,16 @@ export default function AdminDashboard() {
   const { user } = useAuthStore();
   const compareRange = useUIStore((s) => s.compareRange)
 
-  // Periodos comparables: por defecto hoy vs ayer; opcional last7/last30 vs periodo anterior
-  const current = React.useMemo(() => ({ date: 'today' as const }), [])
+  // ✅ Backend authority: Periods use tokens, backend calculates using CR timezone
+  const current = React.useMemo(() => getDateParam('today'), [])
   const previous = React.useMemo(() => {
-    if (compareRange === 'yesterday') return { date: 'yesterday' as const }
-    const now = new Date()
-    const to = new Date(now)
-    const from = new Date(now)
-    if (compareRange === 'last7') {
-      // Actual 7 días: [now-6d, now]; Anterior 7 días: [now-13d, now-7d]
-      const prevTo = new Date(now)
-      prevTo.setDate(now.getDate() - 7)
-      const prevFrom = new Date(now)
-      prevFrom.setDate(now.getDate() - 13)
-      return { date: 'range' as const, from: prevFrom.toISOString(), to: prevTo.toISOString() }
-    }
-    if (compareRange === 'last30') {
-      const prevTo = new Date(now)
-      prevTo.setDate(now.getDate() - 30)
-      const prevFrom = new Date(now)
-      prevFrom.setDate(now.getDate() - 59)
-      return { date: 'range' as const, from: prevFrom.toISOString(), to: prevTo.toISOString() }
-    }
-    return { date: 'yesterday' as const }
+    // ✅ Let backend handle date calculations
+    const token: DateToken =
+      compareRange === 'yesterday' ? 'yesterday' :
+      compareRange === 'last7' ? 'week' :
+      compareRange === 'last30' ? 'month' :
+      'yesterday'
+    return getDateParam(token)
   }, [compareRange])
 
   const { data: today } = useVentasSummary(current)

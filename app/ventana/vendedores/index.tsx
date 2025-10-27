@@ -24,8 +24,18 @@ export default function VendedoresScreen() {
   // Log para debugging
   console.log('Vendedores response:', data)
 
-  // Extraer vendedores del breakdown
-  let vendedores: Array<{ id?: string; name?: string; total?: number; tickets?: number }> = []
+  // Extraer vendedores del breakdown con estadísticas completas
+  let vendedores: Array<{
+    id?: string
+    name?: string
+    total?: number
+    tickets?: number
+    payout?: number
+    neto?: number
+    winnerTickets?: number
+    paidTickets?: number
+    pendingPayment?: number
+  }> = []
 
   if (data) {
     const payload = (data as any)?.data ?? data
@@ -36,6 +46,11 @@ export default function VendedoresScreen() {
         name: item.name,
         total: Number(item.ventasTotal ?? item.total ?? 0),
         tickets: Number(item.ticketsCount ?? item.tickets ?? 0),
+        payout: Number(item.payoutTotal ?? item.payout ?? 0),
+        neto: Number(item.neto ?? 0),
+        winnerTickets: Number(item.winnerTickets ?? item.ticketsWithWinners ?? 0),
+        paidTickets: Number(item.paidTickets ?? item.ticketsPaid ?? 0),
+        pendingPayment: Number(item.pendingPayment ?? item.ticketsPending ?? 0),
       }))
     } else if (Array.isArray(payload?.breakdown)) {
       // Breakdown es un array
@@ -44,6 +59,11 @@ export default function VendedoresScreen() {
         name: item.name,
         total: Number(item.ventasTotal ?? item.total ?? 0),
         tickets: Number(item.ticketsCount ?? item.tickets ?? 0),
+        payout: Number(item.payoutTotal ?? item.payout ?? 0),
+        neto: Number(item.neto ?? 0),
+        winnerTickets: Number(item.winnerTickets ?? item.ticketsWithWinners ?? 0),
+        paidTickets: Number(item.paidTickets ?? item.ticketsPaid ?? 0),
+        pendingPayment: Number(item.pendingPayment ?? item.ticketsPending ?? 0),
       }))
     }
   }
@@ -52,6 +72,11 @@ export default function VendedoresScreen() {
     totalVendedores: vendedores.length,
     totalVentas: vendedores.reduce((sum, v) => sum + (v.total ?? 0), 0),
     totalTickets: vendedores.reduce((sum, v) => sum + (v.tickets ?? 0), 0),
+    totalPayout: vendedores.reduce((sum, v) => sum + (v.payout ?? 0), 0),
+    totalNeto: vendedores.reduce((sum, v) => sum + (v.neto ?? 0), 0),
+    totalWinners: vendedores.reduce((sum, v) => sum + (v.winnerTickets ?? 0), 0),
+    totalPaid: vendedores.reduce((sum, v) => sum + (v.paidTickets ?? 0), 0),
+    totalPending: vendedores.reduce((sum, v) => sum + (v.pendingPayment ?? 0), 0),
     topVendedor: vendedores.length > 0 ? vendedores[0] : null,
   }), [vendedores])
 
@@ -113,22 +138,72 @@ export default function VendedoresScreen() {
           </XStack>
         </Card>
 
-        {/* Listado de Vendedores */}
+        {/* Listado de Vendedores - Desempeño Individual */}
         {vendedores?.length ? (
           <>
             <Text fontSize="$5" fontWeight="600" mt="$2">Desempeño Individual</Text>
             <YStack gap="$2">
               {vendedores.map((v, i) => (
                 <Card key={v.id || i} padding="$4" hoverStyle={{ backgroundColor: '$backgroundHover' }}>
-                  <XStack jc="space-between" ai="center" gap="$3" flexWrap="wrap">
-                    <YStack flex={1} minWidth={150}>
-                      <XStack ai="center" gap="$2">
+                  <YStack gap="$3">
+                    {/* Nombre y total vendido */}
+                    <XStack jc="space-between" ai="center" gap="$3" flexWrap="wrap">
+                      <XStack ai="center" gap="$2" flex={1} minWidth={150}>
                         <TrendingUp size={16} color="$primary" />
                         <Text fontSize="$4" fontWeight="600">{v.name || v.id || '—'}</Text>
                       </XStack>
-                      <Text fontSize="$3" color="$textSecondary" mt="$1">{v.tickets ?? 0} tickets · {formatCurrency(v.total ?? 0)}</Text>
-                    </YStack>
-                  </XStack>
+                      <Text fontSize="$5" fontWeight="bold" color="$green10">{formatCurrency(v.total ?? 0)}</Text>
+                    </XStack>
+
+                    {/* Estadísticas en grid */}
+                    <XStack gap="$3" flexWrap="wrap">
+                      {/* Tiquetes vendidos */}
+                      <YStack gap="$1" flex={1} minWidth={100}>
+                        <Text fontSize="$2" color="$textSecondary">Tiquetes Vendidos</Text>
+                        <Text fontSize="$4" fontWeight="bold" color="$primary">{v.tickets ?? 0}</Text>
+                      </YStack>
+
+                      {/* Tiquetes ganadores */}
+                      {(v.winnerTickets ?? 0) > 0 && (
+                        <YStack gap="$1" flex={1} minWidth={100}>
+                          <Text fontSize="$2" color="$textSecondary">Tiquetes Ganadores</Text>
+                          <Text fontSize="$4" fontWeight="bold" color="$orange10">{v.winnerTickets ?? 0}</Text>
+                        </YStack>
+                      )}
+
+                      {/* Tiquetes pagados */}
+                      {(v.paidTickets ?? 0) > 0 && (
+                        <YStack gap="$1" flex={1} minWidth={100}>
+                          <Text fontSize="$2" color="$textSecondary">Pagados</Text>
+                          <Text fontSize="$4" fontWeight="bold" color="$blue10">{v.paidTickets ?? 0}</Text>
+                        </YStack>
+                      )}
+
+                      {/* Pendientes de pagar */}
+                      {(v.pendingPayment ?? 0) > 0 && (
+                        <YStack gap="$1" flex={1} minWidth={100}>
+                          <Text fontSize="$2" color="$textSecondary">Pendientes</Text>
+                          <Text fontSize="$4" fontWeight="bold" color="$yellow10">{v.pendingPayment ?? 0}</Text>
+                        </YStack>
+                      )}
+
+                      {/* Payout (comisión) */}
+                      {(v.payout ?? 0) > 0 && (
+                        <YStack gap="$1" flex={1} minWidth={100}>
+                          <Text fontSize="$2" color="$textSecondary">Comisión</Text>
+                          <Text fontSize="$4" fontWeight="bold" color="$purple10">{formatCurrency(v.payout ?? 0)}</Text>
+                        </YStack>
+                      )}
+
+                      {/* Neto */}
+                      {(v.neto ?? 0) > 0 && (
+                        <YStack gap="$1" flex={1} minWidth={100}>
+                          <Text fontSize="$2" color="$textSecondary">Neto</Text>
+                          <Text fontSize="$4" fontWeight="bold" color="$cyan10">{formatCurrency(v.neto ?? 0)}</Text>
+                        </YStack>
+                      )}
+                    </XStack>
+                  </YStack>
                 </Card>
               ))}
             </YStack>

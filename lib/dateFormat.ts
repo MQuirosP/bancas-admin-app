@@ -134,66 +134,18 @@ export function getDateParam(
 }
 
 /**
- * Get date range for timeframe filter (deprecated)
- * Use getDateParamsForToken instead
- * Returns [fromDate, toDate] in YYYY-MM-DD format
+ * ⚠️ DEPRECATED: Do NOT use getDateRangeForTimeframe
+ *
+ * This function violates the Backend Authority Model.
+ * Frontend MUST NOT calculate date ranges.
+ *
+ * Use getDateParam() with tokens instead:
+ *   - getDateParam('week')    instead of getDateRangeForTimeframe('thisWeek')
+ *   - getDateParam('month')   instead of getDateRangeForTimeframe('thisMonth')
+ *   - getDateParam('today')   instead of getDateRangeForTimeframe('today')
+ *
+ * Backend will calculate proper date boundaries using CR timezone.
  */
-export function getDateRangeForTimeframe(
-  timeframe: 'today' | 'thisWeek' | 'thisMonth' | 'thisYear'
-): [string, string] {
-  const now = new Date()
-
-  // Adjust to CR timezone for calculations
-  const crFormatter = new Intl.DateTimeFormat('es-CR', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    timeZone: CR_TIMEZONE,
-  })
-
-  const parts = crFormatter.formatToParts(now)
-  const year = parseInt(parts.find((p) => p.type === 'year')?.value || '2025')
-  const month = parseInt(parts.find((p) => p.type === 'month')?.value || '1') - 1
-  const day = parseInt(parts.find((p) => p.type === 'day')?.value || '1')
-
-  let fromDate: Date
-  let toDate: Date
-
-  switch (timeframe) {
-    case 'today': {
-      fromDate = new Date(year, month, day)
-      toDate = new Date(year, month, day)
-      break
-    }
-
-    case 'thisWeek': {
-      // Start of week (Monday)
-      const currentDay = now.getDay()
-      const diff = now.getDate() - currentDay + (currentDay === 0 ? -6 : 1)
-      fromDate = new Date(year, month, diff)
-      toDate = new Date(year, month, diff + 6)
-      break
-    }
-
-    case 'thisMonth': {
-      fromDate = new Date(year, month, 1)
-      toDate = new Date(year, month + 1, 0)
-      break
-    }
-
-    case 'thisYear': {
-      fromDate = new Date(year, 0, 1)
-      toDate = new Date(year, 11, 31)
-      break
-    }
-
-    default:
-      fromDate = new Date(year, month, day)
-      toDate = new Date(year, month, day)
-  }
-
-  return [formatDateYYYYMMDD(fromDate), formatDateYYYYMMDD(toDate)]
-}
 
 /**
  * Format currency amount
