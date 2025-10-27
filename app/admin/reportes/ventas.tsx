@@ -83,11 +83,27 @@ export default function VentasReportScreen() {
               <>
                 <YStack gap="$1">
                   <Text fontSize="$3">Desde</Text>
-                  <DatePicker value={from} onChange={(d)=>setFrom(d)} placeholder="dd/mm/aaaa" />
+                  <DatePicker
+                    value={from}
+                    onChange={(d)=>{
+                      const today = new Date()
+                      today.setHours(23, 59, 59, 999)
+                      if (d <= today) setFrom(d)
+                    }}
+                    placeholder="dd/mm/aaaa"
+                  />
                 </YStack>
                 <YStack gap="$1">
                   <Text fontSize="$3">Hasta</Text>
-                  <DatePicker value={to} onChange={(d)=>setTo(d)} placeholder="dd/mm/aaaa" />
+                  <DatePicker
+                    value={to}
+                    onChange={(d)=>{
+                      const today = new Date()
+                      today.setHours(23, 59, 59, 999)
+                      if (d <= today) setTo(d)
+                    }}
+                    placeholder="dd/mm/aaaa"
+                  />
                 </YStack>
               </>
             )}
