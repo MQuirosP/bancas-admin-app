@@ -35,6 +35,7 @@ export default function TicketForm({ sorteos, restrictions, user, restrictionsLo
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [cutoffError, setCutoffError] = useState('')
   const [vendedorId, setVendedorId] = useState<string>('')
+  const [maxJugadas, setMaxJugadas] = useState(999) // default: sin límite
 
   const v = (s?: string) => s ?? ''
 
@@ -83,6 +84,35 @@ export default function TicketForm({ sorteos, restrictions, user, restrictionsLo
     const validation = canCreateTicket(dateStr, hourStr, cutoffMinutes)
     setCutoffError(validation.canCreate ? '' : (validation.message || 'No se puede crear el tiquete'))
   }, [sorteoId, sorteos, restrictions, user])
+
+  // Cargar maxNumbersPerTicket del rulesJson del sorteo seleccionado
+  useEffect(() => {
+    if (!sorteoId) {
+      setMaxJugadas(999)
+      return
+    }
+    const selected = sorteos.find((s) => s.id === sorteoId)
+    if (!selected) {
+      setMaxJugadas(999)
+      return
+    }
+    const loteria = selected.loteria
+    if (!loteria) {
+      setMaxJugadas(999)
+      return
+    }
+    const rulesJson = loteria.rulesJson as any
+    if (!rulesJson || typeof rulesJson !== 'object') {
+      setMaxJugadas(999)
+      return
+    }
+    const max = rulesJson.maxNumbersPerTicket
+    if (typeof max === 'number' && max > 0) {
+      setMaxJugadas(max)
+    } else {
+      setMaxJugadas(999)
+    }
+  }, [sorteoId, sorteos])
 
   const addJugada = () => setJugadas((s) => [...s, { type: JugadaType.NUMERO, number: '', amount: '' }])
   const removeJugada = (index: number) => setJugadas((s) => s.filter((_, i) => i !== index))
@@ -207,6 +237,7 @@ export default function TicketForm({ sorteos, restrictions, user, restrictionsLo
 
     if (!sorteoId) newErrors['sorteoId'] = 'Selecciona un sorteo'
     if (!jugadas.length) newErrors['jugadas'] = 'Agrega al menos un número (usa Ingreso rápido)'
+    if (Number.isFinite(maxJugadas) && jugadas.length > maxJugadas) newErrors['jugadas'] = `Máximo de jugadas por ticket: ${maxJugadas}`
 
     jugadas.forEach((jugada, index) => {
       if (jugada.type === JugadaType.NUMERO && !v(jugada.number)) newErrors[`jugadas.${index}.number`] = 'Ingresa un número'
@@ -384,70 +415,104 @@ export default function TicketForm({ sorteos, restrictions, user, restrictionsLo
       {useMemo(() => {
         if (jugadas.length === 0) return null
 
-        // Agrupar por amount, mostrando numeros y reventados asociados
-        const gruposPorMonto = new Map<string, { numeros: string[]; reventados: Map<string, number> }>()
+        // Separar NUMERO y REVENTADO para mostrar de forma clara
+        const numerosMap = new Map<string, string[]>() // monto -> números
+        const reventadosMap = new Map<string, string[]>() // monto -> reventados
+
         jugadas.forEach((j) => {
-          if (!gruposPorMonto.has(j.amount)) {
-            gruposPorMonto.set(j.amount, { numeros: [], reventados: new Map() })
-          }
-          const grupo = gruposPorMonto.get(j.amount)!
-          if (j.type === 'NUMERO' && !grupo.numeros.includes(j.number!)) {
-            grupo.numeros.push(j.number!)
-          } else if (j.type === 'REVENTADO' && j.reventadoNumber) {
-            grupo.reventados.set(j.reventadoNumber, Number(j.amount))
+          if (j.type === 'NUMERO') {
+            if (!numerosMap.has(j.amount)) numerosMap.set(j.amount, [])
+            if (!numerosMap.get(j.amount)!.includes(j.number!)) {
+              numerosMap.get(j.amount)!.push(j.number!)
+            }
+          } else if (j.type === 'REVENTADO') {
+            if (!reventadosMap.has(j.amount)) reventadosMap.set(j.amount, [])
+            if (!reventadosMap.get(j.amount)!.includes(j.reventadoNumber!)) {
+              reventadosMap.get(j.amount)!.push(j.reventadoNumber!)
+            }
           }
         })
+
+        // Ordenar por el orden de inserción inverso (últimos primero)
+        const allMontos = new Set<string>()
+        numerosMap.forEach((_, m) => allMontos.add(m))
+        reventadosMap.forEach((_, m) => allMontos.add(m))
+        const montos = Array.from(allMontos).reverse()
 
         return (
           <Card padding="$4" backgroundColor="$background" borderColor="$borderColor" borderWidth={1}>
             <YStack gap="$3">
               <Text fontSize="$5" fontWeight="600">Jugadas Agregadas</Text>
-              {Array.from(gruposPorMonto.entries()).map(([monto, grupo], idx) => {
+              {montos.map((monto, idx) => {
+                const numeros = numerosMap.get(monto) || []
+                const reventados = reventadosMap.get(monto) || []
                 const montoNum = Number(monto)
-                const tieneReventado = grupo.reventados.size > 0
-                const montoReventado = tieneReventado ? Array.from(grupo.reventados.values())[0] : null
 
                 return (
-                  <YStack key={monto} gap="$2" borderBottomWidth={idx < gruposPorMonto.size - 1 ? 1 : 0} borderBottomColor="$borderColor" paddingBottom={idx < gruposPorMonto.size - 1 ? '$3' : 0}>
-                    {/* Header: Numero - ¢XXX | Reventado - ¢YYY */}
-                    <XStack ai="center" gap="$2" flexWrap="wrap">
-                      <Text fontSize="$4" fontWeight="600" color="$primary">
-                        Número - {formatCurrency(montoNum)}
-                      </Text>
-                      {tieneReventado && (
-                        <>
-                          <Text fontSize="$4" color="$textSecondary">|</Text>
-                          <Text fontSize="$4" fontWeight="600" color="$orange10">
-                            Reventado - {formatCurrency(montoReventado!)}
-                          </Text>
-                        </>
-                      )}
-                    </XStack>
+                  <YStack key={monto} gap="$2" borderBottomWidth={idx < montos.length - 1 ? 1 : 0} borderBottomColor="$borderColor" paddingBottom={idx < montos.length - 1 ? '$3' : 0}>
+                    {/* Números */}
+                    {numeros.length > 0 && (
+                      <>
+                        <Text fontSize="$4" fontWeight="600" color="$primary">
+                          Número - {formatCurrency(montoNum)}
+                        </Text>
+                        <XStack gap="$2" flexWrap="wrap">
+                          {numeros.map((num) => {
+                            const indexInJugadas = jugadas.findIndex((j) => j.type === 'NUMERO' && j.number === num && j.amount === monto)
+                            return (
+                              <Card
+                                key={num}
+                                px="$2"
+                                py="$1"
+                                br="$2"
+                                bw={1}
+                                bc="$borderColor"
+                                bg="$backgroundHover"
+                                cursor="pointer"
+                                hoverStyle={{ backgroundColor: '$primary', borderColor: '$primary' }}
+                                onPress={() => removeJugada(indexInJugadas)}
+                              >
+                                <Text fontWeight="600" fontSize="$3" color="$textPrimary">
+                                  {num}
+                                </Text>
+                              </Card>
+                            )
+                          })}
+                        </XStack>
+                      </>
+                    )}
 
-                    {/* Números clickeables para eliminar */}
-                    <XStack gap="$2" flexWrap="wrap">
-                      {grupo.numeros.map((num) => {
-                        const indexInJugadas = jugadas.findIndex((j) => j.type === 'NUMERO' && j.number === num && j.amount === monto)
-                        return (
-                          <Card
-                            key={num}
-                            px="$2"
-                            py="$1"
-                            br="$2"
-                            bw={1}
-                            bc="$borderColor"
-                            bg="$backgroundHover"
-                            cursor="pointer"
-                            hoverStyle={{ backgroundColor: '$primary', borderColor: '$primary' }}
-                            onPress={() => removeJugada(indexInJugadas)}
-                          >
-                            <Text fontWeight="600" fontSize="$3" color="$textPrimary">
-                              {num}
-                            </Text>
-                          </Card>
-                        )
-                      })}
-                    </XStack>
+                    {/* Reventados */}
+                    {reventados.length > 0 && (
+                      <>
+                        <Text fontSize="$4" fontWeight="600" color="$orange10">
+                          Reventado - {formatCurrency(montoNum)}
+                        </Text>
+                        <XStack gap="$2" flexWrap="wrap">
+                          {reventados.map((revNum) => {
+                            const indexInJugadas = jugadas.findIndex((j) => j.type === 'REVENTADO' && j.reventadoNumber === revNum && j.amount === monto)
+                            return (
+                              <Card
+                                key={`rev-${revNum}`}
+                                px="$2"
+                                py="$1"
+                                br="$2"
+                                bw={1}
+                                bc="$borderColor"
+                                bg="$backgroundHover"
+                                cursor="pointer"
+                                hoverStyle={{ backgroundColor: '$orange8', borderColor: '$orange10' }}
+                                onPress={() => removeJugada(indexInJugadas)}
+                              >
+                                <Text fontWeight="600" fontSize="$3" color="$textPrimary">
+                                  {revNum}
+                                </Text>
+                              </Card>
+                            )
+                          })}
+                        </XStack>
+                      </>
+                    )}
                   </YStack>
                 )
               })}
