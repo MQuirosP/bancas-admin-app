@@ -7,7 +7,7 @@ import { JugadaType, Sorteo, RestrictionRule, CreateTicketRequest, Usuario } fro
 import { formatCurrency } from '@/utils/formatters'
 import { getSalesCutoffMinutes, canCreateTicket } from '@/utils/cutoff'
 import { validateReventadoReferences } from '@/utils/validation'
-import { Check, ChevronDown, AlertCircle, Plus, ArrowLeft } from '@tamagui/lucide-icons'
+import { Check, ChevronDown, AlertCircle, Plus, ArrowLeft, X } from '@tamagui/lucide-icons'
 import { safeBack } from '@/lib/navigation'
 // vendors are loaded with manual pagination to avoid infiniteQuery edge-cases
 import { apiClient } from '@/lib/api.client'
@@ -379,7 +379,50 @@ export default function TicketForm({ sorteos, restrictions, user, restrictionsLo
         </Card>
       )}
 
-      {/* Jugadas removidas: usamos Ingreso rápido */}
+      {/* Listado de jugadas agrupadas por monto */}
+      {jugadas.length > 0 && (
+        <Card padding="$4" backgroundColor="$background" borderColor="$borderColor" borderWidth={1}>
+          <YStack gap="$3">
+            <Text fontSize="$5" fontWeight="600">Jugadas Agregadas</Text>
+
+            {/* Agrupar por monto */}
+            {useMemo(() => {
+              const grupos = new Map<string, JugadaForm[]>()
+              jugadas.forEach((j) => {
+                const key = `${j.type}-${j.amount}`
+                if (!grupos.has(key)) grupos.set(key, [])
+                grupos.get(key)!.push(j)
+              })
+
+              return Array.from(grupos.entries()).map(([key, grupo], idx) => (
+                <YStack key={key} gap="$2" borderBottomWidth={idx < grupos.size - 1 ? 1 : 0} borderBottomColor="$borderColor" paddingBottom={idx < grupos.size - 1 ? '$3' : 0}>
+                  <XStack ai="center" jc="space-between">
+                    <Text fontSize="$4" fontWeight="600" color="$primary">
+                      {grupo[0].type === 'REVENTADO' ? 'Reventado' : 'Número'} - {formatCurrency(Number(grupo[0].amount))}
+                    </Text>
+                    <Text fontSize="$3" color="$textSecondary">({grupo.length} {grupo.length === 1 ? 'apuesta' : 'apuestas'})</Text>
+                  </XStack>
+                  <XStack gap="$2" flexWrap="wrap">
+                    {grupo.map((j, i) => (
+                      <Card key={`${key}-${i}`} px="$3" py="$2" br="$3" bw={1} bc="$borderColor" bg="$backgroundHover">
+                        <XStack ai="center" gap="$2">
+                          <Text fontWeight="600" fontSize="$3">{j.number}</Text>
+                          <Button
+                            size="$2"
+                            variant="ghost"
+                            onPress={() => removeJugada(jugadas.indexOf(j))}
+                            icon={(p: any) => <X {...p} size={16} color="$red10" />}
+                          />
+                        </XStack>
+                      </Card>
+                    ))}
+                  </XStack>
+                </YStack>
+              ))
+            }, [jugadas])}
+          </YStack>
+        </Card>
+      )}
 
       {/* Total y acciones */}
       <Card padding="$4" backgroundColor="$blue2" borderColor="$blue8" borderWidth={1}>
