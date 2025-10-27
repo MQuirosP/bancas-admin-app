@@ -5,6 +5,7 @@ import { Check, ChevronDown, RefreshCw } from '@tamagui/lucide-icons'
 import { useVentasSummary, useVentasBreakdown, useVentasTimeseries } from '@/hooks/useVentas'
 import { formatCurrency } from '@/utils/formatters'
 import { getDateParam, type DateToken, formatDateYYYYMMDD } from '@/lib/dateFormat'
+import type { VentasListQuery } from '@/lib/api.ventas'
 
 type DateFilter = 'today' | 'yesterday' | 'week' | 'month' | 'range'
 
@@ -28,19 +29,16 @@ export default function VentasReportScreen() {
   const [from, setFrom] = useState<Date | null>(null)
   const [to, setTo] = useState<Date | null>(null)
 
-  const base = useMemo(() => {
+  const base = useMemo((): Omit<VentasListQuery, 'page' | 'pageSize'> => {
     // ✅ Backend authority: Only send tokens, backend handles date calculations
-    if (dateFilter === 'today' || dateFilter === 'yesterday') {
-      return getDateParam(dateFilter as DateToken)
-    }
-    if (dateFilter === 'week' || dateFilter === 'month') {
-      return getDateParam(dateFilter as DateToken)
-    }
-    // ✅ For custom date range, convert Date to YYYY-MM-DD format
     if (dateFilter === 'range' && from && to) {
-      return getDateParam('range', formatDateYYYYMMDD(from), formatDateYYYYMMDD(to))
+      return getDateParam('range', formatDateYYYYMMDD(from), formatDateYYYYMMDD(to)) as any
     }
-    return getDateParam('today')
+    // All other filters use single token
+    const token: DateToken = (dateFilter === 'today' || dateFilter === 'yesterday' || dateFilter === 'week' || dateFilter === 'month')
+      ? dateFilter
+      : 'today'
+    return getDateParam(token) as any
   }, [dateFilter, from, to])
 
   const { data: summary, isFetching: fetchingSummary } = useVentasSummary(base)

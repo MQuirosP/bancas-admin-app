@@ -6,9 +6,12 @@ export type VentasListQuery = {
   page?: number
   pageSize?: number
   scope?: 'mine' | 'all'
-  date?: 'today' | 'yesterday' | 'range'
-  from?: string
-  to?: string
+  // ✅ Backend Authority: Only semantic tokens (today, yesterday, week, month, year, range)
+  // Backend resolves these using CR timezone
+  date?: 'today' | 'yesterday' | 'week' | 'month' | 'year' | 'range'
+  // ✅ For 'range' token: dates in YYYY-MM-DD format (already calculated by backend/user)
+  fromDate?: string
+  toDate?: string
   status?: string
   winnersOnly?: boolean
   bancaId?: string

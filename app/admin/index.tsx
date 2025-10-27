@@ -18,6 +18,7 @@ import { useVentasSummary, useVentasBreakdown, useVentasTimeseries } from '@/hoo
 import { formatCurrency } from '@/utils/formatters'
 import { AnimatePresence } from '@tamagui/animate-presence'
 import { useUIStore } from '@/store/ui.store'
+import { getDateParam, formatDateYYYYMMDD } from '@/lib/dateFormat'
 
 interface DashboardCard {
   title: string;
@@ -135,13 +136,9 @@ export default function AdminDashboard() {
   const { data: ventanasToday } = useVentasBreakdown({ date: 'today', dimension: 'ventana', top: 50 })
   const { data: ventanasYesterday } = useVentasBreakdown({ date: 'yesterday', dimension: 'ventana', top: 50 })
 
-  // Serie de últimos 7 días para tarjeta de tendencia
-  const sevenDaysAgo = React.useMemo(() => new Date(Date.now() - 6 * 24 * 60 * 60 * 1000), [])
-  const now = React.useMemo(() => new Date(), [])
+  // ✅ Backend authority: Use 'week' token instead of calculating 7 days
   const { data: series7d } = useVentasTimeseries({
-    date: 'range',
-    from: sevenDaysAgo.toISOString(),
-    to: now.toISOString(),
+    ...(getDateParam('week') as any),
     granularity: 'day',
   })
 
