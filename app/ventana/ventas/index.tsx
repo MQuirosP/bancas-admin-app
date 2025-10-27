@@ -27,6 +27,10 @@ export default function MisVentasScreen() {
   const totals = {
     tickets: payload?.ticketsCount ?? payload?.totalTickets ?? 0,
     amount: payload?.totalAmount ?? 0,
+    active: payload?.activeTickets ?? payload?.ticketsActive ?? 0,
+    evaluated: payload?.evaluatedTickets ?? payload?.ticketsEvaluated ?? 0,
+    winners: payload?.winnerTickets ?? payload?.ticketsWithWinners ?? 0,
+    hasWinners: (payload?.winnerTickets ?? payload?.ticketsWithWinners ?? 0) > 0,
   }
   const perSeller: Array<{ id?: string; name?: string; total?: number; tickets?: number }>
     = Array.isArray(payload?.bySeller) ? payload.bySeller : Array.isArray(payload?.sellers) ? payload.sellers : []
@@ -86,6 +90,18 @@ export default function MisVentasScreen() {
             <YStack ai="center">
               <Text fontSize="$7" fontWeight="bold" color="$green10">{formatCurrency(totals.amount)}</Text>
               <Text color="$textSecondary">Total Vendido</Text>
+            </YStack>
+            <YStack ai="center">
+              <Text fontSize="$7" fontWeight="bold" color="$blue10">{totals.active}</Text>
+              <Text color="$textSecondary">Activos para Sorteos</Text>
+            </YStack>
+            <YStack ai="center">
+              <Text fontSize="$7" fontWeight="bold" color="$yellow10">{totals.evaluated}</Text>
+              <Text color="$textSecondary">Ya Evaluados</Text>
+            </YStack>
+            <YStack ai="center">
+              <Text fontSize="$7" fontWeight="bold" color={totals.hasWinners ? '$orange10' : '$gray9'}>{totals.winners}</Text>
+              <Text color="$textSecondary">Tiques Ganadores {totals.hasWinners ? '✓' : ''}</Text>
             </YStack>
           </XStack>
         </Card>
