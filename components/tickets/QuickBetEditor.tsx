@@ -65,81 +65,95 @@ export default function QuickBetEditor({ onCommit, minAmount = 1, maxAmount = 10
       <YStack gap="$3">
         <Text fontSize="$5" fontWeight="600">Ingreso rápido</Text>
 
-        {/* Montos - Responsive: centrado y juntos en mobile */}
-        <XStack gap="$2" flexWrap="wrap" $sm={{ gap: '$2', jc: 'center' }} jc="flex-start">
-          <YStack flex={1} minWidth={140} maxWidth={180} gap="$1">
-            <Text fontSize="$3" ta="center">Apuesta Numero</Text>
+        {/* Montos - Siempre uno al lado del otro */}
+        <XStack gap="$2" jc="space-between">
+          <YStack flex={1} gap="$1">
+            <Text fontSize="$3" fontWeight="500">Apuesta Numero</Text>
             <Input
               value={amountNumero}
               onChangeText={setAmountNumero}
               keyboardType="decimal-pad"
               placeholder="0"
               ta="center"
+              height={48}
+              fontSize="$5"
             />
           </YStack>
-          <YStack flex={1} minWidth={140} maxWidth={180} gap="$1">
-            <Text fontSize="$3" ta="center">Apuesta Reventado</Text>
+          <YStack flex={1} gap="$1">
+            <Text fontSize="$3" fontWeight="500">Apuesta Reventado</Text>
             <Input
               value={amountReventado}
               onChangeText={setAmountReventado}
               keyboardType="decimal-pad"
               placeholder="0"
               ta="center"
+              height={48}
+              fontSize="$5"
               editable={!!amountNumero}
               opacity={amountNumero ? 1 : 0.5}
             />
           </YStack>
         </XStack>
 
-        {/* Captura de números */}
+        {/* Captura de números - Limpio y simple */}
         <YStack gap="$2">
-          <Text fontSize="$3">Números (dos dígitos). Se agregan automáticamente al completar 2 dígitos.</Text>
-          <XStack gap="$2" ai="center" flexWrap="wrap">
-            <Input
-              value={numInput}
-              onChangeText={(v) => {
-                const s = sanitizeNumber2(v)
-                setNumInput(s)
-                if (s.length === 2) {
-                  // auto-agregar al completar 2 dígitos
-                  setErrors('')
-                  setNumbers((prev) => (prev.includes(s) ? prev : [...prev, s]))
-                  setNumInput('')
-                }
-              }}
-              placeholder="00-99"
-              maxLength={2}
-              keyboardType="number-pad"
-              width={110}
-              editable={!!amountNumero}
-              opacity={amountNumero ? 1 : 0.5}
-              onKeyPress={(e: any) => {
-                if (e?.nativeEvent?.key === 'Enter' && numInput.length === 2) addNumber()
-              }}
-            />
-            <Button size="$3" variant="ghost" onPress={() => setNumbers([])} disabled={numbers.length === 0}>Limpiar lista</Button>
+          <XStack gap="$2" ai="flex-end">
+            <YStack flex={1}>
+              <Text fontSize="$3" fontWeight="500" mb="$1">Números</Text>
+              <Input
+                value={numInput}
+                onChangeText={(v) => {
+                  const s = sanitizeNumber2(v)
+                  setNumInput(s)
+                  if (s.length === 2) {
+                    setErrors('')
+                    setNumbers((prev) => (prev.includes(s) ? prev : [...prev, s]))
+                    setNumInput('')
+                  }
+                }}
+                placeholder="00-99"
+                maxLength={2}
+                keyboardType="number-pad"
+                height={48}
+                fontSize="$5"
+                ta="center"
+                editable={!!amountNumero}
+                opacity={amountNumero ? 1 : 0.5}
+                onKeyPress={(e: any) => {
+                  if (e?.nativeEvent?.key === 'Enter' && numInput.length === 2) addNumber()
+                }}
+              />
+            </YStack>
+            <Button size="$3" variant="ghost" onPress={() => setNumbers([])} disabled={numbers.length === 0}>Limpiar</Button>
           </XStack>
-          {!amountNumero && <Text color="$orange10" fontSize="$2">Ingresa monto en Apuesta Numero primero</Text>}
           {errors ? <Text color="$error" fontSize="$2">{errors}</Text> : null}
 
-          {/* Lista de números */}
+          {/* Lista de números - Sin X, solo click para eliminar */}
           {numbers.length > 0 && (
-            <XStack gap="$2" flexWrap="wrap">
+            <XStack gap="$2" flexWrap="wrap" mt="$2">
               {numbers.map((n) => (
-                <Card key={n} px="$2" py="$1" br="$2" bw={1} bc="$borderColor" bg="$backgroundHover">
-                  <XStack ai="center" gap="$2">
-                    <Text fontWeight="700">{n}</Text>
-                    <Button size="$2" variant="ghost" onPress={() => removeNumber(n)}>x</Button>
-                  </XStack>
+                <Card
+                  key={n}
+                  px="$3"
+                  py="$2"
+                  br="$2"
+                  bw={1}
+                  bc="$borderColor"
+                  bg="$backgroundHover"
+                  cursor="pointer"
+                  hoverStyle={{ backgroundColor: '$primary', borderColor: '$primary' }}
+                  onPress={() => removeNumber(n)}
+                >
+                  <Text fontWeight="700" fontSize="$4">{n}</Text>
                 </Card>
               ))}
             </XStack>
           )}
         </YStack>
 
-        <XStack gap="$2">
-          <Button onPress={commit} disabled={!canCommit}>Agregar al ticket</Button>
-        </XStack>
+        <Button onPress={commit} disabled={!canCommit} size="$4" width="100%">
+          Agregar al ticket
+        </Button>
       </YStack>
     </Card>
   )

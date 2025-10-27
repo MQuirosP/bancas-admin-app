@@ -402,59 +402,74 @@ export default function TicketForm({ sorteos, restrictions, user, restrictionsLo
         </Card>
       )}
 
-      {/* Listado de jugadas */}
+      {/* Listado de jugadas agrupadas por montos */}
       {useMemo(() => {
         if (jugadas.length === 0) return null
+
+        // Agrupar por clave: "monto_numero|monto_reventado"
+        const grupos = new Map<string, { indices: number[]; montoNum: number; montoRev: number | null }>()
+
+        jugadas.forEach((j, idx) => {
+          const montoNum = Number(j.amount)
+          const montoRev = j.amountReventado ? Number(j.amountReventado) : null
+          const key = `${montoNum}|${montoRev}`
+
+          if (!grupos.has(key)) {
+            grupos.set(key, { indices: [], montoNum, montoRev })
+          }
+          grupos.get(key)!.indices.push(idx)
+        })
+
+        const gruposArr = Array.from(grupos.values())
 
         return (
           <Card padding="$4" backgroundColor="$background" borderColor="$borderColor" borderWidth={1}>
             <YStack gap="$3">
               <Text fontSize="$5" fontWeight="600">Jugadas Agregadas</Text>
-              {jugadas.map((j, idx) => {
-                const montoNum = Number(j.amount)
-                const tieneReventado = j.amountReventado ? Number(j.amountReventado) > 0 : false
-                const montoReventado = tieneReventado ? Number(j.amountReventado!) : null
-
+              {gruposArr.map((grupo, gIdx) => {
                 return (
                   <YStack
-                    key={`${j.number}-${j.amount}-${idx}`}
+                    key={`grupo-${gIdx}`}
                     gap="$2"
-                    borderBottomWidth={idx < jugadas.length - 1 ? 1 : 0}
+                    borderBottomWidth={gIdx < gruposArr.length - 1 ? 1 : 0}
                     borderBottomColor="$borderColor"
-                    paddingBottom={idx < jugadas.length - 1 ? '$3' : 0}
+                    paddingBottom={gIdx < gruposArr.length - 1 ? '$3' : 0}
                   >
                     {/* Header: Número ₡1000 - Reventado ₡500 */}
                     <XStack ai="center" gap="$2" flexWrap="wrap">
                       <Text fontSize="$4" fontWeight="600" color="$primary">
-                        Número {formatCurrency(montoNum)}
+                        Número {formatCurrency(grupo.montoNum)}
                       </Text>
-                      {tieneReventado && (
+                      {grupo.montoRev !== null && grupo.montoRev > 0 && (
                         <>
                           <Text fontSize="$4" color="$textSecondary">-</Text>
                           <Text fontSize="$4" fontWeight="600" color="$orange10">
-                            Reventado {formatCurrency(montoReventado!)}
+                            Reventado {formatCurrency(grupo.montoRev)}
                           </Text>
                         </>
                       )}
                     </XStack>
 
-                    {/* Lista de números clickeables (sin X) */}
+                    {/* Lista de números clickeables (sin X) - agrupados en una row */}
                     <XStack gap="$2" flexWrap="wrap">
-                      <Card
-                        px="$2"
-                        py="$1"
-                        br="$2"
-                        bw={1}
-                        bc="$borderColor"
-                        bg="$backgroundHover"
-                        cursor="pointer"
-                        hoverStyle={{ backgroundColor: '$primary', borderColor: '$primary' }}
-                        onPress={() => removeJugada(idx)}
-                      >
-                        <Text fontWeight="600" fontSize="$3" color="$textPrimary">
-                          {j.number}
-                        </Text>
-                      </Card>
+                      {grupo.indices.map((idx) => (
+                        <Card
+                          key={`num-${idx}`}
+                          px="$2"
+                          py="$1"
+                          br="$2"
+                          bw={1}
+                          bc="$borderColor"
+                          bg="$backgroundHover"
+                          cursor="pointer"
+                          hoverStyle={{ backgroundColor: '$primary', borderColor: '$primary' }}
+                          onPress={() => removeJugada(idx)}
+                        >
+                          <Text fontWeight="600" fontSize="$3" color="$textPrimary">
+                            {jugadas[idx].number}
+                          </Text>
+                        </Card>
+                      ))}
                     </XStack>
                   </YStack>
                 )
