@@ -21,9 +21,23 @@ export default function VendedoresScreen() {
     staleTime: 60_000,
   })
 
-  const payload = (data as any)?.data ?? data ?? {}
-  const vendedores: Array<{ id?: string; name?: string; total?: number; tickets?: number }>
-    = Array.isArray(payload?.breakdown) ? payload.breakdown : Array.isArray(payload) ? payload : []
+  // Log para debugging
+  console.log('Vendedores response:', data)
+
+  // Intentar extraer vendedores de varias estructuras posibles
+  let vendedores: Array<{ id?: string; name?: string; total?: number; tickets?: number }> = []
+
+  if (data) {
+    const payload = (data as any)?.data ?? data
+    if (Array.isArray(payload)) {
+      vendedores = payload
+    } else if (Array.isArray(payload?.breakdown)) {
+      vendedores = payload.breakdown
+    } else if (payload?.breakdown && typeof payload.breakdown === 'object') {
+      // Si es un objeto, convertirlo a array
+      vendedores = Object.values(payload.breakdown)
+    }
+  }
 
   const stats = useMemo(() => ({
     totalVendedores: vendedores.length,
