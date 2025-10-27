@@ -1,5 +1,5 @@
 // components/loterias/LoteriaRulesInline.tsx
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -81,11 +81,16 @@ export default function LoteriaRulesInline({
     },
   }
 
-  const { control, handleSubmit, watch } = useForm<FormShape>({
+  const { control, handleSubmit, watch, reset } = useForm<FormShape>({
     resolver: zodResolver(RulesJsonSchema),
     defaultValues,
     mode: 'onBlur',
   })
+
+  // Resetear formulario cuando value cambia (cargar datos de lotería existente)
+  useEffect(() => {
+    reset(defaultValues)
+  }, [value, reset])
 
   // Cargar multiplicadores de la lotería
   const { data: multipliersData } = useMultipliersQuery({
