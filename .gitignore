@@ -46,3 +46,6 @@ outputs/
 
 # local reports
 CODE_REVIEW.md
+
+# documentation (internal specs, guides, etc)
+docs/
