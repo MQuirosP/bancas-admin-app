@@ -40,16 +40,12 @@ export function useTicketQuery(ticketId: string, enabled = true) {
  * Hook para obtener tickets de hoy
  */
 export function useTodayTicketsQuery(ventanaId?: string, vendedorId?: string) {
-  const today = new Date().toISOString().split('T')[0];
-
   return useQuery({
-    queryKey: queryKeys.tickets.list({ startDate: today, ventanaId, vendedorId }),
+    queryKey: queryKeys.tickets.list({ date: 'today', ventanaId, vendedorId }),
     queryFn: async () => {
-      const params: TicketsQueryParams = {
-        startDate: today,
-        endDate: today,
-        ...(ventanaId && { ventanaId }),
-        ...(vendedorId && { vendedorId }),
+      const params: any = {
+        date: 'today',
+        scope: 'mine',
       };
       const queryString = apiClient.buildQueryString(params);
       return apiClient.get<PaginatedResponse<Ticket>>(`/tickets${queryString}`);
@@ -66,9 +62,9 @@ export function useActiveTicketsQuery(ventanaId?: string) {
   return useQuery({
     queryKey: queryKeys.tickets.list({ status: 'ACTIVE', ventanaId }),
     queryFn: async () => {
-      const params: TicketsQueryParams = {
+      const params: any = {
         status: 'ACTIVE',
-        ...(ventanaId && { ventanaId }),
+        scope: 'mine',
       };
       const queryString = apiClient.buildQueryString(params);
       return apiClient.get<PaginatedResponse<Ticket>>(`/tickets${queryString}`);
