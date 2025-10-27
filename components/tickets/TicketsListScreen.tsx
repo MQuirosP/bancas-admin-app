@@ -50,6 +50,12 @@ const TICKET_STATUSES = [
 
 const STATUS_LABEL_MAP = Object.fromEntries(TICKET_STATUSES.map(s => [s.value, s.label]))
 
+const DATE_FILTER_LABELS = {
+  today: 'Hoy',
+  yesterday: 'Ayer',
+  range: 'Rango personalizado',
+} as const
+
 // Rango personalizado utilizará DatePicker (web/nativo)
 
 async function fetchTickets(params: any): Promise<{ data: Ticket[]; meta: any }> {
@@ -230,11 +236,7 @@ export default function TicketsListScreen({ scope }: Props) {
                       focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
                       iconAfter={ChevronDown}
                     >
-                      <Select.Value>{({
-                        today: 'Hoy',
-                        yesterday: 'Ayer',
-                        range: 'Rango personalizado',
-                      } as any)[dateFilter]}</Select.Value>
+                      <Select.Value>{DATE_FILTER_LABELS[dateFilter]}</Select.Value>
                     </Select.Trigger>
 
                     <Select.Content zIndex={1000}>
