@@ -4,12 +4,10 @@ import { Card, Select, Button } from '@/components/ui'
 import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '../../../lib/api.client'
 import { formatCurrency } from '../../../utils/formatters'
-import { getDateParamsForToken } from '../../../lib/dateFormat'
+import { getDateParam, type DateToken } from '../../../lib/dateFormat'
 import { Check, ChevronDown, RefreshCw, ArrowLeft } from '@tamagui/lucide-icons'
 import { useTheme } from 'tamagui'
 import { safeBack } from '../../../lib/navigation'
-
-type DateToken = 'today' | 'yesterday' | 'week' | 'month' | 'year'
 
 export default function MisVentasScreen() {
   const theme = useTheme()
@@ -18,7 +16,8 @@ export default function MisVentasScreen() {
   const [page, setPage] = useState(1)
 
   const params = useMemo(() => {
-    const dateParams = getDateParamsForToken(dateToken)
+    // ✅ Backend authority: Only send token, let backend calculate
+    const dateParams = getDateParam(dateToken)
     return { page, pageSize: 20, scope: 'mine', ...dateParams }
   }, [page, dateToken])
 

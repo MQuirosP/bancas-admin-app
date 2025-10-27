@@ -89,92 +89,44 @@ export function getTodayYYYYMMDD(): string {
 }
 
 /**
- * Convert date token to API parameters
- * Backend accepts: today|yesterday|week|month|year|range
- * Returns { date, fromDate?, toDate? }
+ * ⚠️ CRITICAL: Backend Authority Model
+ *
+ * Frontend MUST NOT calculate date ranges.
+ * The backend is the ONLY source of truth for date calculations.
+ *
+ * Frontend only sends semantic tokens:
+ * - 'today' - Backend calculates as CR timezone today
+ * - 'yesterday' - Backend calculates as CR timezone yesterday
+ * - 'week' - Backend calculates as CR timezone this week
+ * - 'month' - Backend calculates as CR timezone this month
+ * - 'year' - Backend calculates as CR timezone this year
+ * - 'range' - Backend respects provided YYYY-MM-DD dates (already calculated by backend/user)
  */
-export function getDateParamsForToken(
-  token: 'today' | 'yesterday' | 'week' | 'month' | 'year' | 'range',
+
+export type DateToken = 'today' | 'yesterday' | 'week' | 'month' | 'year' | 'range'
+
+/**
+ * Send date token to backend
+ * Backend will resolve using CR timezone and proper date calculations
+ *
+ * IMPORTANT: Frontend must NOT do date math!
+ */
+export function getDateParam(
+  token: DateToken,
   customFrom?: string,
   customTo?: string
 ): { date: string; fromDate?: string; toDate?: string } {
-  const now = new Date()
-
-  // Adjust to CR timezone for calculations
-  const crFormatter = new Intl.DateTimeFormat('es-CR', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    timeZone: CR_TIMEZONE,
-  })
-
-  const parts = crFormatter.formatToParts(now)
-  const year = parseInt(parts.find((p) => p.type === 'year')?.value || '2025')
-  const month = parseInt(parts.find((p) => p.type === 'month')?.value || '1') - 1
-  const day = parseInt(parts.find((p) => p.type === 'day')?.value || '1')
-
-  const todayDate = new Date(year, month, day)
-  const yesterdayDate = new Date(year, month, day - 1)
-
-  let fromDate: Date
-  let toDate: Date
-
-  switch (token) {
-    case 'today': {
-      return { date: 'today' }
+  // ✅ Only pass token to backend - let it handle calculations
+  if (token === 'range' && customFrom && customTo) {
+    return {
+      date: 'range',
+      fromDate: customFrom,  // Already in YYYY-MM-DD format
+      toDate: customTo,      // Already in YYYY-MM-DD format
     }
-
-    case 'yesterday': {
-      return { date: 'yesterday' }
-    }
-
-    case 'week': {
-      // Start of week (Monday)
-      const currentDay = now.getDay()
-      const diff = now.getDate() - currentDay + (currentDay === 0 ? -6 : 1)
-      fromDate = new Date(year, month, diff)
-      toDate = new Date(year, month, day)
-      return {
-        date: 'range',
-        fromDate: formatDateYYYYMMDD(fromDate),
-        toDate: formatDateYYYYMMDD(toDate),
-      }
-    }
-
-    case 'month': {
-      fromDate = new Date(year, month, 1)
-      toDate = new Date(year, month, day)
-      return {
-        date: 'range',
-        fromDate: formatDateYYYYMMDD(fromDate),
-        toDate: formatDateYYYYMMDD(toDate),
-      }
-    }
-
-    case 'year': {
-      fromDate = new Date(year, 0, 1)
-      toDate = new Date(year, month, day)
-      return {
-        date: 'range',
-        fromDate: formatDateYYYYMMDD(fromDate),
-        toDate: formatDateYYYYMMDD(toDate),
-      }
-    }
-
-    case 'range': {
-      if (!customFrom || !customTo) {
-        return { date: 'today' } // Fallback to today if no custom dates
-      }
-      return {
-        date: 'range',
-        fromDate: customFrom,
-        toDate: customTo,
-      }
-    }
-
-    default:
-      return { date: 'today' }
   }
+
+  // ✅ All other tokens go directly to backend for resolution
+  return { date: token }
 }
 
 /**
