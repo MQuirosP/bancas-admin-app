@@ -65,24 +65,26 @@ export default function QuickBetEditor({ onCommit, minAmount = 1, maxAmount = 10
       <YStack gap="$3">
         <Text fontSize="$5" fontWeight="600">Ingreso rápido</Text>
 
-        {/* Montos */}
-        <XStack gap="$3" flexWrap="wrap">
-          <YStack flex={1} minWidth={180} gap="$1">
-            <Text fontSize="$3">Monto NÚMERO</Text>
+        {/* Montos - Responsive: centrado y juntos en mobile */}
+        <XStack gap="$2" flexWrap="wrap" $sm={{ gap: '$2', jc: 'center' }} jc="flex-start">
+          <YStack flex={1} minWidth={140} maxWidth={180} gap="$1">
+            <Text fontSize="$3" ta="center">Apuesta Numero</Text>
             <Input
               value={amountNumero}
               onChangeText={setAmountNumero}
               keyboardType="decimal-pad"
               placeholder="0"
+              ta="center"
             />
           </YStack>
-          <YStack flex={1} minWidth={180} gap="$1">
-            <Text fontSize="$3">Monto REVENTADO (opcional)</Text>
+          <YStack flex={1} minWidth={140} maxWidth={180} gap="$1">
+            <Text fontSize="$3" ta="center">Apuesta Reventado</Text>
             <Input
               value={amountReventado}
               onChangeText={setAmountReventado}
               keyboardType="decimal-pad"
               placeholder="0"
+              ta="center"
             />
           </YStack>
         </XStack>

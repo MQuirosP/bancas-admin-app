@@ -291,9 +291,9 @@ export default function TicketForm({ sorteos, restrictions, user, restrictionsLo
 
       {/* Sorteo */}
       <Card padding="$4" backgroundColor="$background" borderColor="$borderColor" borderWidth={1}>
-        <XStack gap="$4" flexWrap="wrap">
+        <XStack gap="$3" flexWrap="wrap" $sm={{ gap: '$2', flexDirection: 'column' }}>
           {/* Sorteo */}
-          <YStack flex={1} minWidth={260} gap="$2">
+          <YStack flex={1} minWidth={240} $sm={{ flex: 1 }} gap="$2">
             <Text fontSize="$4" fontWeight="500">Sorteo *</Text>
             {restrictionsLoading ? (
               <Spinner />
@@ -323,7 +323,7 @@ export default function TicketForm({ sorteos, restrictions, user, restrictionsLo
 
           {/* Vendedor */}
           {vendorMode !== 'none' && (
-            <YStack flex={1} minWidth={260} gap="$2">
+            <YStack flex={1} minWidth={240} $sm={{ flex: 1 }} gap="$2">
               <Text fontSize="$4" fontWeight="500">Vendedor *</Text>
               {loadingVendedores ? (
                 <Spinner />
