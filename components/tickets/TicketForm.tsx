@@ -271,11 +271,12 @@ export default function TicketForm({ sorteos, restrictions, user, restrictionsLo
       <XStack ai="center" gap="$2">
         <Button
           size="$3"
-          circular
+          icon={(p: any) => <ArrowLeft {...p} size={24} color={iconColor} />}
+          onPress={() => safeBack('/ventana/tickets')}
           backgroundColor="transparent"
           borderWidth={0}
-          icon={(p: any) => <ArrowLeft {...p} color={iconColor} size={20} />}
-          onPress={() => safeBack('/ventana/tickets')}
+          hoverStyle={{ backgroundColor: 'transparent' }}
+          pressStyle={{ scale: 0.98 }}
         />
         <Text fontSize="$8" fontWeight="bold" color="$color">Crear Nuevo Tiquete</Text>
       </XStack>
@@ -380,21 +381,21 @@ export default function TicketForm({ sorteos, restrictions, user, restrictionsLo
       )}
 
       {/* Listado de jugadas agrupadas por monto */}
-      {jugadas.length > 0 && (
-        <Card padding="$4" backgroundColor="$background" borderColor="$borderColor" borderWidth={1}>
-          <YStack gap="$3">
-            <Text fontSize="$5" fontWeight="600">Jugadas Agregadas</Text>
+      {useMemo(() => {
+        if (jugadas.length === 0) return null
 
-            {/* Agrupar por monto */}
-            {useMemo(() => {
-              const grupos = new Map<string, JugadaForm[]>()
-              jugadas.forEach((j) => {
-                const key = `${j.type}-${j.amount}`
-                if (!grupos.has(key)) grupos.set(key, [])
-                grupos.get(key)!.push(j)
-              })
+        const grupos = new Map<string, JugadaForm[]>()
+        jugadas.forEach((j) => {
+          const key = `${j.type}-${j.amount}`
+          if (!grupos.has(key)) grupos.set(key, [])
+          grupos.get(key)!.push(j)
+        })
 
-              return Array.from(grupos.entries()).map(([key, grupo], idx) => (
+        return (
+          <Card padding="$4" backgroundColor="$background" borderColor="$borderColor" borderWidth={1}>
+            <YStack gap="$3">
+              <Text fontSize="$5" fontWeight="600">Jugadas Agregadas</Text>
+              {Array.from(grupos.entries()).map(([key, grupo], idx) => (
                 <YStack key={key} gap="$2" borderBottomWidth={idx < grupos.size - 1 ? 1 : 0} borderBottomColor="$borderColor" paddingBottom={idx < grupos.size - 1 ? '$3' : 0}>
                   <XStack ai="center" jc="space-between">
                     <Text fontSize="$4" fontWeight="600" color="$primary">
@@ -418,11 +419,11 @@ export default function TicketForm({ sorteos, restrictions, user, restrictionsLo
                     ))}
                   </XStack>
                 </YStack>
-              ))
-            }, [jugadas])}
-          </YStack>
-        </Card>
-      )}
+              ))}
+            </YStack>
+          </Card>
+        )
+      }, [jugadas])}
 
       {/* Total y acciones */}
       <Card padding="$4" backgroundColor="$blue2" borderColor="$blue8" borderWidth={1}>

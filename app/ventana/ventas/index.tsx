@@ -43,11 +43,12 @@ export default function MisVentasScreen() {
           <XStack ai="center" gap="$2">
             <Button
               size="$3"
-              circular
+              icon={(p: any) => <ArrowLeft {...p} size={24} color={iconColor} />}
+              onPress={() => safeBack('/ventana')}
               backgroundColor="transparent"
               borderWidth={0}
-              icon={(p: any) => <ArrowLeft {...p} color={iconColor} size={20} />}
-              onPress={() => safeBack('/ventana')}
+              hoverStyle={{ backgroundColor: 'transparent' }}
+              pressStyle={{ scale: 0.98 }}
             />
             <Text fontSize="$8" fontWeight="bold" color="$color">Mis Ventas</Text>
           </XStack>
