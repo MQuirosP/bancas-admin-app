@@ -9,12 +9,13 @@ import { useVentasSummary, useVentasBreakdown } from '@/hooks/useVentas'
 import { parseISO, formatDistanceToNowStrict } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { useRouter } from 'expo-router'
+import { DEFAULT_TOP } from '@/lib/constants'
 
 export default function VentanaDashboard() {
   const user = useAuthStore((state) => state.user);
   const router = useRouter();
   const { data: summary } = useVentasSummary({ scope: 'mine', date: 'today' })
-  const { data: bySeller } = useVentasBreakdown({ dimension: 'vendedor', top: 100, scope: 'mine', date: 'today' })
+  const { data: bySeller } = useVentasBreakdown({ dimension: 'vendedor', top: DEFAULT_TOP, scope: 'mine', date: 'today' })
 
   return (
     <ScrollView flex={1} backgroundColor="$background">

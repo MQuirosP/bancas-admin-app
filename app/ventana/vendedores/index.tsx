@@ -7,12 +7,13 @@ import { formatCurrency } from '../../../utils/formatters'
 import { ArrowLeft, RefreshCw, TrendingUp } from '@tamagui/lucide-icons'
 import { useTheme } from 'tamagui'
 import { safeBack } from '../../../lib/navigation'
+import { DEFAULT_TOP } from '../../../lib/constants'
 
 export default function VendedoresScreen() {
   const theme = useTheme()
   const iconColor = (theme?.color as any)?.get?.() ?? '#000'
 
-  const params = useMemo(() => ({ date: 'today', scope: 'mine', dimension: 'vendedor', top: 100 }), [])
+  const params = useMemo(() => ({ date: 'today', scope: 'mine', dimension: 'vendedor', top: DEFAULT_TOP }), [])
 
   const { data, isLoading, isFetching, refetch } = useQuery({
     queryKey: ['vendedores', params],
