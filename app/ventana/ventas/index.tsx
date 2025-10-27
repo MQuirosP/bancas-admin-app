@@ -8,7 +8,7 @@ import { Check, ChevronDown, RefreshCw, ArrowLeft } from '@tamagui/lucide-icons'
 import { useTheme } from 'tamagui'
 import { safeBack } from '../../../lib/navigation'
 
-type DateRange = 'today' | 'week' | 'month' | 'range'
+type DateRange = 'today' | 'yesterday' | 'thisWeek' | 'thisMonth' | 'range'
 
 export default function MisVentasScreen() {
   const theme = useTheme()
@@ -16,7 +16,34 @@ export default function MisVentasScreen() {
   const [dateRange, setDateRange] = useState<DateRange>('today')
   const [page, setPage] = useState(1)
 
-  const params = useMemo(() => ({ page, pageSize: 20, date: dateRange, scope: 'mine' }), [page, dateRange])
+  // Convertir DateRange local a parámetros del API
+  const getDateParams = (range: DateRange) => {
+    const today = new Date()
+    const oneWeekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
+    const oneMonthAgo = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate())
+
+    const formatDate = (d: Date) => d.toISOString().split('T')[0]
+
+    switch (range) {
+      case 'today':
+        return { date: 'today' as const }
+      case 'yesterday':
+        return { date: 'yesterday' as const }
+      case 'thisWeek':
+        return { date: 'range' as const, from: formatDate(oneWeekAgo), to: formatDate(today) }
+      case 'thisMonth':
+        return { date: 'range' as const, from: formatDate(oneMonthAgo), to: formatDate(today) }
+      case 'range':
+        return { date: 'range' as const }
+      default:
+        return { date: 'today' as const }
+    }
+  }
+
+  const params = useMemo(() => {
+    const dateParams = getDateParams(dateRange)
+    return { page, pageSize: 20, scope: 'mine', ...dateParams }
+  }, [page, dateRange])
 
   const { data, isLoading, isFetching, refetch } = useQuery({
     queryKey: ['ventas', params],
@@ -67,8 +94,9 @@ export default function MisVentasScreen() {
                   <Select.Viewport>
                     {([
                       { value: 'today', label: 'Hoy' },
-                      { value: 'week', label: 'Semana' },
-                      { value: 'month', label: 'Mes' },
+                      { value: 'yesterday', label: 'Ayer' },
+                      { value: 'thisWeek', label: 'Últimos 7 días' },
+                      { value: 'thisMonth', label: 'Últimos 30 días' },
                     ] as const).map((it, idx) => (
                       <Select.Item key={it.value} value={it.value} index={idx}>
                         <Select.ItemText>{it.label}</Select.ItemText>
