@@ -12,12 +12,13 @@ type Jugada = {
   amount: number
   isWinner?: boolean
   winAmount?: number
+  finalMultiplierX?: number
 }
 
 type Ticket = {
   id: string
   ticketNumber?: string | number
-  loteria?: { name?: string }
+  loteria?: { name?: string; rulesJson?: any }
   sorteo?: { name?: string; scheduledAt?: string }
   vendedor?: { name?: string; code?: string; phone?: string | null }
   clienteNombre?: string | null
@@ -42,12 +43,22 @@ export default function TicketReceipt({ ticket, widthPx = 220 }: TicketReceiptPr
   const createdAt = ticket.createdAt ? new Date(ticket.createdAt) : new Date()
   const scheduledAt = ticket.sorteo?.scheduledAt ? new Date(ticket.sorteo.scheduledAt) : undefined
 
-  const { numeros, reventados, total } = useMemo(() => {
+  const { numeros, reventados, total, multiplierX } = useMemo(() => {
     const grouped = groupJugadasByAmount(ticket.jugadas || [])
     const tot = (ticket.totalAmount != null
       ? ticket.totalAmount
       : (ticket.jugadas || []).reduce((s, j) => s + (j.amount || 0), 0))
-    return { numeros: grouped.numeros, reventados: grouped.reventados, total: tot }
+
+    // Obtener multiplicador: usar finalMultiplierX de primera jugada NUMERO, sino del rulesJson
+    let mult = 1
+    const primeraNumero = (ticket.jugadas || []).find((j) => j.type === 'NUMERO')
+    if (primeraNumero?.finalMultiplierX && primeraNumero.finalMultiplierX > 0) {
+      mult = primeraNumero.finalMultiplierX
+    } else if (ticket.loteria?.rulesJson?.baseMultiplierX) {
+      mult = ticket.loteria.rulesJson.baseMultiplierX
+    }
+
+    return { numeros: grouped.numeros, reventados: grouped.reventados, total: tot, multiplierX: mult }
   }, [ticket])
 
   // Simple barcode placeholder using ticket id blocks
@@ -142,7 +153,7 @@ export default function TicketReceipt({ ticket, widthPx = 220 }: TicketReceiptPr
       </Card>
 
       <YStack mt="$2" ai="center" gap="$1" {...sectionBorder} p="$2" backgroundColor="$background">
-        <Text fontFamily="monospace" fontSize={12}>PAGAMOS {total > 0 ? Math.floor(total * 0.0001) : 85}</Text>
+        <Text fontFamily="monospace" fontSize={12}>PAGAMOS {multiplierX}x</Text>
         {barcodeBlocks}
       </YStack>
     </YStack>
