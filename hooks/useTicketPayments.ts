@@ -103,6 +103,27 @@ export function useReversePaymentMutation() {
 }
 
 /**
+ * Hook para actualizar un pago (marcar como final)
+ * PATCH /ticket-payments/:id
+ */
+export function useUpdatePaymentMutation() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: { paymentId: string; isFinal: boolean; notes?: string }) =>
+      apiClient.patch<TicketPayment>(`/ticket-payments/${data.paymentId}`, {
+        isFinal: data.isFinal,
+        notes: data.notes,
+      }),
+    onSuccess: (data) => {
+      // Invalidar listas y detalles
+      queryClient.invalidateQueries({ queryKey: queryKeys.tickets.all })
+      queryClient.invalidateQueries({ queryKey: ['ticketPaymentHistory', data.ticketId] })
+    },
+  })
+}
+
+/**
  * Hook para obtener lista paginada de pagos registrados
  */
 export function usePaymentListQuery(params?: { page?: number; pageSize?: number }) {

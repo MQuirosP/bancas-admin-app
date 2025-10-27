@@ -6,6 +6,8 @@ import { useCreatePaymentMutation } from '@/hooks/useTicketPayments'
 import { useTicketDetailsQuery } from '@/hooks/useTicketPayments'
 import type { TicketWithPayments, PaymentMethod, CreatePaymentInput } from '@/types/payment.types'
 import { formatCurrency } from '@/lib/currency'
+import { formatDateTimeYYYYMMDD_HHMM } from '@/lib/dateFormat'
+import { formatErrorMessage } from '@/types/error.types'
 import { v4 as uuidv4 } from 'uuid'
 import { Role } from '@/types/auth.types'
 
@@ -17,10 +19,10 @@ interface PaymentFormModalProps {
 }
 
 const PAYMENT_METHODS: Array<{ label: string; value: PaymentMethod }> = [
-  { label: 'Efectivo', value: 'CASH' },
-  { label: 'Cheque', value: 'CHECK' },
-  { label: 'Transferencia', value: 'TRANSFER' },
-  { label: 'Sistema', value: 'SYSTEM' },
+  { label: 'Efectivo', value: 'cash' as PaymentMethod },
+  { label: 'Cheque', value: 'check' as PaymentMethod },
+  { label: 'Transferencia', value: 'transfer' as PaymentMethod },
+  { label: 'Sistema', value: 'system' as PaymentMethod },
 ]
 
 export default function PaymentFormModal({
@@ -34,10 +36,11 @@ export default function PaymentFormModal({
   const createPaymentMutation = useCreatePaymentMutation()
 
   const [amountPaid, setAmountPaid] = useState('')
-  const [method, setMethod] = useState<PaymentMethod>('CASH')
+  const [method, setMethod] = useState<PaymentMethod>('cash')
   const [notes, setNotes] = useState('')
   const [isFinal, setIsFinal] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string>('')
 
   // Calcular totales
   const totals = useMemo(() => {
@@ -84,6 +87,8 @@ export default function PaymentFormModal({
     if (!canSubmit || !ticket) return
 
     setIsSubmitting(true)
+    setSubmitError('')
+
     try {
       const input: CreatePaymentInput = {
         ticketId: ticket.id,
@@ -97,9 +102,14 @@ export default function PaymentFormModal({
       const result = await createPaymentMutation.mutateAsync(input)
       onSuccess(result)
       handleClose()
-    } catch (error) {
+    } catch (error: any) {
       console.error('Payment error:', error)
-      // TODO: mostrar error toast
+
+      // Extract error code from response
+      const errorCode = error.response?.data?.error || error.response?.data?.code || 'UNKNOWN'
+      const errorMessage = formatErrorMessage(errorCode)
+
+      setSubmitError(errorMessage)
     } finally {
       setIsSubmitting(false)
     }
@@ -107,9 +117,10 @@ export default function PaymentFormModal({
 
   const handleClose = () => {
     setAmountPaid('')
-    setMethod('CASH')
+    setMethod('cash')
     setNotes('')
     setIsFinal(false)
+    setSubmitError('')
     onClose()
   }
 
@@ -229,7 +240,7 @@ export default function PaymentFormModal({
             )}
           </YStack>
 
-          {/* Errores */}
+          {/* Errores de validación */}
           {errors.length > 0 && (
             <Card padding="$3" backgroundColor="$error1" gap="$1">
               {errors.map((error, idx) => (
@@ -237,6 +248,18 @@ export default function PaymentFormModal({
                   • {error}
                 </Text>
               ))}
+            </Card>
+          )}
+
+          {/* Errores de servidor */}
+          {submitError && (
+            <Card padding="$3" backgroundColor="$error1" gap="$1">
+              <Text color="$error" fontSize="$3" fontWeight="600">
+                Error
+              </Text>
+              <Text color="$error" fontSize="$2">
+                {submitError}
+              </Text>
             </Card>
           )}
 

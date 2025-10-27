@@ -25,9 +25,11 @@
 ### Requerido por Guía (6 endpoints)
 
 #### ✅ Endpoint 1: Fetch Pending Winning Tickets
+
 ```
 GET /api/v1/tickets?status=EVALUATED&isWinner=true
 ```
+
 - **Ubicación Frontend**: [PendingTicketsScreen.tsx:48-56](components/payments/PendingTicketsScreen.tsx#L48-L56)
 - **Hook**: `usePendingWinningTicketsQuery()`
 - **Status**: ✅ IMPLEMENTADO
@@ -41,9 +43,11 @@ GET /api/v1/tickets?status=EVALUATED&isWinner=true
 ---
 
 #### ✅ Endpoint 2: Create Payment
+
 ```
 POST /api/v1/ticket-payments
 ```
+
 - **Ubicación Frontend**: [PaymentFormModal.tsx:90-105](components/payments/PaymentFormModal.tsx#L90-L105)
 - **Hook**: `useCreatePaymentMutation()`
 - **Status**: ✅ IMPLEMENTADO
@@ -54,6 +58,7 @@ POST /api/v1/ticket-payments
   - ⚠️ **ISSUE**: No maneja response con `remainingAmount` correctamente
 
 **Código Actual**:
+
 ```typescript
 // PaymentFormModal.tsx:90
 const input: CreatePaymentInput = {
@@ -67,6 +72,7 @@ const input: CreatePaymentInput = {
 ```
 
 **Debe ser**:
+
 ```typescript
 const input: CreatePaymentInput = {
   ticketId: ticket.id,
@@ -81,15 +87,18 @@ const input: CreatePaymentInput = {
 ---
 
 #### ✅ Endpoint 3: Mark Payment as Final
+
 ```
 PATCH /api/v1/ticket-payments/{paymentId}
 ```
+
 - **Status**: ❌ NO IMPLEMENTADO
 - **Prioridad**: 🔴 CRÍTICA
 - **Necesario para**: Cambiar pago parcial a final después de creado
 - **Dónde se usa**: En [PaymentHistoryModal.tsx](components/payments/PaymentHistoryModal.tsx) se necesita botón "Marcar como Final"
 
 **Hook a crear**:
+
 ```typescript
 export function useUpdatePaymentMutation() {
   return useMutation({
@@ -109,9 +118,11 @@ export function useUpdatePaymentMutation() {
 ---
 
 #### ✅ Endpoint 4: Get Payment History
+
 ```
 GET /api/v1/tickets/{ticketId}/payment-history
 ```
+
 - **Ubicación Frontend**: [PaymentHistoryModal.tsx:17](components/payments/PaymentHistoryModal.tsx#L17)
 - **Hook**: `useTicketPaymentHistoryQuery()`
 - **Status**: ✅ IMPLEMENTADO
@@ -123,9 +134,11 @@ GET /api/v1/tickets/{ticketId}/payment-history
 ---
 
 #### ✅ Endpoint 5: Reverse Payment
+
 ```
 POST /api/v1/ticket-payments/{paymentId}/reverse
 ```
+
 - **Ubicación Frontend**: [PaymentHistoryModal.tsx:35-42](components/payments/PaymentHistoryModal.tsx#L35-L42)
 - **Hook**: `useReversePaymentMutation()`
 - **Status**: ✅ IMPLEMENTADO
@@ -134,9 +147,11 @@ POST /api/v1/ticket-payments/{paymentId}/reverse
 ---
 
 #### ⚠️ Endpoint 6: List Payments with Filters
+
 ```
 GET /api/v1/ticket-payments?page=1&pageSize=20&status=pending...
 ```
+
 - **Status**: ⚠️ PARCIALMENTE IMPLEMENTADO
 - **Ubicación**: [usePaymentListQuery()](hooks/useTicketPayments.ts)
 - **Implementación Actual**: Muy básica, no soporta filtros
@@ -147,6 +162,7 @@ GET /api/v1/ticket-payments?page=1&pageSize=20&status=pending...
   - Query parameter builder correcto
 
 **Hook Mejorado necesario**:
+
 ```typescript
 export function usePaymentListQuery(params?: {
   page?: number
@@ -188,6 +204,7 @@ export function usePaymentListQuery(params?: {
 ### Problema Crítico: ISO DateTime vs YYYY-MM-DD
 
 **Guía Especifica**:
+
 - API espera y devuelve: ISO 8601 (2025-10-27T14:30:00Z)
 - Frontend debe mostrar: YYYY-MM-DD
 - Frontend debe enviar fechas: YYYY-MM-DD (en filtros)
@@ -196,6 +213,7 @@ export function usePaymentListQuery(params?: {
 **Problemas en Código Actual**:
 
 #### PaymentFormModal.tsx (línea ~150)
+
 ```typescript
 // ACTUAL - Usando ISO y locale default
 <Text>{date.toLocaleDateString()}</Text>
@@ -205,6 +223,7 @@ export function usePaymentListQuery(params?: {
 ```
 
 #### PaymentHistoryModal.tsx (línea ~150)
+
 ```typescript
 // ACTUAL
 <Text fontSize="$2" color="$gray10">
@@ -218,6 +237,7 @@ export function usePaymentListQuery(params?: {
 ```
 
 #### PaymentConfirmationModal.tsx (línea ~110)
+
 ```typescript
 // ACTUAL
 {date.toLocaleDateString()} {date.toLocaleTimeString()}
@@ -227,6 +247,7 @@ export function usePaymentListQuery(params?: {
 ```
 
 **Función de Utilidad Necesaria**:
+
 ```typescript
 // lib/dateFormat.ts (crear)
 export const CR_TIMEZONE = 'America/Costa_Rica'
@@ -264,6 +285,7 @@ export function parseDateYYYYMMDD(dateStr: string): Date {
 ### Problema Crítico: Sin implementación de error codes
 
 **Guía Especifica Error Codes**:
+
 ```
 TKT_PAY_001 - 404 - Ticket not found
 TKT_PAY_002 - 409 - Not a winner
@@ -275,6 +297,7 @@ TKT_PAY_007 - 409 - Idempotency conflict
 ```
 
 **Implementación Actual** (PaymentFormModal.tsx:~70):
+
 ```typescript
 // ACTUAL - Sin error codes
 const errors = useMemo(() => {
@@ -291,6 +314,7 @@ const errors = useMemo(() => {
 ```
 
 **Debe ser**:
+
 ```typescript
 // types/error.types.ts (crear)
 export const ERROR_CODES = {
@@ -322,11 +346,13 @@ const handleError = (error: any) => {
 ### ✅ CORRECTO
 
 **Ubicación**: [PaymentFormModal.tsx:90](components/payments/PaymentFormModal.tsx#L90)
+
 ```typescript
 idempotencyKey: uuidv4()  // ✅ Correcto
 ```
 
 **Validación**:
+
 - ✅ Se genera único por pago
 - ✅ Usa uuid v4
 - ✅ Se envía en POST /ticket-payments
@@ -339,11 +365,13 @@ idempotencyKey: uuidv4()  // ✅ Correcto
 ### ⚠️ PARCIALMENTE IMPLEMENTADO
 
 **Guía Especifica**:
+
 - VENDEDOR: ❌ Forbidden (no puede pagar)
 - VENTANA: ✅ Puede pagar su ventana
 - ADMIN: ✅ Puede pagar todos
 
 **Implementación Actual** [PendingTicketsScreen.tsx:48-56]:
+
 ```typescript
 const params = useMemo(() => {
   if (user?.role === Role.VENDEDOR) {
@@ -359,6 +387,7 @@ const params = useMemo(() => {
 **Problema**: VENDEDOR puede acceder a la pantalla pero no debería.
 
 **Debe ser**:
+
 ```typescript
 // En app/pagos/index.tsx - VALIDAR AL INICIO
 if (!user || ![Role.VENTANA, Role.ADMIN].includes(user.role as any)) {
@@ -386,16 +415,19 @@ if (!user || ![Role.VENTANA, Role.ADMIN].includes(user.role as any)) {
 ### ⚠️ AUTOMÁTICO EN BACKEND
 
 **Guía Especifica**:
+
 - Cuando se registra pago completo (`amountPaid == totalPayout`): Status → PAGADO
 - Cuando se marca pago parcial como final (`isFinal=true`): Status → PAGADO
 - Frontend NO debe actualizar status manualmente
 
 **Implementación Actual**:
+
 - ✅ Correctamente se confía en backend
 - ✅ Se refrescan queries después de pago
 - ⚠️ Frontend solo muestra `remaining` si `> 0`
 
 **Validación**:
+
 ```typescript
 // En PendingTicketsScreen.tsx (línea ~200)
 const isPaid = ticket.remaining <= 0
@@ -432,11 +464,13 @@ const isPaid = ticket.remaining <= 0
    - Desglose de Cuentas por Pagar
 
 **RBAC Dashboard**:
+
 - ADMIN: ✅ Global + filtro ventanaId
 - VENTANA: ✅ Solo su ventana (auto-set)
 - VENDEDOR/BANCA: ❌ Forbidden
 
 **Necesario Crear**:
+
 - `hooks/useDashboard.ts` - 4 hooks para dashboard
 - `components/dashboard/DashboardScreen.tsx` - Vista principal
 - `components/dashboard/DashboardMetrics.tsx` - Cards de métricas
@@ -477,6 +511,7 @@ const isPaid = ticket.remaining <= 0
 ## 🔧 Acción Recomendada
 
 ### Fase 1: Críticos (esta sesión)
+
 1. ✅ Crear `lib/dateFormat.ts` con formatters
 2. ✅ Crear `types/error.types.ts` con ERROR_CODES
 3. ✅ Actualizar PaymentFormModal (method lowercase)
@@ -484,12 +519,14 @@ const isPaid = ticket.remaining <= 0
 5. ✅ Validar RBAC en app/pagos/index.tsx
 
 ### Fase 2: Media (siguiente sesión)
+
 1. Mejorar `usePaymentListQuery()` con todos los filtros
 2. Actualizar todas las vistas para usar dateFormat.ts
 3. Implementar error handling con códigos
 4. Agregar validación de timezone en filtros
 
 ### Fase 3: Dashboard (sesión posterior)
+
 1. Implementar 4 hooks de dashboard
 2. Crear vistas y componentes dashboard
 3. Agregar filtros y timeframes

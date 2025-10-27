@@ -17,12 +17,18 @@ export default function PagosScreen() {
   const [showConfirmation, setShowConfirmation] = useState(false)
   const [lastPayment, setLastPayment] = useState<TicketPayment | undefined>()
 
-  // Validar permisos
-  const allowedRoles = [Role.VENDEDOR, Role.VENTANA, Role.ADMIN]
-  if (!allowedRoles.includes(user?.role as any)) {
+  // Validar permisos - Solo VENTANA y ADMIN pueden pagar
+  // VENDEDOR y BANCA no tienen acceso a este módulo
+  const allowedRoles = [Role.VENTANA, Role.ADMIN]
+  if (!user || !allowedRoles.includes(user.role as any)) {
     return (
-      <YStack flex={1} ai="center" jc="center">
-        <Text>No tienes permiso para acceder a esta sección</Text>
+      <YStack flex={1} ai="center" jc="center" gap="$3" padding="$4">
+        <Text fontSize="$5" fontWeight="600">
+          Acceso Denegado
+        </Text>
+        <Text color="$gray10" ta="center">
+          Solo administradores y operadores de ventana pueden acceder a la gestión de pagos
+        </Text>
       </YStack>
     )
   }
