@@ -286,12 +286,12 @@ function RuleRow({
   const hasMultiplier = items.some(i => i.value === row.multiplierX)
 
   return (
-    <Card p="$2" bw={1} bc="$borderColor" bg="$background">
+    <Card p="$2" bw={1} bc="$borderColor" backgroundColor="$background">
       <XStack gap="$2" flexWrap="wrap" ai="flex-end">
         <YStack minWidth={200} gap="$1">
           <Text fontSize="$3">Lotería</Text>
           <Select value={row.loteriaId} onValueChange={(v)=> onChange(idx, { loteriaId: v, multiplierX: '' })}>
-            <Select.Trigger bw={1} bc={errors?.loteriaId ? '$red8' : '$borderColor'} bg="$background" px="$3">
+            <Select.Trigger bw={1} bc={errors?.loteriaId ? '$red8' : '$borderColor'} backgroundColor="$background" px="$3">
               <Select.Value placeholder="Selecciona lotería" />
             </Select.Trigger>
             <Select.Content>
@@ -307,7 +307,7 @@ function RuleRow({
         <YStack minWidth={160} gap="$1">
           <Text fontSize="$3">Tipo</Text>
           <Select value={row.betType || ''} onValueChange={(v:any)=> onChange(idx, { betType: v, multiplierX: '' })}>
-            <Select.Trigger bw={1} bc="$borderColor" bg="$background" px="$3">
+            <Select.Trigger bw={1} bc="$borderColor" backgroundColor="$background" px="$3">
               <Select.Value />
             </Select.Trigger>
             <Select.Content>
@@ -323,7 +323,7 @@ function RuleRow({
         <YStack minWidth={220} gap="$1">
           <Text fontSize="$3">Multiplicador X</Text>
           <Select value={hasMultiplier ? row.multiplierX : ''} onValueChange={(v:any)=> onChange(idx, { multiplierX: v })}>
-            <Select.Trigger bw={1} bc={errors?.multiplierX ? '$red8' : '$borderColor'} bg="$background" px="$3">
+            <Select.Trigger bw={1} bc={errors?.multiplierX ? '$red8' : '$borderColor'} backgroundColor="$background" px="$3">
               <Select.Value />
             </Select.Trigger>
             <Select.Content>

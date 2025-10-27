@@ -3,6 +3,7 @@ import { YStack, XStack, Text, Card } from 'tamagui'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { formatCurrency } from '@/utils/formatters'
+import { groupJugadasByAmount, formatNumbersList } from '@/utils/ticket.helpers'
 
 type Jugada = {
   type: 'NUMERO' | 'REVENTADO'
@@ -29,7 +30,7 @@ type Jugadas = Jugada[]
 
 export type TicketReceiptProps = {
   ticket: Ticket
-  widthPx?: number // width similar a 80mm ~ 300px
+  widthPx?: number // width for 58mm thermal printer ~ 220px
 }
 
 function pad2(n?: string) {
@@ -37,17 +38,16 @@ function pad2(n?: string) {
   return s.length === 2 ? s : s.padStart(2, '0')
 }
 
-export default function TicketReceipt({ ticket, widthPx = 300 }: TicketReceiptProps) {
+export default function TicketReceipt({ ticket, widthPx = 220 }: TicketReceiptProps) {
   const createdAt = ticket.createdAt ? new Date(ticket.createdAt) : new Date()
   const scheduledAt = ticket.sorteo?.scheduledAt ? new Date(ticket.sorteo.scheduledAt) : undefined
 
   const { numeros, reventados, total } = useMemo(() => {
-    const nums = (ticket.jugadas || []).filter((j) => j.type === 'NUMERO')
-    const revs = (ticket.jugadas || []).filter((j) => j.type === 'REVENTADO')
+    const grouped = groupJugadasByAmount(ticket.jugadas || [])
     const tot = (ticket.totalAmount != null
       ? ticket.totalAmount
       : (ticket.jugadas || []).reduce((s, j) => s + (j.amount || 0), 0))
-    return { numeros: nums, reventados: revs, total: tot }
+    return { numeros: grouped.numeros, reventados: grouped.reventados, total: tot }
   }, [ticket])
 
   // Simple barcode placeholder using ticket id blocks
@@ -64,7 +64,7 @@ export default function TicketReceipt({ ticket, widthPx = 300 }: TicketReceiptPr
   const sectionBorder = { borderWidth: 1, borderColor: '$borderColor', borderStyle: 'dashed' as const }
 
   return (
-    <YStack alignSelf="center" width={widthPx} bg="$background">
+    <YStack alignSelf="center" width={widthPx} backgroundColor="$background">
       <style
         // print-friendly monospace and tight spacing for thermal receipt
         dangerouslySetInnerHTML={{
@@ -76,57 +76,73 @@ export default function TicketReceipt({ ticket, widthPx = 300 }: TicketReceiptPr
         `,
         }}
       />
-      <Card p="$3" bg="$background" {...sectionBorder}>
-        <YStack gap="$2" ai="center">
-          <Text fontFamily="monospace" fontSize={16} fontWeight="900">
-            TIQUETE # {String(ticket.ticketNumber ?? (ticket as any).code ?? ticket.id)}
+      <Card p="$2" backgroundColor="$background" {...sectionBorder}>
+        <YStack gap="$1" ai="center">
+          <Text fontFamily="monospace" fontSize={14} fontWeight="900">
+            CODIGO # {String(ticket.ticketNumber ?? (ticket as any).code ?? ticket.id).padStart(2, '0')}
           </Text>
-          <Text fontFamily="monospace" fontSize={16} fontWeight="900">
-            {ticket.loteria?.name ?? 'LOTERIA'} {scheduledAt ? format(scheduledAt, 'h:mm a', { locale: es }).toUpperCase() : ''}
+          <Text fontFamily="monospace" fontSize={14} fontWeight="900">
+            {ticket.loteria?.name?.toUpperCase() ?? 'TICA'} {scheduledAt ? format(scheduledAt, 'h:mm a', { locale: es }).toUpperCase() : ''}
           </Text>
         </YStack>
       </Card>
 
-      <Card mt="$3" p="$3" bg="$background" {...sectionBorder}>
-        <YStack gap={2}>
-          <Text fontFamily="monospace">VENDEDOR: {ticket.vendedor?.name ?? '—'} {ticket.vendedor?.code ? ` - ${ticket.vendedor.code}` : ''}</Text>
-          <Text fontFamily="monospace">TEL.: {ticket.vendedor?.phone ?? '—'}</Text>
-          <Text fontFamily="monospace">CLIENTE: {ticket.clienteNombre ?? '—'}</Text>
-          <Text fontFamily="monospace">SORTEO: {scheduledAt ? format(scheduledAt, 'dd/MM/yyyy', { locale: es }) : '—'}</Text>
-          <Text fontFamily="monospace">IMPRESIÓN: {format(createdAt, 'dd/MM/yyyy hh:mm a', { locale: es })}</Text>
+      <Card mt="$2" p="$2" backgroundColor="$background" {...sectionBorder}>
+        <YStack gap={1}>
+          <Text fontFamily="monospace" fontSize={11}>VENDEDOR: {ticket.vendedor?.name ?? 'Nombre Vendedor'} {ticket.vendedor?.code ? ` - ${ticket.vendedor.code}` : ''}</Text>
+          <Text fontFamily="monospace" fontSize={11}>TEL.: {ticket.vendedor?.phone ?? '8888-8888'}</Text>
+          <Text fontFamily="monospace" fontSize={11}>CLIENTE: {ticket.clienteNombre ?? 'Nombre Cliente'}</Text>
+          <Text fontFamily="monospace" fontSize={11}>SORTEO: {scheduledAt ? format(scheduledAt, 'dd/MM/yyyy', { locale: es }) : '—'}</Text>
+          <Text fontFamily="monospace" fontSize={11}>IMPRESIÓN: {format(createdAt, 'dd/MM/yyyy hh:mm:ss a', { locale: es }).toUpperCase()}</Text>
         </YStack>
       </Card>
 
-      <YStack mt="$3" gap="$2" {...sectionBorder} p="$3" bg="$background">
-        {numeros.map((j, idx) => (
-          <XStack key={idx} jc="space-between">
-            <Text fontFamily="monospace">{formatCurrency(j.amount)}</Text>
-            <Text fontFamily="monospace">* {pad2(j.number)}</Text>
+      <YStack mt="$2" gap={2} {...sectionBorder} p="$2" backgroundColor="$background">
+        {numeros.map((group, idx) => (
+          <XStack key={idx} gap="$2" jc="space-between" flexWrap="nowrap">
+            <XStack gap="$2" flexShrink={0}>
+              <Text fontFamily="monospace" fontSize={12}>
+                {group.amount}
+              </Text>
+              <Text fontFamily="monospace" fontSize={12}>*</Text>
+            </XStack>
+            <Text fontFamily="monospace" fontSize={12} ta="right" flexShrink={1}>
+              {formatNumbersList(group.numbers)}
+            </Text>
           </XStack>
         ))}
 
         {reventados.length > 0 && (
           <>
-            <XStack my="$2" jc="center"><Text fontFamily="monospace">********REVENTADOS********</Text></XStack>
-            {reventados.map((j, idx) => (
-              <XStack key={`r-${idx}`} jc="space-between">
-                <Text fontFamily="monospace">{formatCurrency(j.amount)}</Text>
-                <Text fontFamily="monospace">* {pad2(j.reventadoNumber ?? j.number)}</Text>
+            <XStack my={2} jc="center">
+              <Text fontFamily="monospace" fontSize={11}>*******REVENTADOS*******</Text>
+            </XStack>
+            {reventados.map((group, idx) => (
+              <XStack key={`r-${idx}`} gap="$2" jc="space-between" flexWrap="nowrap">
+                <XStack gap="$2" flexShrink={0}>
+                  <Text fontFamily="monospace" fontSize={12}>
+                    {group.amount}
+                  </Text>
+                  <Text fontFamily="monospace" fontSize={12}>*</Text>
+                </XStack>
+                <Text fontFamily="monospace" fontSize={12} ta="right" flexShrink={1}>
+                  {formatNumbersList(group.numbers)}
+                </Text>
               </XStack>
             ))}
           </>
         )}
       </YStack>
 
-      <Card mt="$3" p="$3" bg="$background" {...sectionBorder}>
+      <Card mt="$2" p="$2" backgroundColor="$background" {...sectionBorder}>
         <XStack jc="space-between" ai="center">
-          <Text fontFamily="monospace" fontWeight="900">TOTAL</Text>
-          <Text fontFamily="monospace" fontWeight="900">{formatCurrency(total)}</Text>
+          <Text fontFamily="monospace" fontSize={14} fontWeight="900">TOTAL</Text>
+          <Text fontFamily="monospace" fontSize={14} fontWeight="900">{total}</Text>
         </XStack>
       </Card>
 
-      <YStack mt="$3" ai="center" gap="$2" {...sectionBorder} p="$3" bg="$background">
-        <Text fontFamily="monospace">PAGAMOS</Text>
+      <YStack mt="$2" ai="center" gap="$1" {...sectionBorder} p="$2" backgroundColor="$background">
+        <Text fontFamily="monospace" fontSize={12}>PAGAMOS {total > 0 ? Math.floor(total * 0.0001) : 85}</Text>
         {barcodeBlocks}
       </YStack>
     </YStack>

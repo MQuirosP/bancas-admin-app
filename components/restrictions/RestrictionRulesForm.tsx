@@ -71,7 +71,7 @@ function DateButtonField({
         <Button
           height={36}
           px="$3"
-          bg="$background"
+          backgroundColor="$background"
           bw={1}
           bc="$borderColor"
           hoverStyle={{ bg: '$backgroundHover' }}
@@ -103,7 +103,7 @@ function DateButtonField({
       <Button
         height={36}
         px="$3"
-        bg="$background"
+        backgroundColor="$background"
         bw={1}
         bc="$borderColor"
         hoverStyle={{ bg: '$backgroundHover' }}
@@ -167,7 +167,7 @@ function TimeButtonField({
         <Button
           height={36}
           px="$3"
-          bg="$background"
+          backgroundColor="$background"
           bw={1}
           bc="$borderColor"
           hoverStyle={{ bg: '$backgroundHover' }}
@@ -208,7 +208,7 @@ function TimeButtonField({
       <Button
         height={36}
         px="$3"
-        bg="$background"
+        backgroundColor="$background"
         bw={1}
         bc="$borderColor"
         hoverStyle={{ bg: '$backgroundHover' }}
@@ -454,7 +454,7 @@ export default function RestrictionRulesForm({
               <YStack gap="$1" minWidth={220} maxWidth={240} width="100%">
                 <Text fontWeight="500">Banca</Text>
                 <Select value={bancaId} onValueChange={setBancaId}>
-                  <Select.Trigger iconAfter={ChevronDown} width="100%" height={34} br="$3" bw={1} bc="$borderColor" bg="$background">
+                  <Select.Trigger iconAfter={ChevronDown} width="100%" height={34} br="$3" bw={1} bc="$borderColor" backgroundColor="$background">
                     <Select.Value placeholder="(Ninguna)" />
                   </Select.Trigger>
                   <Select.Content zIndex={200000}>
@@ -479,7 +479,7 @@ export default function RestrictionRulesForm({
               <YStack gap="$1" minWidth={220} maxWidth={240} width="100%">
                 <Text fontWeight="500">Ventana</Text>
                 <Select value={ventanaId} onValueChange={setVentanaId}>
-                  <Select.Trigger iconAfter={ChevronDown} width="100%" height={34} br="$3" bw={1} bc="$borderColor" bg="$background">
+                  <Select.Trigger iconAfter={ChevronDown} width="100%" height={34} br="$3" bw={1} bc="$borderColor" backgroundColor="$background">
                     <Select.Value placeholder="(Ninguna)" />
                   </Select.Trigger>
                   <Select.Content zIndex={200000}>
@@ -504,7 +504,7 @@ export default function RestrictionRulesForm({
               <YStack gap="$1" minWidth={260} maxWidth={300} width="100%">
                 <Text fontWeight="500">Usuario</Text>
                 <Select value={userId} onValueChange={setUserId}>
-                  <Select.Trigger iconAfter={ChevronDown} width="100%" height={34} br="$3" bw={1} bc="$borderColor" bg="$background">
+                  <Select.Trigger iconAfter={ChevronDown} width="100%" height={34} br="$3" bw={1} bc="$borderColor" backgroundColor="$background">
                     <Select.Value placeholder="(Ninguno)" />
                   </Select.Trigger>
                   <Select.Content zIndex={200000}>

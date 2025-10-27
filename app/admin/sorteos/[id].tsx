@@ -119,7 +119,7 @@ export default function SorteoDetailScreen() {
       <ScrollView flex={1} backgroundColor="$background">
         <YStack f={1} p="$4" gap="$3" maxWidth={820} alignSelf="center" width="100%">
           <Text fontSize="$7" fontWeight="700">Sorteo no encontrado</Text>
-          <Button onPress={() => safeBack('/admin/sorteos')} bg="$background" borderColor="$borderColor" borderWidth={1} maxWidth={180}>
+          <Button onPress={() => safeBack('/admin/sorteos')} backgroundColor="$background" borderColor="$borderColor" borderWidth={1} maxWidth={180}>
             <Text>Volver</Text>
           </Button>
         </YStack>
@@ -145,7 +145,7 @@ export default function SorteoDetailScreen() {
       <ScrollView flex={1} backgroundColor="$background">
         <YStack f={1} p="$4" gap="$3" maxWidth={820} alignSelf="center" width="100%">
           <Text fontSize="$7" fontWeight="700">Error al cargar</Text>
-          <Button onPress={() => safeBack('/admin/sorteos')} bg="$background" borderColor="$borderColor" borderWidth={1} maxWidth={180}>
+          <Button onPress={() => safeBack('/admin/sorteos')} backgroundColor="$background" borderColor="$borderColor" borderWidth={1} maxWidth={180}>
             <Text>Volver</Text>
           </Button>
         </YStack>
@@ -154,7 +154,7 @@ export default function SorteoDetailScreen() {
   }
 
   const s: Sorteo = data
-  const isActive = (s as any).isActive === false
+  const isActive = (s as any).isActive !== false
   const flag = (s as any).isActive
   const rowActive = flag === undefined ? (s.status === 'OPEN' || s.status === 'SCHEDULED') : flag === true
   const isEvaluatedOrClosed = s.status === 'EVALUATED' || s.status === 'CLOSED'
@@ -181,80 +181,91 @@ export default function SorteoDetailScreen() {
 
           {admin && (
             <XStack gap="$2" flexWrap="wrap">
+              {/* SCHEDULED: Abrir o Eliminar */}
               {s.status === 'SCHEDULED' && (
-                <Button
-                  backgroundColor="$blue4"
-                  borderColor="$blue8"
-                  hoverStyle={{ backgroundColor: '$blue5', scale: 1.02 }}
-                  disabled={mOpen.isPending}
-                  onPress={async () => {
-                    const ok = await confirm({
-                      title: '¿Abrir sorteo?',
-                      description: 'Pasará a estado OPEN y permitirá ventas.',
-                      okText: 'Abrir',
-                      cancelText: 'Cancelar',
-                    })
-                    if (!ok) return
-                    mOpen.mutate()
-                  }}
-                >
-                  {mOpen.isPending ? <Spinner size="small" /> : <Text>Abrir</Text>}
-                </Button>
+                <>
+                  <Button
+                    backgroundColor="$blue4"
+                    borderColor="$blue8"
+                    borderWidth={1}
+                    hoverStyle={{ backgroundColor: '$blue5', scale: 1.02 }}
+                    pressStyle={{ backgroundColor: '$blue6', scale: 0.98 }}
+                    disabled={mOpen.isPending}
+                    onPress={async () => {
+                      const ok = await confirm({
+                        title: '¿Abrir sorteo?',
+                        description: 'Pasará a estado OPEN y permitirá ventas.',
+                        okText: 'Abrir',
+                        cancelText: 'Cancelar',
+                      })
+                      if (!ok) return
+                      mOpen.mutate()
+                    }}
+                  >
+                    {mOpen.isPending ? <Spinner size="small" /> : <Text>Abrir</Text>}
+                  </Button>
+                  <Button
+                    backgroundColor="$red4"
+                    borderColor="$red8"
+                    borderWidth={1}
+                    icon={Trash2}
+                    hoverStyle={{ backgroundColor: '$red5', scale: 1.02 }}
+                    pressStyle={{ backgroundColor: '$red6', scale: 0.98 }}
+                    onPress={() => askDelete(s)}
+                  >
+                    <Text>Eliminar</Text>
+                  </Button>
+                </>
               )}
 
+              {/* OPEN: Cerrar y Evaluar */}
               {s.status === 'OPEN' && (
-                <Button
-                  backgroundColor="$green4"
-                  borderColor="$green8"
-                  hoverStyle={{ backgroundColor: '$green5', scale: 1.02 }}
-                  pressStyle={{ scale: 0.98 }}
-                  onPress={() => setShowEvaluate(true)}
-                >
-                  <Text>Evaluar</Text>
-                </Button>
+                <>
+                  <Button
+                    backgroundColor="$gray4"
+                    borderColor="$gray8"
+                    borderWidth={1}
+                    hoverStyle={{ backgroundColor: '$gray5', scale: 1.02 }}
+                    pressStyle={{ backgroundColor: '$gray6', scale: 0.98 }}
+                    disabled={mClose.isPending}
+                    onPress={async () => {
+                      const ok = await confirm({
+                        title: '¿Cerrar sorteo?',
+                        description: 'Pasará a CLOSED y desactivará tickets.',
+                        okText: 'Cerrar',
+                        cancelText: 'Cancelar',
+                      })
+                      if (!ok) return
+                      mClose.mutate()
+                    }}
+                  >
+                    {mClose.isPending ? <Spinner size="small" /> : <Text>Cerrar</Text>}
+                  </Button>
+                  <Button
+                    backgroundColor="$yellow4"
+                    borderColor="$yellow8"
+                    borderWidth={1}
+                    hoverStyle={{ backgroundColor: '$yellow5', scale: 1.02 }}
+                    pressStyle={{ backgroundColor: '$yellow6', scale: 0.98 }}
+                    onPress={() => setShowEvaluate(true)}
+                  >
+                    <Text>Evaluar</Text>
+                  </Button>
+                </>
               )}
 
-              {s.status === 'OPEN' && (
+              {/* CLOSED: Restaurar */}
+              {s.status === 'CLOSED' && (
                 <Button
-                  onPress={async () => {
-                    const ok = await confirm({
-                      title: '¿Cerrar sorteo?',
-                      description: 'Pasará a CLOSED y desactivará tickets.',
-                      okText: 'Cerrar',
-                      cancelText: 'Cancelar',
-                    })
-                    if (!ok) return
-                    mClose.mutate()
-                  }}
-                  backgroundColor="$gray4"
-                  borderColor="$gray8"
-                  disabled={mClose.isPending}
-                  hoverStyle={{ backgroundColor: '$gray5', scale: 1.02 }}
-                  pressStyle={{ scale: 0.98 }}
-                  bw={1}
+                  icon={RotateCcw}
+                  onPress={() => askRestore(s)}
+                  disabled={mRestore.isPending}
                 >
-                  {mClose.isPending ? <Spinner size="small" /> : <Text>Cerrar</Text>}
-                </Button>
-              )}
-
-              {isActive && !isEvaluatedOrClosed && (
-                <Button
-                  backgroundColor="$red4"
-                  borderColor="$red8"
-                  icon={Trash2}
-                  hoverStyle={{ backgroundColor: '$red5', scale: 1.02 }}
-                  pressStyle={{ scale: 0.98 }}
-                  onPress={() => askDelete(s)}
-                >
-                  <Text>Eliminar</Text>
-                </Button>
-              )}
-
-              {!isActive && (
-                <Button icon={RotateCcw} onPress={() => askRestore(s)} disabled={mRestore.isPending}>
                   {mRestore.isPending ? <Spinner size="small" /> : <Text>Restaurar</Text>}
                 </Button>
               )}
+
+              {/* EVALUATED: Ningún botón */}
             </XStack>
           )}
         </XStack>
@@ -270,29 +281,33 @@ export default function SorteoDetailScreen() {
             onCancel={() => safeBack('/admin/sorteos')}
           />
         ) : (
-          <Card padding="$4" bg="$backgroundHover" borderColor="$borderColor" borderWidth={1}>
+          <Card padding="$4" backgroundColor="$backgroundHover" borderColor="$borderColor" borderWidth={1}>
             <YStack gap="$4">
               {/* Header detalle + botones */}
               <XStack jc="space-between" ai="center" fw="wrap" gap="$2">
                 <Text fontSize="$6" fontWeight="700">Detalle del sorteo</Text>
                 <XStack gap="$2" fw="wrap">
-                  <Button
-                    onPress={() => setWinnersOpen(true)}
-                    bg="$purple4"
-                    borderColor="$purple8"
-                    hoverStyle={{ bg: '$purple5' }}
-                    pressStyle={{ scale: 0.98 }}
-                  >
-                    <Text>Ver tickets ganadores</Text>
-                  </Button>
+                  {/* Solo mostrar botón de tickets ganadores si está EVALUATED */}
+                  {s.status === 'EVALUATED' && (
+                    <Button
+                      onPress={() => setWinnersOpen(true)}
+                      backgroundColor="$purple4"
+                      borderColor="$purple8"
+                      borderWidth={1}
+                      hoverStyle={{ backgroundColor: '$purple5' }}
+                      pressStyle={{ backgroundColor: '$purple6', scale: 0.98 }}
+                    >
+                      <Text>Ver tickets ganadores</Text>
+                    </Button>
+                  )}
 
                   <Button
                     onPress={() => safeBack('/admin/sorteos')}
-                    bg="$background"
+                    backgroundColor="$background"
                     borderColor="$borderColor"
                     borderWidth={1}
-                    hoverStyle={{ bg: '$backgroundHover' }}
-                    pressStyle={{ scale: 0.98 }}
+                    hoverStyle={{ backgroundColor: '$backgroundHover' }}
+                    pressStyle={{ backgroundColor: '$backgroundPress', scale: 0.98 }}
                   >
                     <Text>Volver</Text>
                   </Button>
@@ -316,10 +331,10 @@ export default function SorteoDetailScreen() {
                   <Text
                     px="$2"
                     py={2}
-                    br="$2"
-                    bw={1}
+                    borderRadius="$2"
+                    borderWidth={1}
                     fontWeight="700"
-                    bg={
+                    backgroundColor={
                       s.status === 'OPEN' ? '$green3' :
                       s.status === 'SCHEDULED' ? '$blue3' :
                       s.status === 'EVALUATED' ? '$yellow3' :
@@ -350,11 +365,11 @@ export default function SorteoDetailScreen() {
                       fontWeight="800"
                       px="$2"
                       py={2}
-                      br="$2"
-                      bg="$purple3"
+                      borderRadius="$2"
+                      backgroundColor="$purple3"
                       color="$purple12"
-                      bw={1}
-                      bc="$purple8"
+                      borderWidth={1}
+                      borderColor="$purple8"
                     >
                       {s.winningNumber}
                     </Text>
@@ -387,11 +402,11 @@ export default function SorteoDetailScreen() {
                         fontWeight="700"
                         px="$2"
                         py={2}
-                        br="$2"
-                        bg="$orange3"
+                        borderRadius="$2"
+                        backgroundColor="$orange3"
                         color="$orange12"
-                        bw={1}
-                        bc="$orange8"
+                        borderWidth={1}
+                        borderColor="$orange8"
                       >
                         {label}
                       </Text>

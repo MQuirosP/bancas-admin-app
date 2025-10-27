@@ -79,7 +79,7 @@ export const CommissionEditor: React.FC<Props> = ({ value, readOnly, loading, on
         )}
 
         {/* Quick fields (resumen editable) */}
-        <Card p="$3" bw={1} bc="$borderColor" bg="$background">
+        <Card p="$3" bw={1} bc="$borderColor" backgroundColor="$background">
           <XStack gap="$3" flexWrap="wrap" ai="flex-end">
             <YStack minWidth={160} gap="$1">
               <Text fontSize="$3">Default %</Text>

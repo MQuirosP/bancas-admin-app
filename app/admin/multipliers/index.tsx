@@ -150,7 +150,7 @@ export default function MultipliersListScreen() {
                     br="$3"
                     bw={1}
                     bc="$borderColor"
-                    bg="$background"
+                    backgroundColor="$background"
                     hoverStyle={{ bg: '$backgroundHover' }}
                   >
                     <Select.Value placeholder="Lotería (todas)" />
@@ -191,7 +191,7 @@ export default function MultipliersListScreen() {
                     br="$3"
                     bw={1}
                     bc="$borderColor"
-                    bg="$background"
+                    backgroundColor="$background"
                     hoverStyle={{ bg: '$backgroundHover' }}
                   >
                     <Select.Value placeholder="Tipo (todos)" />

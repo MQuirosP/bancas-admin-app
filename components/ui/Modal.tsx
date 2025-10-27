@@ -15,7 +15,7 @@ export const Modal: React.FC<ModalProps> = ({ visible, onClose, children }) => (
         <Card
           bordered
           elevate
-          bg="$background"
+          backgroundColor="$background"
           bc="$borderColor"
           p="$4"
           w="100%"

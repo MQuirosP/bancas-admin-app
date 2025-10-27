@@ -58,7 +58,7 @@ export const CommissionPreview: React.FC<Props> = ({ policy }) => {
           <YStack minWidth={220} gap="$1">
             <Text fontSize="$3">Lotería (obligatorio)</Text>
             <Select value={loteriaId} onValueChange={(v)=> { setLoteriaId(v); setMultiplier('') }}>
-              <Select.Trigger bw={1} bc="$borderColor" bg="$background" px="$3">
+              <Select.Trigger bw={1} bc="$borderColor" backgroundColor="$background" px="$3">
                 <Select.Value placeholder="Selecciona lotería" />
               </Select.Trigger>
               <Select.Content>
@@ -74,7 +74,7 @@ export const CommissionPreview: React.FC<Props> = ({ policy }) => {
           <YStack minWidth={220} gap="$1">
             <Text fontSize="$3">Multiplicador (de la lotería)</Text>
             <Select value={items.some(i => i.value === multiplier) ? multiplier : ''} onValueChange={(v)=> setMultiplier(v)}>
-              <Select.Trigger bw={1} bc="$borderColor" bg="$background" px="$3">
+              <Select.Trigger bw={1} bc="$borderColor" backgroundColor="$background" px="$3">
                 <Select.Value placeholder={loteriaId ? 'Selecciona un multiplicador' : 'Elige lotería primero'} />
               </Select.Trigger>
               <Select.Content>
@@ -95,7 +95,7 @@ export const CommissionPreview: React.FC<Props> = ({ policy }) => {
           <YStack minWidth={160} gap="$1">
             <Text fontSize="$3">Tipo apuesta</Text>
             <Select value={betType} onValueChange={(v:any)=>{ setBetType(v); /* no cambiamos multiplier automáticamente */ }}>
-              <Select.Trigger bw={1} bc="$borderColor" bg="$background" px="$3">
+              <Select.Trigger bw={1} bc="$borderColor" backgroundColor="$background" px="$3">
                 <Select.Value />
               </Select.Trigger>
               <Select.Content>
@@ -114,7 +114,7 @@ export const CommissionPreview: React.FC<Props> = ({ policy }) => {
           </YStack>
         </XStack>
 
-        <Card p="$3" bg="$background" bw={1} bc="$borderColor">
+        <Card p="$3" backgroundColor="$background" bw={1} bc="$borderColor">
           <Text>Resultado simulado (local):</Text>
           <Text>Percent: {result.percent.toFixed(2)}%</Text>
           <Text>Comisión: {formatCurrency(result.commissionAmount)}</Text>

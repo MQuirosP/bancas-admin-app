@@ -68,7 +68,7 @@ function RoleSelect({
         bw={1}
         mr={7}
         bc="$borderColor"
-        bg="$background"
+        backgroundColor="$background"
         hoverStyle={{ bg: '$backgroundHover' }}
         focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
         iconAfter={ChevronDown}
@@ -88,7 +88,7 @@ function RoleSelect({
 
       {/* Contenido inline (sin Portal) */}
       <Select.Content zIndex={1000}>
-        <YStack br="$3" bw={1} bc="$borderColor" bg="$background">
+        <YStack br="$3" bw={1} bc="$borderColor" backgroundColor="$background">
           <Select.ScrollUpButton />
           <Select.Viewport>
             {items.map((it, idx) => (
@@ -307,7 +307,7 @@ export default function UsuariosListScreen() {
             disabled={vFetching}
             size="$2"
             alignSelf="flex-start"
-            bg="$background"
+            backgroundColor="$background"
             bw={1}
             bc="$borderColor"
             hoverStyle={{ bg: '$backgroundHover', scale: 1.02 }}
@@ -396,7 +396,7 @@ export default function UsuariosListScreen() {
             size="$2"
             alignSelf="flex-start"
             mt="$2"
-            bg="$background"
+            backgroundColor="$background"
             bw={1}
             bc="$borderColor"
             hoverStyle={{ bg: '$backgroundHover', scale: 1.02 }}

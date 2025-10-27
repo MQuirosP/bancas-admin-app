@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { YStack, XStack, Text, Select, Card, Spinner } from 'tamagui'
 import { Button } from '@/components/ui'
 import JugadaRow, { JugadaForm, JugadaErrors } from './JugadaRow'
+import QuickBetEditor from './QuickBetEditor'
 import { JugadaType, Sorteo, RestrictionRule, CreateTicketRequest, Usuario } from '@/types/models.types'
 import { formatCurrency } from '@/utils/formatters'
 import { getSalesCutoffMinutes, canCreateTicket } from '@/utils/cutoff'
@@ -10,6 +11,7 @@ import { Check, ChevronDown, AlertCircle, Plus } from '@tamagui/lucide-icons'
 // vendors are loaded with manual pagination to avoid infiniteQuery edge-cases
 import { apiClient } from '@/lib/api.client'
 import { usersService } from '@/services/users.service'
+import { useDailySalesGuard } from '@/hooks/useDailySalesGuard'
 
 type Props = {
   sorteos: Sorteo[]
@@ -26,7 +28,7 @@ const sanitizeNumber = (val: string) => val.replace(/\D/g, '').slice(0, 2)
 
 export default function TicketForm({ sorteos, restrictions, user, restrictionsLoading, loading, onSubmit, onCancel, vendorMode = 'none' }: Props) {
   const [sorteoId, setSorteoId] = useState('')
-  const [jugadas, setJugadas] = useState<JugadaForm[]>([{ type: JugadaType.NUMERO, number: '', amount: '' }])
+  const [jugadas, setJugadas] = useState<JugadaForm[]>([])
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [cutoffError, setCutoffError] = useState('')
   const [vendedorId, setVendedorId] = useState<string>('')
@@ -111,7 +113,28 @@ export default function TicketForm({ sorteos, restrictions, user, restrictionsLo
   const totalAmount = jugadas.reduce((sum, j) => sum + (parseFloat(v(j.amount)) || 0), 0)
   const cutoffMsg = (errors['cutoff'] || cutoffError) || null
 
+  // Ingreso rápido: agrega una serie de números como jugadas
+  const addQuickGroup = (group: { numbers: string[]; amountNumero: number; amountReventado?: number }) => {
+    const serie = group.numbers
+    const montoN = group.amountNumero
+    const montoR = group.amountReventado && group.amountReventado > 0 ? group.amountReventado : undefined
+    setJugadas((prev) => {
+      const next: JugadaForm[] = [...prev]
+      for (const raw of serie) {
+        const n = sanitizeNumber(raw)
+        if (n.length !== 2) continue
+        next.push({ type: JugadaType.NUMERO, number: n, amount: String(montoN) })
+        if (montoR) {
+          next.push({ type: JugadaType.REVENTADO, number: n, reventadoNumber: n, amount: String(montoR) })
+        }
+      }
+      return next
+    })
+  }
+
+
   // Vendor selection (optional)
+
   const VENDORS_PAGE_SIZE = 50
   const [vendorsPage, setVendorsPage] = useState(1)
   const [vendedoresRaw, setVendedoresRaw] = useState<any[]>([])
@@ -152,21 +175,35 @@ export default function TicketForm({ sorteos, restrictions, user, restrictionsLo
     }
   }
   const vendedores: Array<{ id: string; name?: string; code?: string; ventanaId?: string | null; isActive?: boolean }> = useMemo(() => {
+    // Siempre activos; si estamos en Ventana y tenemos ventanaId, filtrar por esa ventana.
+    // Si no tenemos ventanaId en el usuario (algunos tokens no lo traen), no filtramos aquí y confiamos en el backend.
     let list = (vendedoresRaw || []).filter((u: any) => u?.isActive === true)
     if (vendorMode === 'ventana') {
-      const myVentanaKey = (user as any)?.ventanaId || (user as any)?.id // fallback por si el usuario-ventana no trae ventanaId
-      if (myVentanaKey) {
-        list = list.filter((u: any) => (u?.ventanaId ?? u?.ventana?.id) === myVentanaKey)
+      const myVentanaId = (user as any)?.ventanaId
+      if (myVentanaId) {
+        list = list.filter((u: any) => (u?.ventanaId ?? u?.ventana?.id) === myVentanaId)
       }
     }
     return list.map((u: any) => ({ id: u.id, name: u.name, code: u.code, ventanaId: u.ventanaId, isActive: u.isActive }))
   }, [vendedoresRaw, vendorMode, user])
+
+  // Daily sales guard (pre-submit cap check)
+  const selectedVendor = vendedores.find((u) => u.id === vendedorId)
+  const { currentTotal, pendingTotal, dailyLimit, exceeds } = useDailySalesGuard({
+    vendorMode,
+    user: user as any,
+    vendedorId,
+    vendedorVentanaId: selectedVendor?.ventanaId ?? null,
+    restrictions,
+    jugadas,
+  })
 
   const submit = () => {
     setErrors({})
     const newErrors: Record<string, string> = {}
 
     if (!sorteoId) newErrors['sorteoId'] = 'Selecciona un sorteo'
+    if (!jugadas.length) newErrors['jugadas'] = 'Agrega al menos un número (usa Ingreso rápido)'
 
     jugadas.forEach((jugada, index) => {
       if (jugada.type === JugadaType.NUMERO && !v(jugada.number)) newErrors[`jugadas.${index}.number`] = 'Ingresa un número'
@@ -213,9 +250,15 @@ export default function TicketForm({ sorteos, restrictions, user, restrictionsLo
         return { type: JugadaType.REVENTADO, number: ref, reventadoNumber: ref, amount: parseFloat(v(j.amount)) }
       }),
     }
-    // Optional vendor impersonation: ADMIN o VENTANA (el backend lo validará)
+    // Enviar vendedorId en ventana y admin; en admin incluir además ventanaId del vendedor seleccionado
     if (vendorMode !== 'none' && vendedorId) {
       ;(payload as any).vendedorId = vendedorId
+      if (vendorMode === 'admin') {
+        const sv = vendedores.find((u) => u.id === vendedorId)
+        if (sv?.ventanaId) {
+          ;(payload as any).ventanaId = sv.ventanaId
+        }
+      }
     }
     onSubmit(payload)
   }
@@ -234,9 +277,10 @@ export default function TicketForm({ sorteos, restrictions, user, restrictionsLo
       ) : null}
 
       {/* Sorteo */}
-      <Card padding="$4" bg="$background" borderColor="$borderColor" borderWidth={1}>
-        <YStack gap="$3">
-          <YStack gap="$2">
+      <Card padding="$4" backgroundColor="$background" borderColor="$borderColor" borderWidth={1}>
+        <XStack gap="$4" flexWrap="wrap">
+          {/* Sorteo */}
+          <YStack flex={1} minWidth={260} gap="$2">
             <Text fontSize="$4" fontWeight="500">Sorteo *</Text>
             {restrictionsLoading ? (
               <Spinner />
@@ -244,7 +288,7 @@ export default function TicketForm({ sorteos, restrictions, user, restrictionsLo
               <Text color="$textSecondary" fontSize="$3">No hay sorteos disponibles para vender</Text>
             ) : (
               <Select value={sorteoId} onValueChange={setSorteoId}>
-                <Select.Trigger width="100%" iconAfter={ChevronDown} br="$4" bw={1} bc="$borderColor" bg="$background">
+                <Select.Trigger width="100%" iconAfter={ChevronDown} br="$4" bw={1} bc="$borderColor" backgroundColor="$background">
                   <Select.Value placeholder="Seleccionar sorteo" />
                 </Select.Trigger>
                 <Select.Content zIndex={200000}>
@@ -263,14 +307,10 @@ export default function TicketForm({ sorteos, restrictions, user, restrictionsLo
             )}
             {errors['sorteoId'] && (<Text color="$error" fontSize="$2">{errors['sorteoId']}</Text>)}
           </YStack>
-        </YStack>
-      </Card>
 
-      {/* Jugadas */}
-      <Card padding="$4" bg="$background" borderColor="$borderColor" borderWidth={1}>
-        <YStack gap="$3">
+          {/* Vendedor */}
           {vendorMode !== 'none' && (
-            <YStack gap="$2">
+            <YStack flex={1} minWidth={260} gap="$2">
               <Text fontSize="$4" fontWeight="500">Vendedor *</Text>
               {loadingVendedores ? (
                 <Spinner />
@@ -278,7 +318,7 @@ export default function TicketForm({ sorteos, restrictions, user, restrictionsLo
                 <Text color="$textSecondary" fontSize="$3">No hay vendedores disponibles</Text>
               ) : (
                 <Select value={vendedorId} onValueChange={setVendedorId}>
-                  <Select.Trigger width="100%" iconAfter={ChevronDown} br="$4" bw={1} bc="$borderColor" bg="$background">
+                  <Select.Trigger width="100%" iconAfter={ChevronDown} br="$4" bw={1} bc="$borderColor" backgroundColor="$background">
                     <Select.Value placeholder="Seleccionar vendedor" />
                   </Select.Trigger>
                   <Select.Content zIndex={200000}>
@@ -292,52 +332,41 @@ export default function TicketForm({ sorteos, restrictions, user, restrictionsLo
                         ))}
                       </Select.Group>
                     </Select.Viewport>
-                    {vendorsHasNext && (
-                      <YStack ai="center" p="$2">
-                        <Button size="$2" onPress={vendorsFetchNext} disabled={vendorsFetchingMore}>
-                          {vendorsFetchingMore ? 'Cargando…' : 'Cargar más'}
-                        </Button>
-                      </YStack>
-                    )}
                   </Select.Content>
                 </Select>
               )}
-              {vendorMode !== 'none' && !vendedorId && (<Text color="$error" fontSize="$2">Selecciona un vendedor</Text>)}
+              {!vendedorId && (<Text color="$error" fontSize="$2">Selecciona un vendedor</Text>)}
             </YStack>
           )}
-          <XStack justifyContent="space-between" alignItems="center">
-            <Text fontSize="$5" fontWeight="600">Jugadas</Text>
-            <Button size="$3" icon={Plus} onPress={addJugada} bg="$primary" hoverStyle={{ scale: 1.02 }} pressStyle={{ bg: '$primaryPress', scale: 0.98 }}>
-              <Text>Agregar</Text>
-            </Button>
-          </XStack>
-
-          {jugadas.map((j, index) => (
-            <JugadaRow
-              key={index}
-              index={index}
-              value={j}
-              errors={{
-                number: errors[`jugadas.${index}.number`],
-                reventadoNumber: errors[`jugadas.${index}.reventadoNumber`],
-                amount: errors[`jugadas.${index}.amount`],
-              } as JugadaErrors}
-              onChange={updateJugada}
-              onChangeType={changeType}
-              onRemove={removeJugada}
-            />
-          ))}
-
-          {/* Errores de referencias REVENTADO */}
-          {Object.keys(errors)
-            .filter((key) => key.startsWith('reventado_'))
-            .map((key) => (
-              <Card key={key} padding="$3" backgroundColor="$red2" borderWidth={1} borderColor="$red8">
-                <Text color="$red10" fontSize="$2">{errors[key]}</Text>
-              </Card>
-            ))}
-        </YStack>
+        </XStack>
+        {/* Indicador sutil de uso diario / límite */}
+        <XStack jc="flex-end" mt="$2">
+          <Text fontSize="$2" color="$textTertiary">
+            Hoy {formatCurrency(currentTotal)} / Límite {Number.isFinite(dailyLimit) ? formatCurrency(dailyLimit) : 'sin tope'}
+          </Text>
+        </XStack>
       </Card>
+
+      {/* Ingreso rápido */}
+      <QuickBetEditor onCommit={addQuickGroup} />
+
+      {/* Error de jugadas si no hay ninguna */}
+      {errors['jugadas'] && (
+        <Card padding="$3" backgroundColor="$red2" borderWidth={1} borderColor="$red8">
+          <Text color="$red10" fontSize="$3">{errors['jugadas']}</Text>
+        </Card>
+      )}
+
+      {/* Guard de límite diario */}
+      {Number.isFinite(dailyLimit) && exceeds && (
+        <Card padding="$3" backgroundColor="$red2" borderWidth={1} borderColor="$red8">
+          <Text color="$red10" fontSize="$3">
+            Límite diario excedido: usado {formatCurrency(currentTotal)} + intento {formatCurrency(pendingTotal)} / tope {formatCurrency(dailyLimit)}
+          </Text>
+        </Card>
+      )}
+
+      {/* Jugadas removidas: usamos Ingreso rápido */}
 
       {/* Total y acciones */}
       <Card padding="$4" backgroundColor="$blue2" borderColor="$blue8" borderWidth={1}>
@@ -351,7 +380,7 @@ export default function TicketForm({ sorteos, restrictions, user, restrictionsLo
         <Button flex={1} backgroundColor="$red4" borderColor="$red8" borderWidth={1} onPress={onCancel}>
           <Text>Cancelar</Text>
         </Button>
-        <Button flex={1} backgroundColor="$blue4" borderColor="$blue8" borderWidth={1} onPress={submit} disabled={!!cutoffError || loading || restrictionsLoading || (vendorMode !== 'none' && !vendedorId)}>
+        <Button flex={1} backgroundColor="$blue4" borderColor="$blue8" borderWidth={1} onPress={submit} disabled={!!cutoffError || loading || restrictionsLoading || (vendorMode !== 'none' && !vendedorId) || jugadas.length === 0 || exceeds}>
           <Text>{loading ? 'Creando...' : 'Crear Tiquete'}</Text>
         </Button>
       </XStack>

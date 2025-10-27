@@ -8,7 +8,7 @@ export default function VentanaLayout() {
 
   if (isHydrating) {
     return (
-      <YStack f={1} ai="center" jc="center" bg="$background">
+      <YStack f={1} ai="center" jc="center" backgroundColor="$background">
         <Text color="$gray11">Preparando sesión…</Text>
       </YStack>
     );

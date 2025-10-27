@@ -33,7 +33,7 @@ export default function TicketDetailScreen({ scope, ticketId, buildBackPath }: P
 
   if (isLoading) {
     return (
-      <YStack flex={1} ai="center" jc="center" bg="$background">
+      <YStack flex={1} ai="center" jc="center" backgroundColor="$background">
         <Spinner size="large" />
         <Text mt="$4">Cargando ticket...</Text>
       </YStack>
@@ -42,7 +42,7 @@ export default function TicketDetailScreen({ scope, ticketId, buildBackPath }: P
 
   if (isError || !ticket) {
     return (
-      <YStack flex={1} ai="center" jc="center" bg="$background" p="$4">
+      <YStack flex={1} ai="center" jc="center" backgroundColor="$background" p="$4">
         <Text fontSize="$6" fontWeight="bold" color="$error">Error al cargar ticket</Text>
         <Button mt="$4" onPress={() => refetch()}>
           Reintentar
@@ -84,7 +84,7 @@ export default function TicketDetailScreen({ scope, ticketId, buildBackPath }: P
             size="$3"
             icon={ArrowLeft}
             onPress={() => router.push(buildBackPath() as any)}
-            bg="$background"
+            backgroundColor="$background"
             borderColor="$borderColor"
             borderWidth={1}
             hoverStyle={{ bg: '$backgroundHover' }}

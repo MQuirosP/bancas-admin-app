@@ -42,7 +42,7 @@ export default function JugadaRow({ index, value, errors, onChange, onChangeType
         {/* Tipo */}
         <YStack gap="$1">
           <Select value={value.type} onValueChange={(v: any) => onChangeType(index, v as JugadaType)}>
-            <Select.Trigger width="100%" br="$4" bw={1} bc="$borderColor" bg="$background">
+            <Select.Trigger width="100%" br="$4" bw={1} bc="$borderColor" backgroundColor="$background">
               <Select.Value placeholder="Tipo de jugada" />
             </Select.Trigger>
             <Select.Content zIndex={200000}>

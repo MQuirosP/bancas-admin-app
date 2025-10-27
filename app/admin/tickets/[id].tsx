@@ -53,7 +53,7 @@ export default function AdminTicketPreview() {
 
   if (isLoading) {
     return (
-      <YStack f={1} ai="center" jc="center" bg="$background">
+      <YStack f={1} ai="center" jc="center" backgroundColor="$background">
         <Text>Cargando ticket...</Text>
       </YStack>
     )
@@ -61,7 +61,7 @@ export default function AdminTicketPreview() {
 
   if (isError || !ticket) {
     return (
-      <YStack f={1} ai="center" jc="center" bg="$background" p="$4">
+      <YStack f={1} ai="center" jc="center" backgroundColor="$background" p="$4">
         <Text color="$error">Error al cargar ticket</Text>
         <Button mt="$3" onPress={() => refetch()}>Reintentar</Button>
         <Button mt="$2" variant="outlined" onPress={() => router.replace('/admin/tickets')}>Volver</Button>

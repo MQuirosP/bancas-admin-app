@@ -54,7 +54,7 @@ export default function VentanaRestrictionsScreen() {
                   br="$4"
                   bw={1}
                   bc="$borderColor"
-                  bg="$background"
+                  backgroundColor="$background"
                 >
                   <Select.Value />
                 </Select.Trigger>

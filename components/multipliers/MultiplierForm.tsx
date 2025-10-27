@@ -110,7 +110,7 @@ export default function MultiplierForm({
   }
 
   return (
-    <Card padding="$4" bg="$background" borderColor="$borderColor" borderWidth={1}>
+    <Card padding="$4" backgroundColor="$background" borderColor="$borderColor" borderWidth={1}>
       <YStack gap="$4">
         {/* Lotería */}
         <YStack gap="$2">
@@ -119,7 +119,7 @@ export default function MultiplierForm({
             <Select.Trigger
               width="100%"
               iconAfter={ChevronDown}
-              br="$3" bw={1} bc="$borderColor" bg="$background"
+              br="$3" bw={1} bc="$borderColor" backgroundColor="$background"
               aria-label="Seleccionar lotería"
             >
               <Select.Value placeholder="Seleccione una lotería" />
@@ -182,7 +182,7 @@ export default function MultiplierForm({
         <YStack gap="$2">
           <Text fontSize="$4" fontWeight="600">Tipo *</Text>
           <Select value={values.kind} onValueChange={(v) => setField('kind', v as any)}>
-            <Select.Trigger width="100%" iconAfter={ChevronDown} br="$3" bw={1} bc="$borderColor" bg="$background">
+            <Select.Trigger width="100%" iconAfter={ChevronDown} br="$3" bw={1} bc="$borderColor" backgroundColor="$background">
               <Select.Value />
             </Select.Trigger>
             <Select.Adapt when="sm">

@@ -362,7 +362,7 @@ const UserForm: React.FC<Props> = ({
                   <Select.Trigger
                     bw={1}
                     bc="$borderColor"
-                    bg="$background"
+                    backgroundColor="$background"
                     px="$3"
                     iconAfter={ChevronDown}
                     disabled={!!loadingVentanas || !!errorVentanas}

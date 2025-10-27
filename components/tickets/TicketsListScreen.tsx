@@ -203,7 +203,7 @@ export default function TicketsListScreen({ scope }: Props) {
                       br="$3"
                       bw={1}
                       bc="$borderColor"
-                      bg="$background"
+                      backgroundColor="$background"
                       px="$3"
                       hoverStyle={{ bg: '$backgroundHover' }}
                       focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
@@ -219,7 +219,7 @@ export default function TicketsListScreen({ scope }: Props) {
                     </Select.Trigger>
 
                     <Select.Content zIndex={1000}>
-                      <YStack br="$3" bw={1} bc="$borderColor" bg="$background">
+                      <YStack br="$3" bw={1} bc="$borderColor" backgroundColor="$background">
                         <Select.Viewport>
                           {[
                             { value: 'today', label: 'Hoy' },

@@ -38,7 +38,7 @@ export default function VentasReportScreen() {
             <YStack gap="$1">
               <Text fontSize="$3">Fecha</Text>
               <Select value={dateFilter} onValueChange={(v:any)=>setDateFilter(v)}>
-                <Select.Trigger iconAfter={ChevronDown} width={200} br="$3" bw={1} bc="$borderColor" bg="$background">
+                <Select.Trigger iconAfter={ChevronDown} width={200} br="$3" bw={1} bc="$borderColor" backgroundColor="$background">
                   <Select.Value />
                 </Select.Trigger>
                 <Select.Content>
@@ -73,7 +73,7 @@ export default function VentasReportScreen() {
             <YStack gap="$1">
               <Text fontSize="$3">Dimensión</Text>
               <Select value={dimension} onValueChange={(v:any)=>setDimension(v)}>
-                <Select.Trigger iconAfter={ChevronDown} width={220} br="$3" bw={1} bc="$borderColor" bg="$background">
+                <Select.Trigger iconAfter={ChevronDown} width={220} br="$3" bw={1} bc="$borderColor" backgroundColor="$background">
                   <Select.Value />
                 </Select.Trigger>
                 <Select.Content>

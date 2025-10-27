@@ -108,12 +108,12 @@ export default function RestrictionDetailScreen() {
             <XStack gap="$2">
               {/* Solo un botón de navegación */}
               <XStack jc="flex-end">
-                <Button 
+                <Button
                 onPress={safeBack}
-                background={'$gray4'}
+                backgroundColor={'$gray4'}
                 borderColor={'$gray8'}
                 hoverStyle={{ backgroundColor: '$gray5' }}
-                pressStyle={{ scale: 0.98}}
+                pressStyle={{ backgroundColor: '$gray4', scale: 0.98}}
                 >Volver</Button>
               </XStack>
               {/* {rule.isActive && (
@@ -155,7 +155,7 @@ export default function RestrictionDetailScreen() {
         ) : !rule ? (
           <Card padding="$4"><Text>No encontrada.</Text></Card>
         ) : (
-          <Card padding="$4" borderColor="$borderColor" borderWidth={1} bg="$background">
+          <Card padding="$4" borderColor="$borderColor" borderWidth={1} backgroundColor="$background">
             <YStack gap="$3">
               {/* Título descriptivo */}
               <Text fontSize="$6" fontWeight="700">

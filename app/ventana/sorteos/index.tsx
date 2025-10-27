@@ -35,7 +35,7 @@ export default function VentanaSorteosScreen() {
             <YStack gap="$1" minWidth={220}>
               <Text fontSize="$3">Estado</Text>
               <Select value={status} onValueChange={(v) => setStatus(v as any)}>
-                <Select.Trigger iconAfter={ChevronDown} width={220} height={36} br="$4" bw={1} bc="$borderColor" bg="$background">
+                <Select.Trigger iconAfter={ChevronDown} width={220} height={36} br="$4" bw={1} bc="$borderColor" backgroundColor="$background">
                   <Select.Value />
                 </Select.Trigger>
                 <Select.Content zIndex={200000}>

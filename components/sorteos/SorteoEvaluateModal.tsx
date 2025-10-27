@@ -99,7 +99,7 @@ export default function SorteoEvaluateModal({ sorteoId, onClose, onSuccess }: Pr
   const isBusy = mEvaluate.isPending || loadingSorteo
 
   return (
-    <Card elevate padding="$4" bg="$background" borderColor="$borderColor" borderWidth={1}>
+    <Card elevate padding="$4" backgroundColor="$background" borderColor="$borderColor" borderWidth={1}>
       <YStack gap="$3">
         <Text fontSize="$6" fontWeight="700">Evaluar sorteo</Text>
 
@@ -137,7 +137,7 @@ export default function SorteoEvaluateModal({ sorteoId, onClose, onSuccess }: Pr
                 br="$3"
                 bw={1}
                 bc="$borderColor"
-                bg="$background"
+                backgroundColor="$background"
                 hoverStyle={{ bg: '$backgroundHover' }}
                 disabled={isMultiplierDisabled}
                 aria-disabled={isMultiplierDisabled}
@@ -201,7 +201,7 @@ export default function SorteoEvaluateModal({ sorteoId, onClose, onSuccess }: Pr
         <XStack gap="$2" jc="flex-end" fw="wrap">
           <Button
             onPress={onClose}
-            bg="$background"
+            backgroundColor="$background"
             borderColor="$borderColor"
             borderWidth={1}
             hoverStyle={{ bg: '$backgroundHover', scale: 1.02 }}

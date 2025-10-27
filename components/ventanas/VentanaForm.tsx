@@ -201,7 +201,7 @@ export default function VentanaForm({
               <Select.Trigger
                 bw={1}
                 bc="$borderColor"
-                bg="$background"
+                backgroundColor="$background"
                 px="$3"
                 iconAfter={ChevronDown}
                 disabled={!!loadingBancas || !!errorBancas || submitting}

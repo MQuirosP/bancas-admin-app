@@ -29,8 +29,8 @@ interface PreviewResponse {
 }
 
 interface SeedResponse {
-  created: number
-  skipped: number
+  created: number | string[] // Puede ser número o array de fechas ISO
+  skipped: number | string[] // Puede ser número o array de fechas ISO
   details?: {
     created: PreviewSorteo[]
     skipped: PreviewSorteo[]
@@ -72,15 +72,38 @@ export default function PreviewSorteosScreen() {
   const mSeed = useMutation<SeedResponse, Error, string[]>({
     mutationFn: async (scheduledDates) => {
       const qs = apiClient.buildQueryString({ days: Number(days) || 7, limit: 200 })
-      const res = await apiClient.post<SeedResponse>(
+      const res = await apiClient.post<any>(
         `/loterias/${loteriaId}/seed_sorteos${qs}`,
         { scheduledDates }
       )
-      return res
+      // Normalizar respuesta del backend (puede venir como {data} o directo)
+      const normalized = (res as any)?.data ?? res
+      return normalized as SeedResponse
     },
     onSuccess: (result) => {
       qc.invalidateQueries({ queryKey: ['sorteos'] })
-      toast.success(`Sorteos creados: ${result.created}, Omitidos: ${result.skipped}`)
+
+      // El backend puede devolver arrays en created/skipped en lugar de números
+      let createdCount = 0
+      let skippedCount = 0
+
+      if (typeof result?.created === 'number') {
+        createdCount = result.created
+      } else if (Array.isArray(result?.created)) {
+        createdCount = result.created.length
+      } else if (result?.details?.created) {
+        createdCount = Array.isArray(result.details.created) ? result.details.created.length : 0
+      }
+
+      if (typeof result?.skipped === 'number') {
+        skippedCount = result.skipped
+      } else if (Array.isArray(result?.skipped)) {
+        skippedCount = result.skipped.length
+      } else if (result?.details?.skipped) {
+        skippedCount = Array.isArray(result.details.skipped) ? result.details.skipped.length : 0
+      }
+
+      toast.success(`✓ ${createdCount} sorteo(s) creado(s) • ${skippedCount} omitido(s)`)
       setSelectedIds(new Set())
       safeBack('/admin/sorteos')
     },
@@ -190,7 +213,10 @@ export default function PreviewSorteosScreen() {
             {data?.meta && (
               <XStack flex={1} jc="flex-end" gap="$2">
                 <Text fontSize="$3" color="$textSecondary">
-                  {data.meta.count} sorteo(s) • {format(parseISO(data.meta.from), 'd MMM', { locale: es })} - {format(parseISO(data.meta.to), 'd MMM yyyy', { locale: es })}
+                  {data.meta.count} sorteo(s)
+                  {data.meta.from && data.meta.to && (
+                    <> • {format(parseISO(data.meta.from), 'd MMM', { locale: es })} - {format(parseISO(data.meta.to), 'd MMM yyyy', { locale: es })}</>
+                  )}
                 </Text>
               </XStack>
             )}
@@ -236,7 +262,10 @@ export default function PreviewSorteosScreen() {
             <YStack gap="$2">
               {sortedOccurrences.map((sorteo, idx) => {
                 const isChecked = selectedIds.has(String(idx))
-                const date = parseISO(sorteo.scheduledAt)
+                if (!sorteo.scheduledAt) return null
+                // El backend puede devolver fechas con 'Z' (UTC), removerla para interpretar como hora local
+                const dateString = sorteo.scheduledAt.replace('Z', '').replace('T', ' ')
+                const date = new Date(dateString)
                 const formattedDate = format(date, "EEEE, d 'de' MMMM 'de' yyyy", { locale: es })
                 const formattedTime = format(date, 'HH:mm', { locale: es })
 
@@ -244,7 +273,7 @@ export default function PreviewSorteosScreen() {
                   <Card
                     key={idx}
                     padding="$4"
-                    bg={isChecked ? '$blue2' : '$background'}
+                    backgroundColor={isChecked ? '$blue2' : '$background'}
                     borderColor={isChecked ? '$blue8' : '$borderColor'}
                     borderWidth={isChecked ? 2 : 1}
                     pressStyle={{ backgroundColor: isChecked ? '$blue3' : '$backgroundPress' }}
@@ -271,7 +300,7 @@ export default function PreviewSorteosScreen() {
                         </Text>
                       </YStack>
 
-                      <XStack ai="center" gap="$2" bg={isChecked ? '$blue4' : '$gray3'} px="$3" py="$2" br="$3">
+                      <XStack ai="center" gap="$2" backgroundColor={isChecked ? '$blue4' : '$gray3'} px="$3" py="$2" borderRadius="$3">
                         <Calendar size={18} color={isChecked ? '$blue11' : '$gray11'} />
                         <Text fontWeight="700" fontSize="$6" color={isChecked ? '$blue11' : '$gray11'}>
                           {formattedTime}
@@ -298,7 +327,7 @@ export default function PreviewSorteosScreen() {
 
               <Button
                 size="$3"
-                bg="$green4"
+                backgroundColor="$green4"
                 borderColor="$green8"
                 borderWidth={1}
                 icon={CheckCircle2}
@@ -306,8 +335,8 @@ export default function PreviewSorteosScreen() {
                 disabled={selectedIds.size === 0}
                 loading={mSeed.isPending}
                 loadingText="Creando..."
-                hoverStyle={{ bg: '$green5' }}
-                pressStyle={{ bg: '$green6' }}
+                hoverStyle={{ backgroundColor: '$green5' }}
+                pressStyle={{ backgroundColor: '$green6' }}
               >
                 {`Crear ${selectedIds.size} sorteo(s)`}
               </Button>

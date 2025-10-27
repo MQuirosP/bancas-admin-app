@@ -223,7 +223,7 @@ function ScheduleFields({
         <Button
           height={36}
           onPress={() => setOpenDate(true)}
-          bg="$background"
+          backgroundColor="$background"
           bw={1}
           bc="$borderColor"
           hoverStyle={{ bg: '$backgroundHover' }}
@@ -241,7 +241,7 @@ function ScheduleFields({
         <Button
           height={36}
           onPress={() => setOpenTime(true)}
-          bg="$background"
+          backgroundColor="$background"
           bw={1}
           bc="$borderColor"
           hoverStyle={{ bg: '$backgroundHover' }}

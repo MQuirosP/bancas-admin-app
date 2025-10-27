@@ -49,7 +49,7 @@ function StatusSelect({
         br="$3"
         bw={1}
         bc="$borderColor"
-        bg="$background"
+        backgroundColor="$background"
         hoverStyle={{ bg: '$backgroundHover' }}
         focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
         iconAfter={ChevronDown}
@@ -67,7 +67,7 @@ function StatusSelect({
       </Select.Adapt>
 
       <Select.Content zIndex={1000}>
-        <YStack br="$3" bw={1} bc="$borderColor" bg="$background">
+        <YStack br="$3" bw={1} bc="$borderColor" backgroundColor="$background">
           <Select.ScrollUpButton />
           <Select.Viewport>
             {items.map((it, idx) => (
@@ -272,7 +272,7 @@ export default function SorteosListScreen() {
                     br="$3"
                     bw={1}
                     bc="$borderColor"
-                    bg="$background"
+                    backgroundColor="$background"
                     hoverStyle={{ bg: '$backgroundHover' }}
                     iconAfter={ChevronDown}
                     width={200}
@@ -292,7 +292,7 @@ export default function SorteosListScreen() {
                   </Select.Adapt>
 
                   <Select.Content zIndex={1000}>
-                    <YStack br="$3" bw={1} bc="$borderColor" bg="$background">
+                    <YStack br="$3" bw={1} bc="$borderColor" backgroundColor="$background">
                       <Select.ScrollUpButton />
                       <Select.Viewport>
                         <Select.Item value="none" index={0} pressStyle={{ bg: '$backgroundHover' }} bw={0} px="$3">
@@ -459,7 +459,7 @@ export default function SorteosListScreen() {
         ) : (
           <YStack gap="$2">
             {rows.map((s) => {
-              const isActive = (s as any).isActive === false
+              const isActive = (s as any).isActive !== false
               const rowActive = isRowActive(s)
               const isFinal = s.status === 'EVALUATED' || s.status === 'CLOSED'
 
@@ -575,81 +575,101 @@ export default function SorteosListScreen() {
 
                     {admin && (
                       <XStack gap="$2" fw="wrap">
+                        {/* SCHEDULED: Abrir o Eliminar */}
                         {s.status === 'SCHEDULED' && (
-                          <Button
-                            size="$3"
-                            backgroundColor="$blue4"
-                            borderColor="$blue8"
-                            borderWidth={1}
-                            hoverStyle={{ backgroundColor: '$blue5' }}
-                            pressStyle={{ backgroundColor: '$blue6' }}
-                            onPress={async (e: any) => {
-                              e?.stopPropagation?.()
-                              const ok = await confirm({
-                                title: '¿Abrir sorteo?',
-                                description: 'Pasará a estado OPEN y permitirá ventas.',
-                                okText: 'Abrir',
-                                cancelText: 'Cancelar',
-                              })
-                              if (!ok) return
-                              mOpen.mutate(s.id)
-                            }}
-                            disabled={mOpen.isPending}
-                          >
-                            <Text>Abrir</Text>
-                          </Button>
-                        )}
-
-                        {s.status === 'OPEN' && (
-                          <Button
-                            size="$3"
-                            onPress={async (e: any) => {
-                              e?.stopPropagation?.()
-                              const ok = await confirm({
-                                title: '¿Cerrar sorteo?',
-                                description: 'Pasará a CLOSED y desactivará tickets.',
-                                okText: 'Cerrar',
-                                cancelText: 'Cancelar',
-                              })
-                              if (!ok) return
-                              mClose.mutate(s.id)
-                            }}
-                            disabled={mClose.isPending}
-                            backgroundColor="$gray4"
-                            borderColor="$gray8"
-                            borderWidth={1}
-                            hoverStyle={{ backgroundColor: '$gray5' }}
-                            pressStyle={{ backgroundColor: '$gray6' }}
-                          >
-                            Cerrar
-                          </Button>
-                        )}
-
-                        {!isFinal ? (
-                          isActive ? (
-                          <Button
-                            size="$3"
-                            backgroundColor="$red4"
-                            borderColor="$red8"
-                            borderWidth={1}
-                            icon={(p:any)=> <Trash2 {...p} color={iconColor} />}
-                            hoverStyle={{ backgroundColor: '$red5' }}
-                            pressStyle={{ backgroundColor: '$red6' }}
-                            onPress={(e: any) => { e?.stopPropagation?.(); askDelete(s) }}
-                          >
-                            Eliminar
-                          </Button>
-                          ) : (
+                          <>
                             <Button
                               size="$3"
-                              icon={(p:any)=> <RotateCcw {...p} color={iconColor} />}
-                              onPress={(e: any) => { e?.stopPropagation?.(); askRestore(s) }}
-                              disabled={mRestore.isPending}
+                              backgroundColor="$blue4"
+                              borderColor="$blue8"
+                              borderWidth={1}
+                              hoverStyle={{ backgroundColor: '$blue5' }}
+                              pressStyle={{ backgroundColor: '$blue6' }}
+                              onPress={async (e: any) => {
+                                e?.stopPropagation?.()
+                                const ok = await confirm({
+                                  title: '¿Abrir sorteo?',
+                                  description: 'Pasará a estado OPEN y permitirá ventas.',
+                                  okText: 'Abrir',
+                                  cancelText: 'Cancelar',
+                                })
+                                if (!ok) return
+                                mOpen.mutate(s.id)
+                              }}
+                              disabled={mOpen.isPending}
                             >
-                              {mRestore.isPending ? <Spinner size="small" /> : 'Restaurar'}
+                              <Text>Abrir</Text>
                             </Button>
-                          )
-                        ) : null}
+                            <Button
+                              size="$3"
+                              backgroundColor="$red4"
+                              borderColor="$red8"
+                              borderWidth={1}
+                              icon={(p:any)=> <Trash2 {...p} color={iconColor} />}
+                              hoverStyle={{ backgroundColor: '$red5' }}
+                              pressStyle={{ backgroundColor: '$red6' }}
+                              onPress={(e: any) => { e?.stopPropagation?.(); askDelete(s) }}
+                            >
+                              <Text>Eliminar</Text>
+                            </Button>
+                          </>
+                        )}
+
+                        {/* OPEN: Cerrar y Evaluar */}
+                        {s.status === 'OPEN' && (
+                          <>
+                            <Button
+                              size="$3"
+                              backgroundColor="$gray4"
+                              borderColor="$gray8"
+                              borderWidth={1}
+                              hoverStyle={{ backgroundColor: '$gray5' }}
+                              pressStyle={{ backgroundColor: '$gray6' }}
+                              onPress={async (e: any) => {
+                                e?.stopPropagation?.()
+                                const ok = await confirm({
+                                  title: '¿Cerrar sorteo?',
+                                  description: 'Pasará a CLOSED y desactivará tickets.',
+                                  okText: 'Cerrar',
+                                  cancelText: 'Cancelar',
+                                })
+                                if (!ok) return
+                                mClose.mutate(s.id)
+                              }}
+                              disabled={mClose.isPending}
+                            >
+                              <Text>Cerrar</Text>
+                            </Button>
+                            <Button
+                              size="$3"
+                              backgroundColor="$yellow4"
+                              borderColor="$yellow8"
+                              borderWidth={1}
+                              hoverStyle={{ backgroundColor: '$yellow5' }}
+                              pressStyle={{ backgroundColor: '$yellow6' }}
+                              onPress={(e: any) => {
+                                e?.stopPropagation?.()
+                                router.push(`/admin/sorteos/${s.id}` as any)
+                              }}
+                            >
+                              <Text>Evaluar</Text>
+                            </Button>
+                          </>
+                        )}
+
+                        {/* CLOSED: Restaurar */}
+                        {s.status === 'CLOSED' && (
+                          <Button
+                            size="$3"
+                            icon={(p:any)=> <RotateCcw {...p} color={iconColor} />}
+                            onPress={(e: any) => { e?.stopPropagation?.(); askRestore(s) }}
+                            disabled={mRestore.isPending}
+                          >
+                            {mRestore.isPending ? <Spinner size="small" /> : <Text>Restaurar</Text>}
+                          </Button>
+                        )}
+
+                        {/* EVALUATED: Ningún botón */}
                       </XStack>
                     )}
                   </XStack>

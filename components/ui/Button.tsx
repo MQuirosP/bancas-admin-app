@@ -18,45 +18,45 @@ const variantStyles = (variant: Variant): Partial<React.ComponentProps<typeof TB
   switch (variant) {
     case 'secondary':
       return {
-        bg: '$gray10',
-        bw: 1,
-        bc: '$gray11',
+        backgroundColor: '$gray10',
+        borderWidth: 1,
+        borderColor: '$gray11',
         color: '#fff',
-        hoverStyle: { bg: '$gray9' },
-        pressStyle: { bg: '$gray8', scale: 0.98 },
+        hoverStyle: { backgroundColor: '$gray9' },
+        pressStyle: { backgroundColor: '$gray8', scale: 0.98 },
       }
     case 'outlined':
       return {
-        bg: '$gray10',
-        bw: 1,
-        bc: '$borderColor',
+        backgroundColor: '$gray10',
+        borderWidth: 1,
+        borderColor: '$borderColor',
         color: '#fff',
-        hoverStyle: { bg: '$gray9' },
-        pressStyle: { bg: '$gray8', scale: 0.98 },
+        hoverStyle: { backgroundColor: '$gray9' },
+        pressStyle: { backgroundColor: '$gray8', scale: 0.98 },
       }
     case 'ghost':
       return {
         chromeless: true,
         color: '#fff',
-        hoverStyle: { bg: '$backgroundHover' },
-        pressStyle: { bg: '$backgroundPress' },
+        hoverStyle: { backgroundColor: '$backgroundHover' },
+        pressStyle: { backgroundColor: '$backgroundPress' },
       }
     case 'danger':
       return {
-        bg: '$red4',
-        bc: '$red8',
-        bw: 1,
+        backgroundColor: '$red4',
+        borderColor: '$red8',
+        borderWidth: 1,
         color: '#fff',
-        hoverStyle: { bg: '$red5' },
-        pressStyle: { bg: '$red6', scale: 0.98 },
+        hoverStyle: { backgroundColor: '$red5' },
+        pressStyle: { backgroundColor: '$red6', scale: 0.98 },
       }
     case 'primary':
     default:
       return {
-        bg: '$primary',
+        backgroundColor: '$primary',
         color: '#fff',
-        hoverStyle: { bg: '$primaryHover' },
-        pressStyle: { bg: '$primaryPress', scale: 0.98 },
+        hoverStyle: { backgroundColor: '$primaryHover' },
+        pressStyle: { backgroundColor: '$primaryPress', scale: 0.98 },
       }
   }
 }

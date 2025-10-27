@@ -70,7 +70,7 @@ function WebDateButton({
       <Button
         height={36}
         px="$3"
-        bg="$background"
+        backgroundColor="$background"
         bw={1}
         bc="$borderColor"
         hoverStyle={{ bg: '$backgroundHover' }}
@@ -113,7 +113,7 @@ function WebTimeButton({
       <Button
         height={36}
         px="$3"
-        bg="$background"
+        backgroundColor="$background"
         bw={1}
         bc="$borderColor"
         hoverStyle={{ bg: '$backgroundHover' }}
@@ -254,7 +254,7 @@ export default function NuevoSorteoScreen() {
                     width="100%"
                     bw={1}
                     bc="$borderColor"
-                    bg="$background"
+                    backgroundColor="$background"
                     px="$3"
                     iconAfter={ChevronDown}
                     disabled={!!loadingLoterias || !!lotError}
@@ -327,7 +327,7 @@ export default function NuevoSorteoScreen() {
                         height={36}
                         px="$3"
                         onPress={() => setOpenDate(true)}
-                        bg="$background"
+                        backgroundColor="$background"
                         bw={1}
                         bc="$borderColor"
                         hoverStyle={{ bg: '$backgroundHover' }}
@@ -343,7 +343,7 @@ export default function NuevoSorteoScreen() {
                         height={36}
                         px="$3"
                         onPress={() => setOpenTime(true)}
-                        bg="$background"
+                        backgroundColor="$background"
                         bw={1}
                         bc="$borderColor"
                         hoverStyle={{ bg: '$backgroundHover' }}

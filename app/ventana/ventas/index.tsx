@@ -44,7 +44,7 @@ export default function MisVentasScreen() {
             <YStack gap="$1" minWidth={220}>
               <Text fontSize="$3">Período</Text>
               <Select value={dateRange} onValueChange={(v) => setDateRange(v as DateRange)}>
-                <Select.Trigger width={220} height={36} br="$4" bw={1} bc="$borderColor" bg="$background" iconAfter={ChevronDown}>
+                <Select.Trigger width={220} height={36} br="$4" bw={1} bc="$borderColor" backgroundColor="$background" iconAfter={ChevronDown}>
                   <Select.Value />
                 </Select.Trigger>
                 <Select.Content zIndex={200000}>

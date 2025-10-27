@@ -28,7 +28,7 @@ export default function LoteriaSelect({ value, onChange }: Props) {
         <Select.Trigger
           bw={1}
           bc="$borderColor"
-          bg="$background"
+          backgroundColor="$background"
           px="$3"
           iconAfter={ChevronDown}
           disabled={isLoading || isError}

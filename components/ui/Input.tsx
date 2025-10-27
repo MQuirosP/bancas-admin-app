@@ -15,7 +15,7 @@ export const Input: React.FC<UIInputProps> = ({ error, focusStyle, ...rest }) =>
     <TInput
       bw={1}
       bc={error ? '$red8' : '$borderColor'}
-      bg="$background"
+      backgroundColor="$background"
       focusStyle={fs}
       {...rest}
     />
