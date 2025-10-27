@@ -657,15 +657,19 @@ export default function SorteosListScreen() {
                           </>
                         )}
 
-                        {/* CLOSED: Restaurar */}
+                        {/* CLOSED: Eliminar */}
                         {s.status === 'CLOSED' && (
                           <Button
                             size="$3"
-                            icon={(p:any)=> <RotateCcw {...p} color={iconColor} />}
-                            onPress={(e: any) => { e?.stopPropagation?.(); askRestore(s) }}
-                            disabled={mRestore.isPending}
+                            backgroundColor="$red4"
+                            borderColor="$red8"
+                            borderWidth={1}
+                            icon={(p:any)=> <Trash2 {...p} color={iconColor} />}
+                            hoverStyle={{ backgroundColor: '$red5' }}
+                            pressStyle={{ backgroundColor: '$red6' }}
+                            onPress={(e: any) => { e?.stopPropagation?.(); askDelete(s) }}
                           >
-                            {mRestore.isPending ? <Spinner size="small" /> : <Text>Restaurar</Text>}
+                            <Text>Eliminar</Text>
                           </Button>
                         )}
 
