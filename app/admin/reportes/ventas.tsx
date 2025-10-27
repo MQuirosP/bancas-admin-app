@@ -15,21 +15,9 @@ export default function VentasReportScreen() {
 
   const base = useMemo(() => {
     if (dateFilter === 'today' || dateFilter === 'yesterday') return { date: dateFilter }
-    const toMidnightUTC = (d: Date): string => {
-      const dateStr = d.toISOString().split('T')[0]
-      return `${dateStr}T00:00:00.000Z`
-    }
-    if (dateFilter === 'last7') {
-      const fromDate = new Date(Date.now() - 7 * 86400000)
-      const toDate = new Date()
-      return { date: 'range' as const, from: toMidnightUTC(fromDate), to: toMidnightUTC(toDate) }
-    }
-    if (dateFilter === 'last30') {
-      const fromDate = new Date(Date.now() - 30 * 86400000)
-      const toDate = new Date()
-      return { date: 'range' as const, from: toMidnightUTC(fromDate), to: toMidnightUTC(toDate) }
-    }
-    if (dateFilter === 'range' && from && to) return { date: 'range' as const, from: toMidnightUTC(from), to: toMidnightUTC(to) }
+    if (dateFilter === 'last7') return { date: 'range' as const, from: new Date(Date.now()-7*86400000).toISOString(), to: new Date().toISOString() }
+    if (dateFilter === 'last30') return { date: 'range' as const, from: new Date(Date.now()-30*86400000).toISOString(), to: new Date().toISOString() }
+    if (dateFilter === 'range' && from && to) return { date: 'range' as const, from: from.toISOString(), to: to.toISOString() }
     return { date: 'today' as const }
   }, [dateFilter, from, to])
 
