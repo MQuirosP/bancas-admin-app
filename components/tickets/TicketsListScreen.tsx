@@ -66,6 +66,7 @@ export default function TicketsListScreen({ scope }: Props) {
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
   const [filterWinnersOnly, setFilterWinnersOnly] = useState(false)
+  const [statusFilter, setStatusFilter] = useState<string>('ACTIVE')
 
   const backendParams = useMemo(() => {
     const params: any = {
@@ -111,8 +112,11 @@ export default function TicketsListScreen({ scope }: Props) {
     if (filterWinnersOnly) {
       rows = rows.filter((t) => (t.jugadas ?? []).some((j: any) => j.isWinner === true))
     }
+    if (statusFilter && statusFilter !== 'ALL') {
+      rows = rows.filter((t) => t.status === statusFilter)
+    }
     return rows
-  }, [data, searchInput, filterWinnersOnly])
+  }, [data, searchInput, filterWinnersOnly, statusFilter])
 
   const meta = data?.meta
 
@@ -227,6 +231,56 @@ export default function TicketsListScreen({ scope }: Props) {
                             { value: 'last7', label: 'Últimos 7 días' },
                             { value: 'last30', label: 'Últimos 30 días' },
                             { value: 'range', label: 'Rango personalizado' },
+                          ].map((it, idx) => (
+                            <Select.Item key={it.value} value={it.value} index={idx} pressStyle={{ bg: '$backgroundHover' }} bw={0} px="$3">
+                              <Select.ItemText>{it.label}</Select.ItemText>
+                              <Select.ItemIndicator ml="auto"><Check size={16} /></Select.ItemIndicator>
+                            </Select.Item>
+                          ))}
+                        </Select.Viewport>
+                      </YStack>
+                    </Select.Content>
+                  </Select>
+                </XStack>
+
+                {/* Bloque Status */}
+                <XStack ai="center" gap="$2" flexShrink={0}>
+                  <Text fontSize="$3" fontWeight="600">Estado:</Text>
+                  <Select
+                    size="$3"
+                    value={statusFilter}
+                    onValueChange={(v: any) => setStatusFilter(v)}
+                  >
+                    <Select.Trigger
+                      width={180}
+                      flexShrink={0}
+                      br="$3"
+                      bw={1}
+                      bc="$borderColor"
+                      backgroundColor="$background"
+                      px="$3"
+                      hoverStyle={{ bg: '$backgroundHover' }}
+                      focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
+                      iconAfter={ChevronDown}
+                    >
+                      <Select.Value>{({
+                        ALL: 'Todos',
+                        ACTIVE: 'Activos',
+                        EVALUATED: 'Evaluados',
+                        CANCELLED: 'Cancelados',
+                        RESTORED: 'Restaurados',
+                      } as any)[statusFilter]}</Select.Value>
+                    </Select.Trigger>
+
+                    <Select.Content zIndex={1000}>
+                      <YStack br="$3" bw={1} bc="$borderColor" backgroundColor="$background">
+                        <Select.Viewport>
+                          {[
+                            { value: 'ALL', label: 'Todos' },
+                            { value: 'ACTIVE', label: 'Activos' },
+                            { value: 'EVALUATED', label: 'Evaluados' },
+                            { value: 'CANCELLED', label: 'Cancelados' },
+                            { value: 'RESTORED', label: 'Restaurados' },
                           ].map((it, idx) => (
                             <Select.Item key={it.value} value={it.value} index={idx} pressStyle={{ bg: '$backgroundHover' }} bw={0} px="$3">
                               <Select.ItemText>{it.label}</Select.ItemText>
