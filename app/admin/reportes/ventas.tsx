@@ -4,8 +4,9 @@ import { Button, Input, Select, DatePicker } from '@/components/ui'
 import { Check, ChevronDown, RefreshCw } from '@tamagui/lucide-icons'
 import { useVentasSummary, useVentasBreakdown, useVentasTimeseries } from '@/hooks/useVentas'
 import { formatCurrency } from '@/utils/formatters'
+import { getDateParam, type DateToken, formatDateYYYYMMDD } from '@/lib/dateFormat'
 
-type DateFilter = 'today' | 'yesterday' | 'last7' | 'last30' | 'range'
+type DateFilter = 'today' | 'yesterday' | 'week' | 'month' | 'range'
 
 interface BreakdownItem {
   key: string
@@ -28,19 +29,18 @@ export default function VentasReportScreen() {
   const [to, setTo] = useState<Date | null>(null)
 
   const base = useMemo(() => {
-    if (dateFilter === 'today' || dateFilter === 'yesterday') return { date: dateFilter }
-    // Convierte Date a YYYY-MM-DD (formato que el backend espera)
-    const toDateString = (d: Date): string => d.toISOString().split('T')[0]
-    if (dateFilter === 'last7') {
-      return { date: 'range' as const, fromDate: toDateString(new Date(Date.now()-7*86400000)), toDate: toDateString(new Date()) }
+    // ✅ Backend authority: Only send tokens, backend handles date calculations
+    if (dateFilter === 'today' || dateFilter === 'yesterday') {
+      return getDateParam(dateFilter as DateToken)
     }
-    if (dateFilter === 'last30') {
-      return { date: 'range' as const, fromDate: toDateString(new Date(Date.now()-30*86400000)), toDate: toDateString(new Date()) }
+    if (dateFilter === 'week' || dateFilter === 'month') {
+      return getDateParam(dateFilter as DateToken)
     }
+    // ✅ For custom date range, convert Date to YYYY-MM-DD format
     if (dateFilter === 'range' && from && to) {
-      return { date: 'range' as const, fromDate: toDateString(from), toDate: toDateString(to) }
+      return getDateParam('range', formatDateYYYYMMDD(from), formatDateYYYYMMDD(to))
     }
-    return { date: 'today' as const }
+    return getDateParam('today')
   }, [dateFilter, from, to])
 
   const { data: summary, isFetching: fetchingSummary } = useVentasSummary(base)
@@ -68,8 +68,8 @@ export default function VentasReportScreen() {
                     {([
                       {value:'today',label:'Hoy'},
                       {value:'yesterday',label:'Ayer'},
-                      {value:'last7',label:'Últimos 7 días'},
-                      {value:'last30',label:'Últimos 30 días'},
+                      {value:'week',label:'Esta Semana'},
+                      {value:'month',label:'Este Mes'},
                       {value:'range',label:'Rango personalizado'},
                     ] as const).map((it: SelectOption, idx: number) => (
                       <Select.Item key={it.value} value={it.value} index={idx}><Select.ItemText>{it.label}</Select.ItemText><Select.ItemIndicator ml="auto"><Check size={16}/></Select.ItemIndicator></Select.Item>
