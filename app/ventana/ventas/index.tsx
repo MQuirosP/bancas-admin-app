@@ -15,7 +15,7 @@ export default function MisVentasScreen() {
   const [dateRange, setDateRange] = useState<DateRange>('today')
   const [page, setPage] = useState(1)
 
-  const params = useMemo(() => ({ page, pageSize: 20, dateRange }), [page, dateRange])
+  const params = useMemo(() => ({ page, pageSize: 20, date: dateRange, scope: 'mine' }), [page, dateRange])
 
   const { data, isLoading, isFetching, refetch } = useQuery({
     queryKey: ['ventas', params],
