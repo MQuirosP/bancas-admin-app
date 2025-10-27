@@ -15,9 +15,17 @@ export default function VentasReportScreen() {
 
   const base = useMemo(() => {
     if (dateFilter === 'today' || dateFilter === 'yesterday') return { date: dateFilter }
-    if (dateFilter === 'last7') return { date: 'range' as const, from: new Date(Date.now()-7*86400000).toISOString(), to: new Date().toISOString() }
-    if (dateFilter === 'last30') return { date: 'range' as const, from: new Date(Date.now()-30*86400000).toISOString(), to: new Date().toISOString() }
-    if (dateFilter === 'range' && from && to) return { date: 'range' as const, from: from.toISOString(), to: to.toISOString() }
+    // Convierte Date a YYYY-MM-DD (formato que el backend espera)
+    const toDateString = (d: Date): string => d.toISOString().split('T')[0]
+    if (dateFilter === 'last7') {
+      return { date: 'range' as const, fromDate: toDateString(new Date(Date.now()-7*86400000)), toDate: toDateString(new Date()) }
+    }
+    if (dateFilter === 'last30') {
+      return { date: 'range' as const, fromDate: toDateString(new Date(Date.now()-30*86400000)), toDate: toDateString(new Date()) }
+    }
+    if (dateFilter === 'range' && from && to) {
+      return { date: 'range' as const, fromDate: toDateString(from), toDate: toDateString(to) }
+    }
     return { date: 'today' as const }
   }, [dateFilter, from, to])
 
