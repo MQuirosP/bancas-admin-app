@@ -7,6 +7,20 @@ import { formatCurrency } from '@/utils/formatters'
 
 type DateFilter = 'today' | 'yesterday' | 'last7' | 'last30' | 'range'
 
+interface BreakdownItem {
+  key: string
+  name?: string | null
+  ventasTotal: number
+}
+
+interface TimeseriesPoint {
+  ts: string
+  ventasTotal: number
+}
+
+type SelectOption = { value: string; label: string }
+type DimensionOption = 'vendedor' | 'ventana' | 'loteria' | 'sorteo'
+
 export default function VentasReportScreen() {
   const [dateFilter, setDateFilter] = useState<DateFilter>('today')
   const [dimension, setDimension] = useState<'ventana'|'vendedor'|'loteria'|'sorteo'>('vendedor')
@@ -57,7 +71,7 @@ export default function VentasReportScreen() {
                       {value:'last7',label:'Últimos 7 días'},
                       {value:'last30',label:'Últimos 30 días'},
                       {value:'range',label:'Rango personalizado'},
-                    ] as const).map((it,idx)=> (
+                    ] as const).map((it: SelectOption, idx: number) => (
                       <Select.Item key={it.value} value={it.value} index={idx}><Select.ItemText>{it.label}</Select.ItemText><Select.ItemIndicator ml="auto"><Check size={16}/></Select.ItemIndicator></Select.Item>
                     ))}
                   </Select.Viewport>
@@ -86,7 +100,7 @@ export default function VentasReportScreen() {
                 </Select.Trigger>
                 <Select.Content>
                   <Select.Viewport>
-                    {(['vendedor','ventana','loteria','sorteo'] as const).map((d,idx)=> (
+                    {(['vendedor','ventana','loteria','sorteo'] as const).map((d: DimensionOption, idx: number) => (
                       <Select.Item key={d} value={d} index={idx}><Select.ItemText>{d}</Select.ItemText><Select.ItemIndicator ml="auto"><Check size={16}/></Select.ItemIndicator></Select.Item>
                     ))}
                   </Select.Viewport>
@@ -119,8 +133,8 @@ export default function VentasReportScreen() {
             <Spinner />
           ) : (
             <YStack gap="$2">
-              {(breakdown ?? []).map((it,i)=> (
-                <XStack key={it.key} jc="space-between" ai="center" bwB={1} bc="$borderColor" py="$2">
+              {(breakdown ?? []).map((it: BreakdownItem, i: number) => (
+                <XStack key={it.key} jc="space-between" ai="center" borderBottomWidth={1} borderBottomColor="$borderColor" py="$2">
                   <Text fontWeight="600">{i+1}. {it.name ?? it.key}</Text>
                   <Text>{formatCurrency(it.ventasTotal)}</Text>
                 </XStack>
@@ -137,7 +151,7 @@ export default function VentasReportScreen() {
             <Spinner />
           ) : (
             <YStack gap="$1">
-              {(series ?? []).map((p)=> (
+              {(series ?? []).map((p: TimeseriesPoint) => (
                 <XStack key={p.ts} jc="space-between">
                   <Text>{new Date(p.ts).toLocaleDateString()}</Text>
                   <Text>{formatCurrency(p.ventasTotal)}</Text>
