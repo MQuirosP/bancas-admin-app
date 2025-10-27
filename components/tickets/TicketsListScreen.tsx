@@ -13,7 +13,7 @@ import { formatCurrency } from '@/utils/formatters'
 import FilterSwitch from '@/components/ui/FilterSwitch'
 import { Toolbar } from '@/components/ui/Toolbar'
 import type { Scope } from '@/types/scope'
-import { getDateParam, type DateToken, formatDateYYYYMMDD } from '@/lib/dateFormat'
+import { getDateParam, type DateTokenBasic, formatDateYYYYMMDD } from '@/lib/dateFormat'
 
 // Ajusta a tu modelo real si tienes tipos en '@/types/api.types'
 export type Ticket = {
@@ -36,7 +36,9 @@ type Props = {
   scope: Scope
 }
 
-type DateFilter = 'today' | 'yesterday' | 'week' | 'month' | 'range'
+// ✅ Tickets endpoint only supports: today, yesterday, range
+// (No week/month/year - use range with custom dates if needed)
+type DateFilter = 'today' | 'yesterday' | 'range'
 
 const TICKET_STATUSES = [
   { value: 'ALL', label: 'Todos los estados' },
@@ -86,10 +88,11 @@ export default function TicketsListScreen({ scope }: Props) {
     }
 
     // ✅ Backend authority: use tokens, not Date calculations
+    // Tickets endpoint only supports: today, yesterday, range
     if (dateFilter === 'range' && dateFrom && dateTo) {
       Object.assign(params, getDateParam('range', formatDateYYYYMMDD(dateFrom), formatDateYYYYMMDD(dateTo)))
     } else {
-      Object.assign(params, getDateParam(dateFilter as DateToken))
+      Object.assign(params, getDateParam(dateFilter as DateTokenBasic))
     }
 
     // Add status filter if not 'ALL'
@@ -228,8 +231,6 @@ export default function TicketsListScreen({ scope }: Props) {
                       <Select.Value>{({
                         today: 'Hoy',
                         yesterday: 'Ayer',
-                        week: 'Esta Semana',
-                        month: 'Este Mes',
                         range: 'Rango personalizado',
                       } as any)[dateFilter]}</Select.Value>
                     </Select.Trigger>
@@ -240,8 +241,6 @@ export default function TicketsListScreen({ scope }: Props) {
                           {[
                             { value: 'today', label: 'Hoy' },
                             { value: 'yesterday', label: 'Ayer' },
-                            { value: 'week', label: 'Esta Semana' },
-                            { value: 'month', label: 'Este Mes' },
                             { value: 'range', label: 'Rango personalizado' },
                           ].map((it, idx) => (
                             <Select.Item key={it.value} value={it.value} index={idx} pressStyle={{ bg: '$backgroundHover' }} bw={0} px="$3">

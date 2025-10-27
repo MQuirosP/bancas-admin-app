@@ -6,8 +6,9 @@ export type VentasListQuery = {
   page?: number
   pageSize?: number
   scope?: 'mine' | 'all'
-  // ✅ Backend Authority: Only semantic tokens (today, yesterday, week, month, year, range)
+  // ✅ Backend Authority: VENTAS endpoints accept extended tokens
   // Backend resolves these using CR timezone
+  // Supported: today, yesterday, week, month, year, range
   date?: 'today' | 'yesterday' | 'week' | 'month' | 'year' | 'range'
   // ✅ For 'range' token: dates in YYYY-MM-DD format (already calculated by backend/user)
   fromDate?: string

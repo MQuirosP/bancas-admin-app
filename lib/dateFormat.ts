@@ -94,16 +94,20 @@ export function getTodayYYYYMMDD(): string {
  * Frontend MUST NOT calculate date ranges.
  * The backend is the ONLY source of truth for date calculations.
  *
- * Frontend only sends semantic tokens:
- * - 'today' - Backend calculates as CR timezone today
- * - 'yesterday' - Backend calculates as CR timezone yesterday
- * - 'week' - Backend calculates as CR timezone this week
- * - 'month' - Backend calculates as CR timezone this month
- * - 'year' - Backend calculates as CR timezone this year
- * - 'range' - Backend respects provided YYYY-MM-DD dates (already calculated by backend/user)
+ * NOTE: Different endpoints support different tokens!
+ * - /ventas/* endpoints: all tokens ('today' | 'yesterday' | 'week' | 'month' | 'year' | 'range')
+ * - /tickets endpoint: basic tokens ('today' | 'yesterday' | 'range')
+ * - Custom date ranges: use 'range' with fromDate/toDate in YYYY-MM-DD format
  */
 
+// ✅ All semantic tokens (supported by ventas endpoints)
 export type DateToken = 'today' | 'yesterday' | 'week' | 'month' | 'year' | 'range'
+
+// ✅ Basic tokens (supported by all endpoints including /tickets)
+export type DateTokenBasic = 'today' | 'yesterday' | 'range'
+
+// ✅ Extended tokens (only /ventas/* endpoints support these)
+export type DateTokenExtended = 'week' | 'month' | 'year'
 
 /**
  * Send date token to backend
