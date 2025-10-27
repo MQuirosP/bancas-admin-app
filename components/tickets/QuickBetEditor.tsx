@@ -65,9 +65,9 @@ export default function QuickBetEditor({ onCommit, minAmount = 1, maxAmount = 10
       <YStack gap="$3">
         <Text fontSize="$5" fontWeight="600">Ingreso rápido</Text>
 
-        {/* Montos - Siempre uno al lado del otro */}
-        <XStack gap="$2" jc="space-between">
-          <YStack flex={1} gap="$1">
+        {/* Montos - Uno al lado del otro, ancho limitado */}
+        <XStack gap="$2" jc="center" flexWrap="wrap">
+          <YStack width={140} gap="$1">
             <Text fontSize="$3" fontWeight="500">Apuesta Numero</Text>
             <Input
               value={amountNumero}
@@ -75,11 +75,11 @@ export default function QuickBetEditor({ onCommit, minAmount = 1, maxAmount = 10
               keyboardType="decimal-pad"
               placeholder="0"
               ta="center"
-              height={48}
-              fontSize="$5"
+              height={56}
+              fontSize="$6"
             />
           </YStack>
-          <YStack flex={1} gap="$1">
+          <YStack width={140} gap="$1">
             <Text fontSize="$3" fontWeight="500">Apuesta Reventado</Text>
             <Input
               value={amountReventado}
@@ -87,18 +87,18 @@ export default function QuickBetEditor({ onCommit, minAmount = 1, maxAmount = 10
               keyboardType="decimal-pad"
               placeholder="0"
               ta="center"
-              height={48}
-              fontSize="$5"
+              height={56}
+              fontSize="$6"
               editable={!!amountNumero}
               opacity={amountNumero ? 1 : 0.5}
             />
           </YStack>
         </XStack>
 
-        {/* Captura de números - Limpio y simple */}
+        {/* Captura de números - Limpio */}
         <YStack gap="$2">
-          <XStack gap="$2" ai="flex-end">
-            <YStack flex={1}>
+          <XStack gap="$2" ai="flex-end" jc="center">
+            <YStack width={140}>
               <Text fontSize="$3" fontWeight="500" mb="$1">Números</Text>
               <Input
                 value={numInput}
@@ -114,8 +114,8 @@ export default function QuickBetEditor({ onCommit, minAmount = 1, maxAmount = 10
                 placeholder="00-99"
                 maxLength={2}
                 keyboardType="number-pad"
-                height={48}
-                fontSize="$5"
+                height={56}
+                fontSize="$6"
                 ta="center"
                 editable={!!amountNumero}
                 opacity={amountNumero ? 1 : 0.5}
@@ -130,7 +130,7 @@ export default function QuickBetEditor({ onCommit, minAmount = 1, maxAmount = 10
 
           {/* Lista de números - Sin X, solo click para eliminar */}
           {numbers.length > 0 && (
-            <XStack gap="$2" flexWrap="wrap" mt="$2">
+            <XStack gap="$2" flexWrap="wrap" mt="$2" jc="center">
               {numbers.map((n) => (
                 <Card
                   key={n}
@@ -151,9 +151,11 @@ export default function QuickBetEditor({ onCommit, minAmount = 1, maxAmount = 10
           )}
         </YStack>
 
-        <Button onPress={commit} disabled={!canCommit} size="$4" width="100%">
-          Agregar al ticket
-        </Button>
+        <XStack jc="center">
+          <Button onPress={commit} disabled={!canCommit} size="$4" width={280}>
+            Agregar al ticket
+          </Button>
+        </XStack>
       </YStack>
     </Card>
   )
