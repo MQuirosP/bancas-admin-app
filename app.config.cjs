@@ -39,7 +39,7 @@ module.exports = ({ config }) => ({
   // Usa variable pública (mejor para cliente)
   extra: {
     EXPO_PUBLIC_API_URL:
-      process.env.EXPO_PUBLIC_API_URL ?? 'https://backend-bancas.onrender.com/api/v1',
-      // process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000/api/v1',
+      // process.env.EXPO_PUBLIC_API_URL ?? 'https://backend-bancas.onrender.com/api/v1',
+      process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000/api/v1',
   },
 })

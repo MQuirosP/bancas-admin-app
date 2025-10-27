@@ -24,18 +24,27 @@ export default function VendedoresScreen() {
   // Log para debugging
   console.log('Vendedores response:', data)
 
-  // Intentar extraer vendedores de varias estructuras posibles
+  // Extraer vendedores del breakdown
   let vendedores: Array<{ id?: string; name?: string; total?: number; tickets?: number }> = []
 
   if (data) {
     const payload = (data as any)?.data ?? data
     if (Array.isArray(payload)) {
-      vendedores = payload
+      // Respuesta directa es un array
+      vendedores = payload.map((item: any) => ({
+        id: item.key ?? item.id,
+        name: item.name,
+        total: Number(item.ventasTotal ?? item.total ?? 0),
+        tickets: Number(item.ticketsCount ?? item.tickets ?? 0),
+      }))
     } else if (Array.isArray(payload?.breakdown)) {
-      vendedores = payload.breakdown
-    } else if (payload?.breakdown && typeof payload.breakdown === 'object') {
-      // Si es un objeto, convertirlo a array
-      vendedores = Object.values(payload.breakdown)
+      // Breakdown es un array
+      vendedores = payload.breakdown.map((item: any) => ({
+        id: item.key ?? item.id,
+        name: item.name,
+        total: Number(item.ventasTotal ?? item.total ?? 0),
+        tickets: Number(item.ticketsCount ?? item.tickets ?? 0),
+      }))
     }
   }
 

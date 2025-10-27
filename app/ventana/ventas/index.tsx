@@ -23,7 +23,7 @@ export default function MisVentasScreen() {
 
   const { data, isLoading, isFetching, refetch } = useQuery({
     queryKey: ['ventas', params],
-    queryFn: () => apiClient.get('/ventas', params),
+    queryFn: () => apiClient.get('/ventas/summary', params),
     staleTime: 60_000,
   })
 

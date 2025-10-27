@@ -6,13 +6,14 @@ import { Search, X, RefreshCw, ChevronDown, Check, ArrowLeft } from '@tamagui/lu
 import { safeBack } from '@/lib/navigation'
 import { useTheme } from 'tamagui'
 import { useRouter } from 'expo-router'
-import { subDays, format } from 'date-fns'
+import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { apiClient } from '@/lib/api.client'
 import { formatCurrency } from '@/utils/formatters'
 import FilterSwitch from '@/components/ui/FilterSwitch'
 import { Toolbar } from '@/components/ui/Toolbar'
 import type { Scope } from '@/types/scope'
+import { getDateParam, type DateToken, formatDateYYYYMMDD } from '@/lib/dateFormat'
 
 // Ajusta a tu modelo real si tienes tipos en '@/types/api.types'
 export type Ticket = {
@@ -35,7 +36,15 @@ type Props = {
   scope: Scope
 }
 
-type DateFilter = 'today' | 'yesterday' | 'last7' | 'last30' | 'range'
+type DateFilter = 'today' | 'yesterday' | 'week' | 'month' | 'range'
+
+const TICKET_STATUSES = [
+  { value: 'ALL', label: 'Todos los estados' },
+  { value: 'ACTIVE', label: 'Activos' },
+  { value: 'EVALUATED', label: 'Evaluados' },
+  { value: 'PAID', label: 'Pagados' },
+  { value: 'CANCELED', label: 'Cancelados' },
+]
 
 // Rango personalizado utilizará DatePicker (web/nativo)
 
@@ -64,26 +73,32 @@ export default function TicketsListScreen({ scope }: Props) {
   const [pageSize] = useState(20)
   const [searchInput, setSearchInput] = useState('')
   const [dateFilter, setDateFilter] = useState<DateFilter>('today')
-  const [dateFrom, setDateFrom] = useState('')
-  const [dateTo, setDateTo] = useState('')
-  const [filterWinnersOnly, setFilterWinnersOnly] = useState(false)
-  const [statusFilter, setStatusFilter] = useState<string>('ACTIVE')
+  const [dateFrom, setDateFrom] = useState<Date | null>(null)
+  const [dateTo, setDateTo] = useState<Date | null>(null)
+  const [statusFilter, setStatusFilter] = useState<string>('ALL')
 
   const backendParams = useMemo(() => {
     const params: any = {
       page,
       pageSize,
-      // Backend acepta solo 'all' | 'mine'.
-      // 'mine' aplica para roles VENTANA y VENDEDOR (server infiere filtros por token).
+      // ✅ Backend authority: only 'all' | 'mine'
       scope: scope === 'admin' ? 'all' : 'mine',
     }
-    if (dateFilter === 'today') params.date = 'today'
-    else if (dateFilter === 'yesterday') params.date = 'yesterday'
-    else if (dateFilter === 'last7') { params.date = 'range'; params.from = subDays(new Date(), 7).toISOString(); params.to = new Date().toISOString() }
-    else if (dateFilter === 'last30') { params.date = 'range'; params.from = subDays(new Date(), 30).toISOString(); params.to = new Date().toISOString() }
-    else if (dateFilter === 'range' && dateFrom && dateTo) { params.date = 'range'; params.from = new Date(dateFrom).toISOString(); params.to = new Date(dateTo).toISOString() }
+
+    // ✅ Backend authority: use tokens, not Date calculations
+    if (dateFilter === 'range' && dateFrom && dateTo) {
+      Object.assign(params, getDateParam('range', formatDateYYYYMMDD(dateFrom), formatDateYYYYMMDD(dateTo)))
+    } else {
+      Object.assign(params, getDateParam(dateFilter as DateToken))
+    }
+
+    // Add status filter if not 'ALL'
+    if (statusFilter !== 'ALL') {
+      params.status = statusFilter
+    }
+
     return params
-  }, [page, pageSize, dateFilter, dateFrom, dateTo, scope])
+  }, [page, pageSize, dateFilter, dateFrom, dateTo, statusFilter, scope])
 
   const { data, isLoading, isFetching, isError, refetch } = useQuery({
     queryKey: ['tickets', 'list', scope, backendParams],
@@ -94,6 +109,8 @@ export default function TicketsListScreen({ scope }: Props) {
 
   const filteredRows = useMemo(() => {
     let rows = data?.data ?? []
+    // ✅ Status filtering is done on backend now
+    // ✅ Winners filtering should be done on backend via params
     if (searchInput.trim()) {
       const search = searchInput.toLowerCase()
       rows = rows.filter((t) => {
@@ -110,14 +127,8 @@ export default function TicketsListScreen({ scope }: Props) {
         )
       })
     }
-    if (filterWinnersOnly) {
-      rows = rows.filter((t) => (t.jugadas ?? []).some((j: any) => j.isWinner === true))
-    }
-    if (statusFilter && statusFilter !== 'ALL') {
-      rows = rows.filter((t) => t.status === statusFilter)
-    }
     return rows
-  }, [data, searchInput, filterWinnersOnly, statusFilter])
+  }, [data, searchInput])
 
   const meta = data?.meta
 
@@ -217,8 +228,8 @@ export default function TicketsListScreen({ scope }: Props) {
                       <Select.Value>{({
                         today: 'Hoy',
                         yesterday: 'Ayer',
-                        last7: 'Últimos 7 días',
-                        last30: 'Últimos 30 días',
+                        week: 'Esta Semana',
+                        month: 'Este Mes',
                         range: 'Rango personalizado',
                       } as any)[dateFilter]}</Select.Value>
                     </Select.Trigger>
@@ -229,8 +240,8 @@ export default function TicketsListScreen({ scope }: Props) {
                           {[
                             { value: 'today', label: 'Hoy' },
                             { value: 'yesterday', label: 'Ayer' },
-                            { value: 'last7', label: 'Últimos 7 días' },
-                            { value: 'last30', label: 'Últimos 30 días' },
+                            { value: 'week', label: 'Esta Semana' },
+                            { value: 'month', label: 'Este Mes' },
                             { value: 'range', label: 'Rango personalizado' },
                           ].map((it, idx) => (
                             <Select.Item key={it.value} value={it.value} index={idx} pressStyle={{ bg: '$backgroundHover' }} bw={0} px="$3">
@@ -264,25 +275,13 @@ export default function TicketsListScreen({ scope }: Props) {
                       focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
                       iconAfter={ChevronDown}
                     >
-                      <Select.Value>{({
-                        ALL: 'Todos',
-                        ACTIVE: 'Activos',
-                        EVALUATED: 'Evaluados',
-                        CANCELLED: 'Cancelados',
-                        RESTORED: 'Restaurados',
-                      } as any)[statusFilter]}</Select.Value>
+                      <Select.Value>{TICKET_STATUSES.find(s => s.value === statusFilter)?.label || 'Todos'}</Select.Value>
                     </Select.Trigger>
 
                     <Select.Content zIndex={1000}>
                       <YStack br="$3" bw={1} bc="$borderColor" backgroundColor="$background">
                         <Select.Viewport>
-                          {[
-                            { value: 'ALL', label: 'Todos' },
-                            { value: 'ACTIVE', label: 'Activos' },
-                            { value: 'EVALUATED', label: 'Evaluados' },
-                            { value: 'CANCELLED', label: 'Cancelados' },
-                            { value: 'RESTORED', label: 'Restaurados' },
-                          ].map((it, idx) => (
+                          {TICKET_STATUSES.map((it, idx) => (
                             <Select.Item key={it.value} value={it.value} index={idx} pressStyle={{ bg: '$backgroundHover' }} bw={0} px="$3">
                               <Select.ItemText>{it.label}</Select.ItemText>
                               <Select.ItemIndicator ml="auto"><Check size={16} /></Select.ItemIndicator>
@@ -294,14 +293,8 @@ export default function TicketsListScreen({ scope }: Props) {
                   </Select>
                 </XStack>
 
-                {/* Bloque Switch */}
-                {/* <XStack flexShrink={0}> */}
-                  <FilterSwitch
-                    label="Solo ganadores"
-                    checked={filterWinnersOnly}
-                    onCheckedChange={setFilterWinnersOnly}
-                  />
-                {/* </XStack> */}
+                {/* Winners filtering is done on backend via API */}
+                {/* Removed client-side FilterSwitch for "Solo ganadores" */}
               </XStack>
 
             </XStack>
@@ -310,13 +303,13 @@ export default function TicketsListScreen({ scope }: Props) {
             {dateFilter === 'range' && (
               <XStack gap="$3" ai="flex-start" flexWrap="wrap">
                 <DatePicker
-                  value={dateFrom ? new Date(dateFrom) : null}
-                  onChange={(d) => setDateFrom(d.toISOString().slice(0, 10))}
+                  value={dateFrom}
+                  onChange={(d) => setDateFrom(d)}
                   placeholder="Desde"
                 />
                 <DatePicker
-                  value={dateTo ? new Date(dateTo) : null}
-                  onChange={(d) => setDateTo(d.toISOString().slice(0, 10))}
+                  value={dateTo}
+                  onChange={(d) => setDateTo(d)}
                   placeholder="Hasta"
                 />
               </XStack>
@@ -342,9 +335,9 @@ export default function TicketsListScreen({ scope }: Props) {
                 onPress={() => {
                   setSearchInput('')
                   setDateFilter('today')
-                  setDateFrom('')
-                  setDateTo('')
-                  setFilterWinnersOnly(false)
+                  setDateFrom(null)
+                  setDateTo(null)
+                  setStatusFilter('ALL')
                   setPage(1)
                 }}
                 backgroundColor="$gray4"
