@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Search, X, RefreshCw, ChevronDown, Check, ArrowLeft } from '@tamagui/lucide-icons'
 import { safeBack } from '@/lib/navigation'
 import { useTheme } from 'tamagui'
+import { useRouter } from 'expo-router'
 import { subDays, format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { apiClient } from '@/lib/api.client'
@@ -55,6 +56,7 @@ async function fetchTickets(params: any): Promise<{ data: Ticket[]; meta: any }>
 }
 
 export default function TicketsListScreen({ scope }: Props) {
+  const router = useRouter()
   const theme = useTheme()
   const iconColor = (theme?.color as any)?.get?.() ?? '#000'
 
