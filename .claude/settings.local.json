@@ -1,9 +1,7 @@
 {
   "permissions": {
     "allow": [
-      "Bash(tree:*)",
-      "Bash(git add:*)",
-      "Bash(Reventado - ¢YYY\" en un header\n- Eliminar botón X: números son clickeables directamente\n- Al eliminar número se elimina automáticamente su reventado asociado\n- Bloques más compactos (px=$2, py=$1) sin botones visuales\n- Hover effect: cambio de color para indicar interactividad\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
+      "Bash(npm run:*)"
     ],
     "deny": [],
     "ask": []

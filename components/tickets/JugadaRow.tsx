@@ -9,6 +9,7 @@ export type JugadaForm = {
   number?: string
   reventadoNumber?: string
   amount: string
+  amountReventado?: string  // monto de reventado asociado (opcional)
 }
 
 export type JugadaErrors = {

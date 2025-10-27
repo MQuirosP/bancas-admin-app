@@ -85,6 +85,8 @@ export default function QuickBetEditor({ onCommit, minAmount = 1, maxAmount = 10
               keyboardType="decimal-pad"
               placeholder="0"
               ta="center"
+              editable={!!amountNumero}
+              opacity={amountNumero ? 1 : 0.5}
             />
           </YStack>
         </XStack>
@@ -109,12 +111,15 @@ export default function QuickBetEditor({ onCommit, minAmount = 1, maxAmount = 10
               maxLength={2}
               keyboardType="number-pad"
               width={110}
+              editable={!!amountNumero}
+              opacity={amountNumero ? 1 : 0.5}
               onKeyPress={(e: any) => {
                 if (e?.nativeEvent?.key === 'Enter' && numInput.length === 2) addNumber()
               }}
             />
-            <Button size="$3" variant="ghost" onPress={() => setNumbers([])}>Limpiar lista</Button>
+            <Button size="$3" variant="ghost" onPress={() => setNumbers([])} disabled={numbers.length === 0}>Limpiar lista</Button>
           </XStack>
+          {!amountNumero && <Text color="$orange10" fontSize="$2">Ingresa monto en Apuesta Numero primero</Text>}
           {errors ? <Text color="$error" fontSize="$2">{errors}</Text> : null}
 
           {/* Lista de números */}

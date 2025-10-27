@@ -113,7 +113,13 @@ export default function TicketForm({ sorteos, restrictions, user, restrictionsLo
     })
   }
 
-  const totalAmount = jugadas.reduce((sum, j) => sum + (parseFloat(v(j.amount)) || 0), 0)
+  const totalAmount = jugadas.reduce((sum, j) => {
+    let amount = parseFloat(v(j.amount)) || 0
+    if (j.amountReventado) {
+      amount += parseFloat(v(j.amountReventado)) || 0
+    }
+    return sum + amount
+  }, 0)
   const cutoffMsg = (errors['cutoff'] || cutoffError) || null
 
   // Ingreso rápido: agrega una serie de números como jugadas
@@ -126,10 +132,14 @@ export default function TicketForm({ sorteos, restrictions, user, restrictionsLo
       for (const raw of serie) {
         const n = sanitizeNumber(raw)
         if (n.length !== 2) continue
-        next.push({ type: JugadaType.NUMERO, number: n, amount: String(montoN) })
-        if (montoR) {
-          next.push({ type: JugadaType.REVENTADO, number: n, reventadoNumber: n, amount: String(montoR) })
-        }
+        // Crear una sola jugada NUMERO con monto de reventado opcional
+        next.push({
+          type: JugadaType.NUMERO,
+          number: n,
+          reventadoNumber: n,
+          amount: String(montoN),
+          amountReventado: montoR ? String(montoR) : undefined
+        })
       }
       return next
     })
@@ -242,16 +252,28 @@ export default function TicketForm({ sorteos, restrictions, user, restrictionsLo
     const selected = sorteos.find((s) => s.id === sorteoId)
     if (!selected) return
 
+    // Generar jugadas: NUMERO + REVENTADO si aplica
+    const jugadasPayload: any[] = []
+    jugadas.forEach((j) => {
+      if (j.type === JugadaType.NUMERO) {
+        const number = sanitizeNumber(v(j.number))
+        const amount = parseFloat(v(j.amount))
+        jugadasPayload.push({ type: JugadaType.NUMERO, number, amount })
+        // Si hay reventado, agregar también
+        if (j.amountReventado) {
+          const montoRev = parseFloat(v(j.amountReventado))
+          if (montoRev > 0) {
+            const revNumber = sanitizeNumber(v(j.reventadoNumber))
+            jugadasPayload.push({ type: JugadaType.REVENTADO, number: revNumber, reventadoNumber: revNumber, amount: montoRev })
+          }
+        }
+      }
+    })
+
     const payload: Omit<CreateTicketRequest, 'ventanaId'> = {
       loteriaId: selected.loteriaId,
       sorteoId,
-      jugadas: jugadas.map((j) => {
-        if (j.type === JugadaType.NUMERO) {
-          return { type: JugadaType.NUMERO, number: sanitizeNumber(v(j.number)), amount: parseFloat(v(j.amount)) }
-        }
-        const ref = sanitizeNumber(v(j.reventadoNumber))
-        return { type: JugadaType.REVENTADO, number: ref, reventadoNumber: ref, amount: parseFloat(v(j.amount)) }
-      }),
+      jugadas: jugadasPayload,
     }
     // Enviar vendedorId en ventana y admin; en admin incluir además ventanaId del vendedor seleccionado
     if (vendorMode !== 'none' && vendedorId) {
@@ -380,73 +402,59 @@ export default function TicketForm({ sorteos, restrictions, user, restrictionsLo
         </Card>
       )}
 
-      {/* Listado de jugadas agrupadas por monto */}
+      {/* Listado de jugadas */}
       {useMemo(() => {
         if (jugadas.length === 0) return null
-
-        // Agrupar por amount, mostrando numeros y reventados asociados
-        const gruposPorMonto = new Map<string, { numeros: string[]; reventados: Map<string, number> }>()
-        jugadas.forEach((j) => {
-          if (!gruposPorMonto.has(j.amount)) {
-            gruposPorMonto.set(j.amount, { numeros: [], reventados: new Map() })
-          }
-          const grupo = gruposPorMonto.get(j.amount)!
-          if (j.type === 'NUMERO' && !grupo.numeros.includes(j.number!)) {
-            grupo.numeros.push(j.number!)
-          } else if (j.type === 'REVENTADO' && j.reventadoNumber) {
-            grupo.reventados.set(j.reventadoNumber, Number(j.amount))
-          }
-        })
 
         return (
           <Card padding="$4" backgroundColor="$background" borderColor="$borderColor" borderWidth={1}>
             <YStack gap="$3">
               <Text fontSize="$5" fontWeight="600">Jugadas Agregadas</Text>
-              {Array.from(gruposPorMonto.entries()).map(([monto, grupo], idx) => {
-                const montoNum = Number(monto)
-                const tieneReventado = grupo.reventados.size > 0
-                const montoReventado = tieneReventado ? Array.from(grupo.reventados.values())[0] : null
+              {jugadas.map((j, idx) => {
+                const montoNum = Number(j.amount)
+                const tieneReventado = j.amountReventado ? Number(j.amountReventado) > 0 : false
+                const montoReventado = tieneReventado ? Number(j.amountReventado!) : null
 
                 return (
-                  <YStack key={monto} gap="$2" borderBottomWidth={idx < gruposPorMonto.size - 1 ? 1 : 0} borderBottomColor="$borderColor" paddingBottom={idx < gruposPorMonto.size - 1 ? '$3' : 0}>
-                    {/* Header: Numero - ¢XXX | Reventado - ¢YYY */}
+                  <YStack
+                    key={`${j.number}-${j.amount}-${idx}`}
+                    gap="$2"
+                    borderBottomWidth={idx < jugadas.length - 1 ? 1 : 0}
+                    borderBottomColor="$borderColor"
+                    paddingBottom={idx < jugadas.length - 1 ? '$3' : 0}
+                  >
+                    {/* Header: Número ₡1000 - Reventado ₡500 */}
                     <XStack ai="center" gap="$2" flexWrap="wrap">
                       <Text fontSize="$4" fontWeight="600" color="$primary">
-                        Número - {formatCurrency(montoNum)}
+                        Número {formatCurrency(montoNum)}
                       </Text>
                       {tieneReventado && (
                         <>
-                          <Text fontSize="$4" color="$textSecondary">|</Text>
+                          <Text fontSize="$4" color="$textSecondary">-</Text>
                           <Text fontSize="$4" fontWeight="600" color="$orange10">
-                            Reventado - {formatCurrency(montoReventado!)}
+                            Reventado {formatCurrency(montoReventado!)}
                           </Text>
                         </>
                       )}
                     </XStack>
 
-                    {/* Números clickeables para eliminar */}
+                    {/* Lista de números clickeables (sin X) */}
                     <XStack gap="$2" flexWrap="wrap">
-                      {grupo.numeros.map((num) => {
-                        const indexInJugadas = jugadas.findIndex((j) => j.type === 'NUMERO' && j.number === num && j.amount === monto)
-                        return (
-                          <Card
-                            key={num}
-                            px="$2"
-                            py="$1"
-                            br="$2"
-                            bw={1}
-                            bc="$borderColor"
-                            bg="$backgroundHover"
-                            cursor="pointer"
-                            hoverStyle={{ backgroundColor: '$primary', borderColor: '$primary' }}
-                            onPress={() => removeJugada(indexInJugadas)}
-                          >
-                            <Text fontWeight="600" fontSize="$3" color="$textPrimary">
-                              {num}
-                            </Text>
-                          </Card>
-                        )
-                      })}
+                      <Card
+                        px="$2"
+                        py="$1"
+                        br="$2"
+                        bw={1}
+                        bc="$borderColor"
+                        bg="$backgroundHover"
+                        cursor="pointer"
+                        hoverStyle={{ backgroundColor: '$primary', borderColor: '$primary' }}
+                        onPress={() => removeJugada(idx)}
+                      >
+                        <Text fontWeight="600" fontSize="$3" color="$textPrimary">
+                          {j.number}
+                        </Text>
+                      </Card>
                     </XStack>
                   </YStack>
                 )
