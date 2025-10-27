@@ -1,31 +1,61 @@
 import React, { useMemo, useState } from 'react';
 import { YStack, XStack, Text, ScrollView, Card, Spinner } from 'tamagui';
-import { Button, Input, Select, DatePicker } from '@/components/ui'
-import { Check, ChevronDown, RefreshCw } from '@tamagui/lucide-icons'
-import { useVentasSummary, useVentasBreakdown, useVentasTimeseries } from '@/hooks/useVentas'
-import { formatCurrency } from '@/utils/formatters'
+import { Button, Input, Select, DatePicker } from '@/components/ui';
+import { Check, ChevronDown, RefreshCw } from '@tamagui/lucide-icons';
+import { useVentasSummary, useVentasBreakdown, useVentasTimeseries } from '@/hooks/useVentas';
+import { formatCurrency } from '@/utils/formatters';
 
-type DateFilter = 'today' | 'yesterday' | 'last7' | 'last30' | 'range'
+type DateFilter = 'today' | 'yesterday' | 'last7' | 'last30' | 'range';
+type Dimension = 'ventana' | 'vendedor' | 'loteria' | 'sorteo';
+
+// Tipos esperados por los hooks de ventas
+interface VentasBreakdownItem {
+  key: string;
+  name?: string | null;
+  ventasTotal: number;
+}
+interface VentasSeriesPoint {
+  ts: string; // ISO
+  ventasTotal: number;
+}
 
 export default function VentasReportScreen() {
-  const [dateFilter, setDateFilter] = useState<DateFilter>('today')
-  const [dimension, setDimension] = useState<'ventana'|'vendedor'|'loteria'|'sorteo'>('vendedor')
-  const [from, setFrom] = useState<Date | null>(null)
-  const [to, setTo] = useState<Date | null>(null)
+  const [dateFilter, setDateFilter] = useState<DateFilter>('today');
+  const [dimension, setDimension] = useState<Dimension>('vendedor');
+  const [from, setFrom] = useState<Date | null>(null);
+  const [to, setTo] = useState<Date | null>(null);
 
   const base = useMemo(() => {
-    if (dateFilter === 'today' || dateFilter === 'yesterday') return { date: dateFilter }
-    if (dateFilter === 'last7') return { date: 'range' as const, from: new Date(Date.now()-7*86400000).toISOString(), to: new Date().toISOString() }
-    if (dateFilter === 'last30') return { date: 'range' as const, from: new Date(Date.now()-30*86400000).toISOString(), to: new Date().toISOString() }
-    if (dateFilter === 'range' && from && to) return { date: 'range' as const, from: from.toISOString(), to: to.toISOString() }
-    return { date: 'today' as const }
-  }, [dateFilter, from, to])
+    if (dateFilter === 'today' || dateFilter === 'yesterday') return { date: dateFilter as 'today' | 'yesterday' };
 
-  const { data: summary, isFetching: fetchingSummary } = useVentasSummary(base)
-  const { data: breakdown, isFetching: fetchingBreak } = useVentasBreakdown({ ...base, dimension, top: 10 })
-  const { data: series, isFetching: fetchingSeries } = useVentasTimeseries({ ...base, granularity: 'day' })
+    // Helper: convierte Date a YYYY-MM-DD
+    const toDateString = (d: Date): string => d.toISOString().split('T')[0];
 
-  const loading = fetchingSummary || fetchingBreak || fetchingSeries
+    if (dateFilter === 'last7') {
+      const fromDate = toDateString(new Date(Date.now() - 7 * 86400000));
+      const toDate = toDateString(new Date());
+      return { date: 'range' as const, fromDate, toDate };
+    }
+    if (dateFilter === 'last30') {
+      const fromDate = toDateString(new Date(Date.now() - 30 * 86400000));
+      const toDate = toDateString(new Date());
+      return { date: 'range' as const, fromDate, toDate };
+    }
+    if (dateFilter === 'range' && from && to) {
+      return { date: 'range' as const, fromDate: toDateString(from), toDate: toDateString(to) };
+    }
+    return { date: 'today' as const };
+  }, [dateFilter, from, to]);
+
+  const { data: summary, isFetching: fetchingSummary } = useVentasSummary(base);
+  const { data: breakdown, isFetching: fetchingBreak } = useVentasBreakdown({ ...base, dimension, top: 10 });
+  const { data: series, isFetching: fetchingSeries } = useVentasTimeseries({ ...base, granularity: 'day' });
+
+  const loading = fetchingSummary || fetchingBreak || fetchingSeries;
+
+  // Normaliza a arrays tipados para evitar any implícito en map
+  const breakdownItems: VentasBreakdownItem[] = (breakdown ?? []) as VentasBreakdownItem[];
+  const seriesPoints: VentasSeriesPoint[] = (series ?? []) as VentasSeriesPoint[];
 
   return (
     <ScrollView flex={1} backgroundColor="$background">
@@ -37,49 +67,55 @@ export default function VentasReportScreen() {
           <XStack gap="$3" ai="flex-end" flexWrap="wrap">
             <YStack gap="$1">
               <Text fontSize="$3">Fecha</Text>
-              <Select value={dateFilter} onValueChange={(v:any)=>setDateFilter(v)}>
+              <Select value={dateFilter} onValueChange={(v: string) => setDateFilter(v as DateFilter)}>
                 <Select.Trigger iconAfter={ChevronDown} width={200} br="$3" bw={1} bc="$borderColor" backgroundColor="$background">
                   <Select.Value />
                 </Select.Trigger>
                 <Select.Content>
                   <Select.Viewport>
                     {([
-                      {value:'today',label:'Hoy'},
-                      {value:'yesterday',label:'Ayer'},
-                      {value:'last7',label:'Últimos 7 días'},
-                      {value:'last30',label:'Últimos 30 días'},
-                      {value:'range',label:'Rango personalizado'},
-                    ] as const).map((it,idx)=> (
-                      <Select.Item key={it.value} value={it.value} index={idx}><Select.ItemText>{it.label}</Select.ItemText><Select.ItemIndicator ml="auto"><Check size={16}/></Select.ItemIndicator></Select.Item>
+                      { value: 'today', label: 'Hoy' },
+                      { value: 'yesterday', label: 'Ayer' },
+                      { value: 'last7', label: 'Últimos 7 días' },
+                      { value: 'last30', label: 'Últimos 30 días' },
+                      { value: 'range', label: 'Rango personalizado' },
+                    ] as const).map((it, idx) => (
+                      <Select.Item key={it.value} value={it.value} index={idx}>
+                        <Select.ItemText>{it.label}</Select.ItemText>
+                        <Select.ItemIndicator ml="auto"><Check size={16} /></Select.ItemIndicator>
+                      </Select.Item>
                     ))}
                   </Select.Viewport>
                 </Select.Content>
               </Select>
             </YStack>
 
-            {dateFilter==='range' && (
+            {dateFilter === 'range' && (
               <>
                 <YStack gap="$1">
                   <Text fontSize="$3">Desde</Text>
-                  <DatePicker value={from} onChange={(d)=>setFrom(d)} placeholder="dd/mm/aaaa" />
+                  <DatePicker value={from} onChange={(d) => setFrom(d)} placeholder="dd/mm/aaaa" />
                 </YStack>
                 <YStack gap="$1">
                   <Text fontSize="$3">Hasta</Text>
-                  <DatePicker value={to} onChange={(d)=>setTo(d)} placeholder="dd/mm/aaaa" />
+                  <DatePicker value={to} onChange={(d) => setTo(d)} placeholder="dd/mm/aaaa" />
                 </YStack>
               </>
             )}
 
             <YStack gap="$1">
               <Text fontSize="$3">Dimensión</Text>
-              <Select value={dimension} onValueChange={(v:any)=>setDimension(v)}>
+              <Select value={dimension} onValueChange={(v: string) => setDimension(v as Dimension)}>
                 <Select.Trigger iconAfter={ChevronDown} width={220} br="$3" bw={1} bc="$borderColor" backgroundColor="$background">
                   <Select.Value />
                 </Select.Trigger>
                 <Select.Content>
                   <Select.Viewport>
-                    {(['vendedor','ventana','loteria','sorteo'] as const).map((d,idx)=> (
-                      <Select.Item key={d} value={d} index={idx}><Select.ItemText>{d}</Select.ItemText><Select.ItemIndicator ml="auto"><Check size={16}/></Select.ItemIndicator></Select.Item>
+                    {(['vendedor','ventana','loteria','sorteo'] as const).map((d, idx) => (
+                      <Select.Item key={d} value={d} index={idx}>
+                        <Select.ItemText>{d}</Select.ItemText>
+                        <Select.ItemIndicator ml="auto"><Check size={16} /></Select.ItemIndicator>
+                      </Select.Item>
                     ))}
                   </Select.Viewport>
                 </Select.Content>
@@ -88,7 +124,7 @@ export default function VentasReportScreen() {
 
             <YStack gap="$1">
               <Text fontSize="$3" opacity={0}>Acción</Text>
-              <Button icon={RefreshCw} onPress={()=>{ /* queries usan base en deps */ }} loading={loading}>
+              <Button icon={RefreshCw} onPress={() => { /* las queries dependen de base */ }} loading={loading}>
                 Actualizar
               </Button>
             </YStack>
@@ -97,11 +133,26 @@ export default function VentasReportScreen() {
 
         {/* KPIs */}
         <XStack gap="$3" flexWrap="wrap">
-          <Card padding="$4" flex={1} minWidth={220}><Text fontSize="$2" color="$textSecondary">Ventas Totales</Text><Text fontSize="$7" fontWeight="700">{formatCurrency(summary?.ventasTotal??0)}</Text></Card>
-          <Card padding="$4" flex={1} minWidth={220}><Text fontSize="$2" color="$textSecondary">Tickets</Text><Text fontSize="$7" fontWeight="700">{summary?.ticketsCount ?? 0}</Text></Card>
-          <Card padding="$4" flex={1} minWidth={220}><Text fontSize="$2" color="$textSecondary">Jugadas</Text><Text fontSize="$7" fontWeight="700">{summary?.jugadasCount ?? 0}</Text></Card>
-          <Card padding="$4" flex={1} minWidth={220}><Text fontSize="$2" color="$textSecondary">Payout</Text><Text fontSize="$7" fontWeight="700">{formatCurrency(summary?.payoutTotal??0)}</Text></Card>
-          <Card padding="$4" flex={1} minWidth={220}><Text fontSize="$2" color="$textSecondary">Neto</Text><Text fontSize="$7" fontWeight="700">{formatCurrency(summary?.neto??0)}</Text></Card>
+          <Card padding="$4" flex={1} minWidth={220}>
+            <Text fontSize="$2" color="$textSecondary">Ventas Totales</Text>
+            <Text fontSize="$7" fontWeight="700">{formatCurrency(summary?.ventasTotal ?? 0)}</Text>
+          </Card>
+          <Card padding="$4" flex={1} minWidth={220}>
+            <Text fontSize="$2" color="$textSecondary">Tickets</Text>
+            <Text fontSize="$7" fontWeight="700">{summary?.ticketsCount ?? 0}</Text>
+          </Card>
+          <Card padding="$4" flex={1} minWidth={220}>
+            <Text fontSize="$2" color="$textSecondary">Jugadas</Text>
+            <Text fontSize="$7" fontWeight="700">{summary?.jugadasCount ?? 0}</Text>
+          </Card>
+          <Card padding="$4" flex={1} minWidth={220}>
+            <Text fontSize="$2" color="$textSecondary">Payout</Text>
+            <Text fontSize="$7" fontWeight="700">{formatCurrency(summary?.payoutTotal ?? 0)}</Text>
+          </Card>
+          <Card padding="$4" flex={1} minWidth={220}>
+            <Text fontSize="$2" color="$textSecondary">Neto</Text>
+            <Text fontSize="$7" fontWeight="700">{formatCurrency(summary?.neto ?? 0)}</Text>
+          </Card>
         </XStack>
 
         {/* Breakdown */}
@@ -111,13 +162,20 @@ export default function VentasReportScreen() {
             <Spinner />
           ) : (
             <YStack gap="$2">
-              {(breakdown ?? []).map((it,i)=> (
-                <XStack key={it.key} jc="space-between" ai="center" bwB={1} bc="$borderColor" py="$2">
-                  <Text fontWeight="600">{i+1}. {it.name ?? it.key}</Text>
+              {breakdownItems.map((it, i) => (
+                <XStack
+                  key={it.key}
+                  jc="space-between"
+                  ai="center"
+                  bbw={1}                // <-- borderBottomWidth
+                  bbc="$borderColor"     // <-- borderBottomColor
+                  py="$2"
+                >
+                  <Text fontWeight="600">{i + 1}. {it.name ?? it.key}</Text>
                   <Text>{formatCurrency(it.ventasTotal)}</Text>
                 </XStack>
               ))}
-              {(breakdown ?? []).length===0 && <Text color="$textSecondary">Sin datos</Text>}
+              {breakdownItems.length === 0 && <Text color="$textSecondary">Sin datos</Text>}
             </YStack>
           )}
         </Card>
@@ -129,13 +187,13 @@ export default function VentasReportScreen() {
             <Spinner />
           ) : (
             <YStack gap="$1">
-              {(series ?? []).map((p)=> (
+              {seriesPoints.map((p) => (
                 <XStack key={p.ts} jc="space-between">
                   <Text>{new Date(p.ts).toLocaleDateString()}</Text>
                   <Text>{formatCurrency(p.ventasTotal)}</Text>
                 </XStack>
               ))}
-              {(series ?? []).length===0 && <Text color="$textSecondary">Sin datos</Text>}
+              {seriesPoints.length === 0 && <Text color="$textSecondary">Sin datos</Text>}
             </YStack>
           )}
         </Card>
@@ -143,4 +201,3 @@ export default function VentasReportScreen() {
     </ScrollView>
   );
 }
-
