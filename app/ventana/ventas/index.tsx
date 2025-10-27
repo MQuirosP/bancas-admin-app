@@ -4,46 +4,23 @@ import { Card, Select, Button } from '@/components/ui'
 import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '../../../lib/api.client'
 import { formatCurrency } from '../../../utils/formatters'
+import { getDateParamsForToken } from '../../../lib/dateFormat'
 import { Check, ChevronDown, RefreshCw, ArrowLeft } from '@tamagui/lucide-icons'
 import { useTheme } from 'tamagui'
 import { safeBack } from '../../../lib/navigation'
 
-type DateRange = 'today' | 'yesterday' | 'thisWeek' | 'thisMonth' | 'range'
+type DateToken = 'today' | 'yesterday' | 'week' | 'month' | 'year'
 
 export default function MisVentasScreen() {
   const theme = useTheme()
   const iconColor = (theme?.color as any)?.get?.() ?? '#000'
-  const [dateRange, setDateRange] = useState<DateRange>('today')
+  const [dateToken, setDateToken] = useState<DateToken>('today')
   const [page, setPage] = useState(1)
 
-  // Convertir DateRange local a parámetros del API
-  const getDateParams = (range: DateRange) => {
-    const today = new Date()
-    const oneWeekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
-    const oneMonthAgo = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate())
-
-    const formatDate = (d: Date) => d.toISOString().split('T')[0]
-
-    switch (range) {
-      case 'today':
-        return { date: 'today' as const }
-      case 'yesterday':
-        return { date: 'yesterday' as const }
-      case 'thisWeek':
-        return { date: 'range' as const, from: formatDate(oneWeekAgo), to: formatDate(today) }
-      case 'thisMonth':
-        return { date: 'range' as const, from: formatDate(oneMonthAgo), to: formatDate(today) }
-      case 'range':
-        return { date: 'range' as const }
-      default:
-        return { date: 'today' as const }
-    }
-  }
-
   const params = useMemo(() => {
-    const dateParams = getDateParams(dateRange)
+    const dateParams = getDateParamsForToken(dateToken)
     return { page, pageSize: 20, scope: 'mine', ...dateParams }
-  }, [page, dateRange])
+  }, [page, dateToken])
 
   const { data, isLoading, isFetching, refetch } = useQuery({
     queryKey: ['ventas', params],
@@ -86,7 +63,7 @@ export default function MisVentasScreen() {
           <XStack gap="$3" flexWrap="wrap" ai="flex-end">
             <YStack gap="$1" minWidth={220}>
               <Text fontSize="$3">Período</Text>
-              <Select value={dateRange} onValueChange={(v) => setDateRange(v as DateRange)}>
+              <Select value={dateToken} onValueChange={(v) => setDateToken(v as DateToken)}>
                 <Select.Trigger width={220} height={36} br="$4" bw={1} bc="$borderColor" backgroundColor="$background" iconAfter={ChevronDown}>
                   <Select.Value />
                 </Select.Trigger>
@@ -95,8 +72,9 @@ export default function MisVentasScreen() {
                     {([
                       { value: 'today', label: 'Hoy' },
                       { value: 'yesterday', label: 'Ayer' },
-                      { value: 'thisWeek', label: 'Últimos 7 días' },
-                      { value: 'thisMonth', label: 'Últimos 30 días' },
+                      { value: 'week', label: 'Esta Semana' },
+                      { value: 'month', label: 'Este Mes' },
+                      { value: 'year', label: 'Este Año' },
                     ] as const).map((it, idx) => (
                       <Select.Item key={it.value} value={it.value} index={idx}>
                         <Select.ItemText>{it.label}</Select.ItemText>

@@ -89,7 +89,97 @@ export function getTodayYYYYMMDD(): string {
 }
 
 /**
- * Get date range for timeframe filter
+ * Convert date token to API parameters
+ * Backend accepts: today|yesterday|week|month|year|range
+ * Returns { date, fromDate?, toDate? }
+ */
+export function getDateParamsForToken(
+  token: 'today' | 'yesterday' | 'week' | 'month' | 'year' | 'range',
+  customFrom?: string,
+  customTo?: string
+): { date: string; fromDate?: string; toDate?: string } {
+  const now = new Date()
+
+  // Adjust to CR timezone for calculations
+  const crFormatter = new Intl.DateTimeFormat('es-CR', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    timeZone: CR_TIMEZONE,
+  })
+
+  const parts = crFormatter.formatToParts(now)
+  const year = parseInt(parts.find((p) => p.type === 'year')?.value || '2025')
+  const month = parseInt(parts.find((p) => p.type === 'month')?.value || '1') - 1
+  const day = parseInt(parts.find((p) => p.type === 'day')?.value || '1')
+
+  const todayDate = new Date(year, month, day)
+  const yesterdayDate = new Date(year, month, day - 1)
+
+  let fromDate: Date
+  let toDate: Date
+
+  switch (token) {
+    case 'today': {
+      return { date: 'today' }
+    }
+
+    case 'yesterday': {
+      return { date: 'yesterday' }
+    }
+
+    case 'week': {
+      // Start of week (Monday)
+      const currentDay = now.getDay()
+      const diff = now.getDate() - currentDay + (currentDay === 0 ? -6 : 1)
+      fromDate = new Date(year, month, diff)
+      toDate = new Date(year, month, day)
+      return {
+        date: 'range',
+        fromDate: formatDateYYYYMMDD(fromDate),
+        toDate: formatDateYYYYMMDD(toDate),
+      }
+    }
+
+    case 'month': {
+      fromDate = new Date(year, month, 1)
+      toDate = new Date(year, month, day)
+      return {
+        date: 'range',
+        fromDate: formatDateYYYYMMDD(fromDate),
+        toDate: formatDateYYYYMMDD(toDate),
+      }
+    }
+
+    case 'year': {
+      fromDate = new Date(year, 0, 1)
+      toDate = new Date(year, month, day)
+      return {
+        date: 'range',
+        fromDate: formatDateYYYYMMDD(fromDate),
+        toDate: formatDateYYYYMMDD(toDate),
+      }
+    }
+
+    case 'range': {
+      if (!customFrom || !customTo) {
+        return { date: 'today' } // Fallback to today if no custom dates
+      }
+      return {
+        date: 'range',
+        fromDate: customFrom,
+        toDate: customTo,
+      }
+    }
+
+    default:
+      return { date: 'today' }
+  }
+}
+
+/**
+ * Get date range for timeframe filter (deprecated)
+ * Use getDateParamsForToken instead
  * Returns [fromDate, toDate] in YYYY-MM-DD format
  */
 export function getDateRangeForTimeframe(
