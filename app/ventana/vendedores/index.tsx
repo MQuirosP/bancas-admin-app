@@ -41,30 +41,56 @@ export default function VendedoresScreen() {
     const payload = (data as any)?.data ?? data
     if (Array.isArray(payload)) {
       // Respuesta directa es un array
-      vendedores = payload.map((item: any) => ({
-        id: item.key ?? item.id,
-        name: item.name,
-        total: Number(item.ventasTotal ?? item.total ?? 0),
-        tickets: Number(item.ticketsCount ?? item.tickets ?? 0),
-        payout: Number(item.payoutTotal ?? item.payout ?? 0),
-        neto: Number(item.neto ?? 0),
-        winnerTickets: Number(item.winnerTickets ?? item.ticketsWithWinners ?? 0),
-        paidTickets: Number(item.paidTickets ?? item.ticketsPaid ?? 0),
-        pendingPayment: Number(item.pendingPayment ?? item.ticketsPending ?? 0),
-      }))
+      vendedores = payload.map((item: any) => {
+        const tickets = Number(item.ticketsCount ?? item.tickets ?? 0)
+        // Calcular ganadores: tickets que tienen isWinner = true
+        const winnerTickets = (item.allTickets ?? []).filter((t: any) => t.isWinner).length
+        // Calcular pagados: tickets que tienen payments sin reversed
+        const paidTickets = (item.allTickets ?? []).filter((t: any) => {
+          const hasPayment = (t.payments ?? []).some((p: any) => !p.isReversed)
+          return hasPayment
+        }).length
+        // Pendientes = ganadores - pagados
+        const pendingPayment = Math.max(0, winnerTickets - paidTickets)
+
+        return {
+          id: item.key ?? item.id,
+          name: item.name,
+          total: Number(item.ventasTotal ?? item.total ?? 0),
+          tickets,
+          payout: Number(item.payoutTotal ?? item.payout ?? 0),
+          neto: Number(item.neto ?? 0),
+          winnerTickets,
+          paidTickets,
+          pendingPayment,
+        }
+      })
     } else if (Array.isArray(payload?.breakdown)) {
       // Breakdown es un array
-      vendedores = payload.breakdown.map((item: any) => ({
-        id: item.key ?? item.id,
-        name: item.name,
-        total: Number(item.ventasTotal ?? item.total ?? 0),
-        tickets: Number(item.ticketsCount ?? item.tickets ?? 0),
-        payout: Number(item.payoutTotal ?? item.payout ?? 0),
-        neto: Number(item.neto ?? 0),
-        winnerTickets: Number(item.winnerTickets ?? item.ticketsWithWinners ?? 0),
-        paidTickets: Number(item.paidTickets ?? item.ticketsPaid ?? 0),
-        pendingPayment: Number(item.pendingPayment ?? item.ticketsPending ?? 0),
-      }))
+      vendedores = payload.breakdown.map((item: any) => {
+        const tickets = Number(item.ticketsCount ?? item.tickets ?? 0)
+        // Calcular ganadores: tickets que tienen isWinner = true
+        const winnerTickets = (item.allTickets ?? []).filter((t: any) => t.isWinner).length
+        // Calcular pagados: tickets que tienen payments sin reversed
+        const paidTickets = (item.allTickets ?? []).filter((t: any) => {
+          const hasPayment = (t.payments ?? []).some((p: any) => !p.isReversed)
+          return hasPayment
+        }).length
+        // Pendientes = ganadores - pagados
+        const pendingPayment = Math.max(0, winnerTickets - paidTickets)
+
+        return {
+          id: item.key ?? item.id,
+          name: item.name,
+          total: Number(item.ventasTotal ?? item.total ?? 0),
+          tickets,
+          payout: Number(item.payoutTotal ?? item.payout ?? 0),
+          neto: Number(item.neto ?? 0),
+          winnerTickets,
+          paidTickets,
+          pendingPayment,
+        }
+      })
     }
   }
 
@@ -178,8 +204,8 @@ export default function VendedoresScreen() {
 
                     {/* Total Vendido */}
                     <YStack ai="center" gap="$0.5" minWidth={110}>
-                      <Text fontSize="$4" fontWeight="bold" color="$green10">{formatCurrency(v.total ?? 0)}</Text>
                       <Text fontSize="$1.5" color="$textSecondary" ta="center">Total</Text>
+                      <Text fontSize="$4" fontWeight="bold" color="$green10">{formatCurrency(v.total ?? 0)}</Text>
                     </YStack>
                   </XStack>
                 </Card>
