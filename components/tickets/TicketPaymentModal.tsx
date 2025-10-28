@@ -6,6 +6,7 @@ import { formatCurrency } from '@/utils/formatters'
 import { v4 as uuidv4 } from 'uuid'
 import { useToast } from '@/hooks/useToast'
 import type { PaymentMethod, CreatePaymentInput } from '@/types/payment.types'
+import DialogContentWrapper from './DialogContentWrapper'
 
 export type TicketForPayment = {
   id: string
@@ -141,7 +142,7 @@ const TicketPaymentModal = ({
           enterStyle={{ opacity: 0 }}
           exitStyle={{ opacity: 0 }}
         />
-        <Dialog.Content
+        <DialogContentWrapper
           key={`payment-content-${ticket?.id ?? ticket?.ticketNumber ?? 'temp'}`}
           bordered
           elevate
@@ -392,7 +393,7 @@ const TicketPaymentModal = ({
               </YStack>
             </Button>
           </XStack>
-        </Dialog.Content>
+        </DialogContentWrapper>
       </Dialog.Portal>
     </Dialog>
   )

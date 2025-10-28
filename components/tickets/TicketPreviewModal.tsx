@@ -5,6 +5,7 @@ import { X, TrendingUp } from '@tamagui/lucide-icons'
 import { formatCurrency } from '@/utils/formatters'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
+import DialogContentWrapper from './DialogContentWrapper'
 
 export type Jugada = {
   id: string
@@ -98,7 +99,7 @@ const TicketPreviewModalComponent = ({ isOpen, ticket, onClose }: TicketPreviewM
           enterStyle={{ opacity: 0 }}
           exitStyle={{ opacity: 0 }}
         />
-        <Dialog.Content
+        <DialogContentWrapper
           key={`preview-content-${calculations.displayNum}`}
           bordered
           elevate
@@ -327,9 +328,11 @@ const TicketPreviewModalComponent = ({ isOpen, ticket, onClose }: TicketPreviewM
             hoverStyle={{ backgroundColor: '$gray5' }}
             pressStyle={{ backgroundColor: '$gray6', scale: 0.98 }}
           >
-            Cerrar
+            <YStack ai="center">
+              <Text>Cerrar</Text>
+            </YStack>
           </Button>
-        </Dialog.Content>
+        </DialogContentWrapper>
       </Dialog.Portal>
     </Dialog>
   )
