@@ -2,7 +2,7 @@
  * Tipos para el módulo de pagos de tiquetes ganadores
  */
 
-export type PaymentMethod = 'CASH' | 'CHECK' | 'TRANSFER' | 'SYSTEM'
+export type PaymentMethod = 'cash' | 'check' | 'transfer' | 'system'
 
 export interface CreatePaymentInput {
   ticketId: string
