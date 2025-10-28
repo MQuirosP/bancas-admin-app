@@ -1,28 +1,21 @@
 import React from 'react'
-import { Dialog, DialogProps } from 'tamagui'
-
-interface DialogContentWrapperProps extends React.PropsWithChildren {
-  className?: string
-  style?: React.CSSProperties
-  [key: string]: any
-}
+import { Dialog } from 'tamagui'
 
 /**
- * Wrapper para Dialog.Content que resuelve el error TS2590
+ * Wrapper para Dialog.Content que evita el error TS2590
  * ("Expression produces a union type that is too complex to represent")
  *
- * Este error ocurre porque Dialog.Content de Tamagui tiene tipos genéricos
- * demasiado complejos para que TypeScript pueda inferir correctamente.
+ * Dialog.Content de Tamagui tiene tipos genéricos tan complejos que
+ * TypeScript no puede inferirlos. Este wrapper usa any para permitir
+ * que el componente se pase a través sin que TypeScript explote.
  *
- * Al envolver en este componente, reducimos la complejidad de tipos.
+ * Es seguro porque Dialog.Content es un componente controlado de Tamagui.
  */
-const DialogContentWrapper = React.forwardRef<HTMLDivElement, DialogContentWrapperProps>(
-  ({ children, ...props }, ref) => {
-    return (
-      <Dialog.Content ref={ref} {...props}>
-        {children}
-      </Dialog.Content>
-    )
+
+const DialogContentWrapper = React.forwardRef<any, any>(
+  function DialogContentWrapper(props, ref) {
+    // @ts-expect-error: Dialog.Content tiene generics demasiado complejos; safe passthrough
+    return <Dialog.Content ref={ref} {...props} />
   }
 )
 
