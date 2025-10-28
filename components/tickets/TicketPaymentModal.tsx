@@ -1,9 +1,10 @@
 import React, { useState, useMemo } from 'react'
-import { YStack, XStack, Text, Dialog, Spinner, VisuallyHidden } from 'tamagui'
+import { YStack, XStack, Text, Dialog, Spinner, VisuallyHidden, TextArea } from 'tamagui'
 import { Button, Input, Select, Card } from '@/components/ui'
 import { X, Check, ChevronDown } from '@tamagui/lucide-icons'
 import { formatCurrency } from '@/utils/formatters'
 import { v4 as uuidv4 } from 'uuid'
+import { useToast } from '@/hooks/useToast'
 import type { PaymentMethod, CreatePaymentInput } from '@/types/payment.types'
 
 export type TicketForPayment = {
@@ -41,6 +42,7 @@ const TicketPaymentModalComponent = ({
   onSubmit,
   isLoading,
 }: TicketPaymentModalProps) => {
+  const { success, error: showError } = useToast()
   const [amount, setAmount] = useState('')
   const [method, setMethod] = useState<PaymentMethod>('CASH')
   const [notes, setNotes] = useState('')
@@ -114,6 +116,9 @@ const TicketPaymentModalComponent = ({
 
       await onSubmit(input)
 
+      // Mostrar toast de éxito
+      success(`Pago de ${formatCurrency(parseFloat(amount))} registrado correctamente`)
+
       // Limpiar
       setAmount('')
       setMethod('CASH')
@@ -122,7 +127,9 @@ const TicketPaymentModalComponent = ({
       setErrors([])
       onClose()
     } catch (err: any) {
-      setErrors([err.message || 'Error al registrar pago'])
+      const errorMsg = err.message || 'Error al registrar pago'
+      showError(errorMsg)
+      setErrors([errorMsg])
     }
   }
 
@@ -213,18 +220,6 @@ const TicketPaymentModalComponent = ({
             </YStack>
           </Card>
 
-          {/* Errores */}
-          {errors.length > 0 && (
-            <Card padding="$3" backgroundColor="$red2" borderColor="$red8" borderWidth={1}>
-              <YStack gap="$1">
-                {errors.map((err, idx) => (
-                  <Text key={idx} fontSize="$2" color="$red11">
-                    • {err}
-                  </Text>
-                ))}
-              </YStack>
-            </Card>
-          )}
 
           {/* Formulario */}
           <YStack gap="$3">
@@ -301,13 +296,12 @@ const TicketPaymentModalComponent = ({
               <Text fontSize="$3" fontWeight="600">
                 Notas (Opcional)
               </Text>
-              <Input
+              <TextArea
                 placeholder="Observaciones sobre el pago..."
                 value={notes}
                 onChangeText={setNotes}
-                multiline
-                numberOfLines={2}
                 disabled={loading}
+                minHeight={60}
               />
             </YStack>
 
