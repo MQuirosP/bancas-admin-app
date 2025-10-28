@@ -159,19 +159,23 @@ export default function VentasReportScreen() {
               </YStack>
             </XStack>
 
-            {/* Fila 3: Neto */}
-            <XStack justifyContent="center" flexWrap="wrap" gap="$4">
-              <YStack ai="center" flex={1}>
-                <Text 
-                  fontSize="$7" 
-                  fontWeight="bold" 
-                  color={(summary?.neto ?? 0) >= 0 ? '$green10' : '$red10'}
-                >
-                  {(summary?.neto ?? 0) >= 0 ? '+' : ''}{formatCurrency(summary?.neto??0)}
-                </Text>
-                <Text fontSize="$2" color="$textSecondary">Neto (Ganancia/Pérdida)</Text>
-              </YStack>
-            </XStack>
+            {/* Neto Destacado */}
+            <YStack 
+              ai="center" 
+              marginTop="$4" 
+              paddingTop="$4" 
+              borderTopWidth={1} 
+              borderTopColor="$borderColor"
+            >
+              <Text 
+                fontSize="$10" 
+                fontWeight="bold" 
+                color={(summary?.neto ?? 0) >= 0 ? '$green10' : '$red10'}
+              >
+                {(summary?.neto ?? 0) >= 0 ? '+' : ''}{formatCurrency(summary?.neto??0)}
+              </Text>
+              <Text fontSize="$3" color="$textSecondary" marginTop="$1">Neto (Ganancia/Pérdida)</Text>
+            </YStack>
           </YStack>
         </Card>
 
