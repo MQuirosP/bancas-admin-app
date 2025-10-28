@@ -39,13 +39,16 @@ const TicketPaymentModalComponent = ({
   ticket,
   onClose,
   onSubmit,
-  isLoading = false,
-}: TicketPaymentModalProps) {
+  isLoading,
+}: TicketPaymentModalProps) => {
   const [amount, setAmount] = useState('')
   const [method, setMethod] = useState<PaymentMethod>('CASH')
   const [notes, setNotes] = useState('')
   const [isFinal, setIsFinal] = useState(false)
   const [errors, setErrors] = useState<string[]>([])
+
+  // Default isLoading to false if not provided
+  const loading = isLoading ?? false
 
   // Calcular payout pendiente
   const paymentInfo = useMemo(() => {
@@ -233,7 +236,7 @@ const TicketPaymentModalComponent = ({
                 value={amount}
                 onChangeText={setAmount}
                 inputMode="decimal"
-                disabled={paymentInfo.remaining <= 0 || isLoading}
+                disabled={paymentInfo.remaining <= 0 || loading}
               />
               {amount && amountNum > 0 && amountNum <= paymentInfo.remaining && (
                 <Text fontSize="$2" color="$green11">
@@ -250,7 +253,7 @@ const TicketPaymentModalComponent = ({
               <Select
                 value={method}
                 onValueChange={(v: any) => setMethod(v)}
-                disabled={isLoading}
+                disabled={loading}
               >
                 <Select.Trigger
                   width="100%"
@@ -302,7 +305,7 @@ const TicketPaymentModalComponent = ({
                 onChangeText={setNotes}
                 multiline
                 numberOfLines={2}
-                disabled={isLoading}
+                disabled={loading}
               />
             </YStack>
 
@@ -320,7 +323,7 @@ const TicketPaymentModalComponent = ({
                     type="checkbox"
                     checked={isFinal}
                     onCheckedChange={(checked) => setIsFinal(checked as boolean)}
-                    disabled={isLoading}
+                    disabled={loading}
                     width={20}
                     height={20}
                   />
@@ -338,7 +341,7 @@ const TicketPaymentModalComponent = ({
               size="$3"
               variant="secondary"
               onPress={onClose}
-              disabled={isLoading}
+              disabled={loading}
             >
               Cancelar
             </Button>
@@ -346,7 +349,7 @@ const TicketPaymentModalComponent = ({
               size="$3"
               onPress={handleSubmit}
               disabled={
-                isLoading ||
+                loading ||
                 !amount ||
                 !method ||
                 paymentInfo.remaining <= 0 ||
@@ -357,7 +360,7 @@ const TicketPaymentModalComponent = ({
               borderWidth={1}
               pressStyle={{ backgroundColor: '$green6', scale: 0.98 }}
             >
-              {isLoading ? <Spinner size="small" /> : 'Registrar Pago'}
+              {loading ? <Spinner size="small" /> : 'Registrar Pago'}
             </Button>
           </XStack>
         </Dialog.Content>
