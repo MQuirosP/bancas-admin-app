@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react'
-import { YStack, XStack, Text, Card, Modal } from 'tamagui'
+import { YStack, XStack, Text, Card, Dialog } from 'tamagui'
 import { Button, Input, Select } from '@/components/ui'
 import { useAuth } from '@/hooks/useAuth'
 import { useCreatePaymentMutation } from '@/hooks/useTicketPayments'
@@ -9,7 +9,7 @@ import { formatCurrency } from '@/lib/currency'
 import { formatDateTimeYYYYMMDD_HHMM } from '@/lib/dateFormat'
 import { formatErrorMessage } from '@/types/error.types'
 import { v4 as uuidv4 } from 'uuid'
-import { Role } from '@/types/auth.types'
+import DialogContentWrapper from '@/components/tickets/DialogContentWrapper'
 
 interface PaymentFormModalProps {
   isOpen: boolean
@@ -19,10 +19,11 @@ interface PaymentFormModalProps {
 }
 
 const PAYMENT_METHODS: Array<{ label: string; value: PaymentMethod }> = [
-  { label: 'Efectivo', value: 'cash' as PaymentMethod },
-  { label: 'Cheque', value: 'check' as PaymentMethod },
-  { label: 'Transferencia', value: 'transfer' as PaymentMethod },
-  { label: 'Sistema', value: 'system' as PaymentMethod },
+  { label: 'Efectivo', value: 'CASH' as PaymentMethod },
+  { label: 'Cheque', value: 'CHECK' as PaymentMethod },
+  { label: 'Transferencia', value: 'TRANSFER' as PaymentMethod },
+  { label: 'Sinpe Móvil', value: 'SINPE' as PaymentMethod },
+  { label: 'Sistema', value: 'SYSTEM' as PaymentMethod },
 ]
 
 export default function PaymentFormModal({
@@ -36,7 +37,7 @@ export default function PaymentFormModal({
   const createPaymentMutation = useCreatePaymentMutation()
 
   const [amountPaid, setAmountPaid] = useState('')
-  const [method, setMethod] = useState<PaymentMethod>('cash')
+  const [method, setMethod] = useState<PaymentMethod>('CASH')
   const [notes, setNotes] = useState('')
   const [isFinal, setIsFinal] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -117,7 +118,7 @@ export default function PaymentFormModal({
 
   const handleClose = () => {
     setAmountPaid('')
-    setMethod('cash')
+    setMethod('CASH')
     setNotes('')
     setIsFinal(false)
     setSubmitError('')
@@ -130,8 +131,25 @@ export default function PaymentFormModal({
   const isPartialPayment = parseFloat(amountPaid || '0') < totals.remaining
 
   return (
-    <Modal visible={isOpen} onOpenChange={handleClose}>
-      <Modal.Content maxWidth={600} padding="$4" gap="$4">
+    <Dialog modal open={isOpen} onOpenChange={handleClose}>
+      <Dialog.Portal>
+        <Dialog.Overlay
+          key="payment-overlay"
+          animation="quick"
+          opacity={0.5}
+          enterStyle={{ opacity: 0 }}
+          exitStyle={{ opacity: 0 }}
+        />
+        <DialogContentWrapper
+          key={`payment-content-${ticket?.id}`}
+          bordered
+          elevate
+          width="90%"
+          maxWidth={600}
+          padding="$4"
+          gap="$4"
+          backgroundColor="$background"
+        >
         <YStack gap="$4">
           {/* Encabezado */}
           <YStack>
@@ -143,27 +161,44 @@ export default function PaymentFormModal({
             </Text>
           </YStack>
 
-          {/* Información del tiquete */}
-          <Card padding="$3" backgroundColor="$gray2">
-            <YStack gap="$2">
-              <XStack jc="space-between">
-                <Text color="$gray10">Total Premio</Text>
-                <Text fontWeight="600">{formatCurrency(totals.totalPayout)}</Text>
-              </XStack>
-              <XStack jc="space-between">
-                <Text color="$gray10">Pagado</Text>
-                <Text fontWeight="600">{formatCurrency(totals.totalPaid)}</Text>
-              </XStack>
-              <XStack jc="space-between" borderTopWidth={1} borderTopColor="$borderColor" pt="$2">
-                <Text color="$gray10" fontWeight="600">
+          {/* Información del tiquete - Grid de celdas */}
+          <XStack gap="$2" jc="space-between">
+            {/* Total Premio */}
+            <Card flex={1} padding="$3" backgroundColor="$gray2" ai="center" jc="center" borderRadius="$3">
+              <YStack ai="center" gap="$1">
+                <Text fontSize="$2" color="$gray10" fontWeight="500">
+                  Total Premio
+                </Text>
+                <Text fontSize="$5" fontWeight="700" color="$blue11">
+                  {formatCurrency(totals.totalPayout)}
+                </Text>
+              </YStack>
+            </Card>
+
+            {/* Pagado */}
+            <Card flex={1} padding="$3" backgroundColor="$gray2" ai="center" jc="center" borderRadius="$3">
+              <YStack ai="center" gap="$1">
+                <Text fontSize="$2" color="$gray10" fontWeight="500">
+                  Pagado
+                </Text>
+                <Text fontSize="$5" fontWeight="700" color="$green11">
+                  {formatCurrency(totals.totalPaid)}
+                </Text>
+              </YStack>
+            </Card>
+
+            {/* Pendiente */}
+            <Card flex={1} padding="$3" backgroundColor="$error1" ai="center" jc="center" borderRadius="$3">
+              <YStack ai="center" gap="$1">
+                <Text fontSize="$2" color="$error" fontWeight="500">
                   Pendiente
                 </Text>
-                <Text fontWeight="700" fontSize="$5" color="$error">
+                <Text fontSize="$5" fontWeight="700" color="$error">
                   {formatCurrency(totals.remaining)}
                 </Text>
-              </XStack>
-            </YStack>
-          </Card>
+              </YStack>
+            </Card>
+          </XStack>
 
           {/* Formulario */}
           <YStack gap="$3">
@@ -186,99 +221,106 @@ export default function PaymentFormModal({
             <YStack gap="$1">
               <Text fontWeight="500">Método de Pago</Text>
               <Select value={method} onValueChange={(v) => setMethod(v as PaymentMethod)}>
-                {PAYMENT_METHODS.map((m) => (
-                  <Select.Item key={m.value} label={m.label} value={m.value} />
-                ))}
+                <Select.Trigger>
+                  <Select.Value />
+                </Select.Trigger>
+                <Select.Content>
+                  <Select.Viewport>
+                    {PAYMENT_METHODS.map((m, idx) => (
+                      <Select.Item key={m.value} value={m.value} index={idx}>
+                        <Select.ItemText>{m.label}</Select.ItemText>
+                      </Select.Item>
+                    ))}
+                  </Select.Viewport>
+                </Select.Content>
               </Select>
             </YStack>
 
-            {/* Notas */}
-            <YStack gap="$1">
-              <Text fontWeight="500">Notas (opcional)</Text>
-              <Input
-                placeholder="Agregar observaciones..."
-                value={notes}
-                onChangeText={setNotes}
-                multiline
-                numberOfLines={3}
-              />
+            {/* Checkbox para marcar como final (siempre reserva espacio con animación) */}
+            <YStack minHeight={90} jc="center">
+              {isPartialPayment && (
+                <Card
+                  padding="$2"
+                  borderColor="$warning"
+                  borderWidth={1}
+                  backgroundColor="$warning1"
+                  gap="$2"
+                  animation="quick"
+                  enterStyle={{ opacity: 0, y: -10 }}
+                  exitStyle={{ opacity: 0, y: -10 }}
+                >
+                  <XStack ai="center" gap="$2">
+                    <Card
+                      width={20}
+                      height={20}
+                      br="$2"
+                      bw={1}
+                      bc={isFinal ? '$warning' : '$borderColor'}
+                      bg={isFinal ? '$warning' : 'transparent'}
+                      ai="center"
+                      jc="center"
+                      cursor="pointer"
+                      onPress={() => setIsFinal(!isFinal)}
+                      animation="quick"
+                      enterStyle={{ scale: 0.8 }}
+                    >
+                      {isFinal && <Text fontSize="$2">✓</Text>}
+                    </Card>
+                    <YStack flex={1}>
+                      <Text fontWeight="500">Marcar como pago final</Text>
+                      <Text fontSize="$2" color="$gray10">
+                        El cliente acepta no recibir los{' '}
+                        {formatCurrency(totals.remaining - parseFloat(amountPaid || '0'))} restantes
+                      </Text>
+                    </YStack>
+                  </XStack>
+                </Card>
+              )}
             </YStack>
+          </YStack>
 
-            {/* Checkbox para marcar como final (si es pago parcial) */}
-            {isPartialPayment && (
-              <Card
-                padding="$2"
-                borderColor="$warning"
-                borderWidth={1}
-                backgroundColor="$warning1"
-                gap="$2"
-              >
-                <XStack ai="center" gap="$2">
-                  <Card
-                    width={20}
-                    height={20}
-                    br="$2"
-                    bw={1}
-                    bc={isFinal ? '$warning' : '$borderColor'}
-                    bg={isFinal ? '$warning' : 'transparent'}
-                    ai="center"
-                    jc="center"
-                    cursor="pointer"
-                    onPress={() => setIsFinal(!isFinal)}
-                  >
-                    {isFinal && <Text fontSize="$2">✓</Text>}
-                  </Card>
-                  <YStack flex={1}>
-                    <Text fontWeight="500">Marcar como pago final</Text>
-                    <Text fontSize="$2" color="$gray10">
-                      El cliente acepta no recibir los{' '}
-                      {formatCurrency(totals.remaining - parseFloat(amountPaid || '0'))} restantes
-                    </Text>
-                  </YStack>
-                </XStack>
+          {/* Validación - Solo si supera el pendiente */}
+          <YStack minHeight={60} jc="center">
+            {errors.some((e) => e.includes('no puede exceder')) && (
+              <Card padding="$3" backgroundColor="$error1" gap="$1">
+                <Text color="$error" fontSize="$2" fontWeight="500">
+                  ⚠️ El monto supera el pendiente
+                </Text>
+              </Card>
+            )}
+
+            {/* Errores de servidor */}
+            {submitError && (
+              <Card padding="$3" backgroundColor="$error1" gap="$1">
+                <Text color="$error" fontSize="$3" fontWeight="600">
+                  Error
+                </Text>
+                <Text color="$error" fontSize="$2">
+                  {submitError}
+                </Text>
               </Card>
             )}
           </YStack>
 
-          {/* Errores de validación */}
-          {errors.length > 0 && (
-            <Card padding="$3" backgroundColor="$error1" gap="$1">
-              {errors.map((error, idx) => (
-                <Text key={idx} color="$error" fontSize="$2">
-                  • {error}
-                </Text>
-              ))}
-            </Card>
-          )}
-
-          {/* Errores de servidor */}
-          {submitError && (
-            <Card padding="$3" backgroundColor="$error1" gap="$1">
-              <Text color="$error" fontSize="$3" fontWeight="600">
-                Error
-              </Text>
-              <Text color="$error" fontSize="$2">
-                {submitError}
-              </Text>
-            </Card>
-          )}
-
           {/* Botones */}
           <XStack gap="$2" jc="flex-end">
             <Button variant="ghost" onPress={handleClose}>
-              Cancelar
+              <Text>Cancelar</Text>
             </Button>
             <Button
               onPress={handleSubmit}
               disabled={!canSubmit}
-              theme="green"
+              backgroundColor="$green4"
+              borderColor="$green8"
+              borderWidth={1}
               opacity={canSubmit ? 1 : 0.5}
             >
-              Registrar Pago
+              <Text>Registrar Pago</Text>
             </Button>
           </XStack>
         </YStack>
-      </Modal.Content>
-    </Modal>
+        </DialogContentWrapper>
+      </Dialog.Portal>
+    </Dialog>
   )
 }

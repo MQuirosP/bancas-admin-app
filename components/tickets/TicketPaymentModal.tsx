@@ -243,7 +243,7 @@ const TicketPaymentModal = ({
                     </Text>
                   </YStack>
                 )}
-                {amount && amountNum > paymentInfo.remaining && (
+                {Boolean(amount) && amountNum > paymentInfo.remaining && (
                   <YStack>
                     <Text fontSize="$2" color="$red11">
                       El monto supera el pendiente

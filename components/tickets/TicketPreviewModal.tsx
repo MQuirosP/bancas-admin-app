@@ -280,59 +280,65 @@ const TicketPreviewModalComponent = ({ isOpen, ticket, onClose }: TicketPreviewM
                             borderWidth={hasWinner ? 2 : 1}
                           >
                             <YStack gap="$3">
-                              {/* Header con números */}
-                              <XStack ai="center" gap="$3" flexWrap="wrap" jc="space-between">
-                                <XStack ai="center" gap="$2" flex={1}>
+                              {/* Grid layout: jugadas izquierda, badges derecha */}
+                              <XStack gap="$4" jc="space-between" ai="flex-start">
+                                {/* Columnas de tipos con sus números, multiplicadores y apuestas */}
+                                <XStack gap="$3" flex={1}>
                                   {(jugadas as any).map((jugada: any, idx: number) => (
-                                    <XStack key={`num-${jugada.id || idx}`} ai="center" gap="$1">
-                                      <Text fontSize="$4" fontWeight="600">
-                                        {jugada.type}
-                                      </Text>
-                                      <Text fontSize="$4" fontWeight="700" color="$blue11" fontFamily="$mono">
-                                        {jugada.number}
-                                      </Text>
-                                      {jugada.finalMultiplierX !== undefined && (
-                                        <Text fontSize="$3" fontWeight="600" color="$purple11">
-                                          · {jugada.finalMultiplierX}x
+                                    <XStack key={`num-${jugada.id || idx}`} gap="$1" ai="flex-start">
+                                      <YStack ai="center" gap="$1">
+                                        {/* Type + Number en la misma línea */}
+                                        <XStack ai="center" gap="$1">
+                                          <Text fontSize="$4" fontWeight="600">
+                                            {jugada.type}:
+                                          </Text>
+                                          <Text fontSize="$6" fontWeight="700" color="$blue11" fontFamily="$mono">
+                                            {jugada.number}
+                                          </Text>
+                                        </XStack>
+                                        {/* Multiplicador con color según tipo */}
+                                        {jugada.finalMultiplierX !== undefined && (
+                                          <Text
+                                            fontSize="$3"
+                                            fontWeight="600"
+                                            color={jugada.type === 'NUMERO' ? '$yellow10' : '$orange10'}
+                                          >
+                                            {jugada.finalMultiplierX}x
+                                          </Text>
+                                        )}
+                                        {/* Monto sin etiqueta */}
+                                        <Text fontSize="$3" fontWeight="600">
+                                          {formatCurrency(jugada.amount || 0)}
                                         </Text>
-                                      )}
+                                      </YStack>
                                       {idx < (jugadas as any).length - 1 && (
-                                        <Text fontSize="$3" color="$textSecondary">
+                                        <Text fontSize="$4" color="$textSecondary" alignSelf="center">
                                           -
                                         </Text>
                                       )}
                                     </XStack>
                                   ))}
                                 </XStack>
+
+                                {/* Badges lado a lado */}
                                 {hasWinner && (
-                                  <XStack bg="$green4" px="$2" py="$1" br="$2" bw={1} bc="$green8">
-                                    <Text fontSize="$2" fontWeight="700" color="$green11">
-                                      GANADOR
-                                    </Text>
+                                  <XStack gap="$2" ai="center">
+                                    <XStack bg="$green4" px="$3" py="$2" br="$2" bw={1} bc="$green8" ai="center" jc="center">
+                                      <Text fontSize="$2" fontWeight="700" color="$green11">
+                                        GANADOR
+                                      </Text>
+                                    </XStack>
+                                    {totalPayout > 0 && (
+                                      <YStack ai="center" gap="$0" padding="$2" backgroundColor="$green1" borderRadius="$2">
+                                        <Text fontSize="$2" color="$textSecondary" fontWeight="600">
+                                          Premio
+                                        </Text>
+                                        <Text fontSize="$4" fontWeight="700" color="$green11">
+                                          {formatCurrency(totalPayout)}
+                                        </Text>
+                                      </YStack>
+                                    )}
                                   </XStack>
-                                )}
-                              </XStack>
-
-                              {/* Montos */}
-                              <XStack gap="$4" jc="space-between" flexWrap="wrap">
-                                <YStack gap="$1">
-                                  <Text fontSize="$2" color="$textSecondary" fontWeight="600">
-                                    Apuesta
-                                  </Text>
-                                  <Text fontSize="$3" fontWeight="600">
-                                    {formatCurrency(totalAmount)}
-                                  </Text>
-                                </YStack>
-
-                                {hasWinner && totalPayout > 0 && (
-                                  <YStack gap="$1">
-                                    <Text fontSize="$2" color="$textSecondary" fontWeight="600">
-                                      Premio
-                                    </Text>
-                                    <Text fontSize="$4" fontWeight="700" color="$green11">
-                                      {formatCurrency(totalPayout)}
-                                    </Text>
-                                  </YStack>
                                 )}
                               </XStack>
                             </YStack>
