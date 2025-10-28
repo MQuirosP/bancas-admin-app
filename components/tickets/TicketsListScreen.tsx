@@ -516,6 +516,7 @@ export default function TicketsListScreen({ scope }: Props) {
 
     {/* Modals */}
     <TicketPreviewModal
+      key="ticket-preview-modal"
       isOpen={previewOpen}
       ticket={previewTicket}
       onClose={() => {
@@ -525,6 +526,7 @@ export default function TicketsListScreen({ scope }: Props) {
     />
 
     <TicketPaymentModal
+      key="ticket-payment-modal"
       isOpen={paymentOpen}
       ticket={paymentTicket}
       onClose={() => {
