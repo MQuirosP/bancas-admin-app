@@ -21,16 +21,7 @@ export default function VendedoresScreen() {
     staleTime: 60_000,
   })
 
-  // Log para debugging - ver estructura del servidor
-  if (data) {
-    const payload = (data as any)?.data ?? data
-    console.log('Vendedores response:', { data, payload })
-    if (Array.isArray(payload)) {
-      console.log('First vendor:', payload[0])
-    }
-  }
-
-  // Extraer vendedores del breakdown con estadísticas completas
+  // Extraer vendedores del breakdown
   let vendedores: Array<{
     id?: string
     name?: string
@@ -48,56 +39,34 @@ export default function VendedoresScreen() {
     if (Array.isArray(payload)) {
       // Respuesta directa es un array
       vendedores = payload.map((item: any) => {
-        const tickets = Number(item.ticketsCount ?? item.tickets ?? 0)
-        // Calcular ganadores: tickets que tienen isWinner = true
-        const winnerTickets = (item.allTickets ?? []).filter((t: any) => t.isWinner).length
-        // Calcular pagados: tickets que tienen payments sin reversed
-        const paidTickets = (item.allTickets ?? []).filter((t: any) => {
-          const hasPayment = (t.payments ?? []).some((p: any) => !p.isReversed)
-          return hasPayment
-        }).length
-        // Pendientes = ganadores - pagados
-        const pendingPayment = Math.max(0, winnerTickets - paidTickets)
-
-        const result = {
-          id: item.key ?? item.id,
-          name: item.name,
-          total: Number(item.ventasTotal ?? item.total ?? 0),
-          tickets,
-          payout: Number(item.payoutTotal ?? item.payout ?? 0),
-          neto: Number(item.neto ?? 0),
-          winnerTickets,
-          paidTickets,
-          pendingPayment,
-        }
-        console.log(`Vendedor ${item.name}:`, {
-          allTicketsLength: (item.allTickets ?? []).length,
-          tickets,
-          winnerTickets,
-          paidTickets,
-          pendingPayment
-        })
-        return result
-      })
-    } else if (Array.isArray(payload?.breakdown)) {
-      // Breakdown es un array
-      vendedores = payload.breakdown.map((item: any) => {
-        const tickets = Number(item.ticketsCount ?? item.tickets ?? 0)
-        // Calcular ganadores: tickets que tienen isWinner = true
-        const winnerTickets = (item.allTickets ?? []).filter((t: any) => t.isWinner).length
-        // Calcular pagados: tickets que tienen payments sin reversed
-        const paidTickets = (item.allTickets ?? []).filter((t: any) => {
-          const hasPayment = (t.payments ?? []).some((p: any) => !p.isReversed)
-          return hasPayment
-        }).length
-        // Pendientes = ganadores - pagados
+        const winnerTickets = Number(item.totalWinningTickets ?? item.winnerTickets ?? 0)
+        const paidTickets = Number(item.totalPaidTickets ?? item.paidTickets ?? 0)
         const pendingPayment = Math.max(0, winnerTickets - paidTickets)
 
         return {
           id: item.key ?? item.id,
           name: item.name,
           total: Number(item.ventasTotal ?? item.total ?? 0),
-          tickets,
+          tickets: Number(item.ticketsCount ?? item.tickets ?? 0),
+          payout: Number(item.payoutTotal ?? item.payout ?? 0),
+          neto: Number(item.neto ?? 0),
+          winnerTickets,
+          paidTickets,
+          pendingPayment,
+        }
+      })
+    } else if (Array.isArray(payload?.breakdown)) {
+      // Breakdown es un array
+      vendedores = payload.breakdown.map((item: any) => {
+        const winnerTickets = Number(item.totalWinningTickets ?? item.winnerTickets ?? 0)
+        const paidTickets = Number(item.totalPaidTickets ?? item.paidTickets ?? 0)
+        const pendingPayment = Math.max(0, winnerTickets - paidTickets)
+
+        return {
+          id: item.key ?? item.id,
+          name: item.name,
+          total: Number(item.ventasTotal ?? item.total ?? 0),
+          tickets: Number(item.ticketsCount ?? item.tickets ?? 0),
           payout: Number(item.payoutTotal ?? item.payout ?? 0),
           neto: Number(item.neto ?? 0),
           winnerTickets,
