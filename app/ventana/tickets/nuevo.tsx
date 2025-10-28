@@ -9,6 +9,7 @@ import { authService } from '@/services/auth.service'
 import { Sorteo, SorteoStatus, CreateTicketRequest, RestrictionRule } from '@/types/models.types'
 import { useToast } from '@/hooks/useToast'
 import TicketForm from '@/components/tickets/TicketForm'
+import { safeBack } from '@/lib/navigation'
 
 type ListResp<T> = T[] | { data: T[]; meta?: any }
 function toArray<T>(payload: ListResp<T> | undefined | null): T[] {
@@ -29,10 +30,6 @@ export default function VentanaNuevoTicket() {
       }).catch(()=>{})
     }
   }, [user?.ventanaId])
-
-  const safeBack = () => {
-    router.replace('/ventana')
-  }
 
   const { data: sorteosResp, isLoading: loadingSorteos } = useQuery<ListResp<Sorteo>>({
     queryKey: ['sorteos', 'open'],
@@ -64,7 +61,7 @@ export default function VentanaNuevoTicket() {
       const num = created?.ticketNumber ?? res?.data?.ticketNumber
       success(`Tiquete ${num ? `#${num} ` : ''}creado correctamente`)
       if (ticketId) router.replace(`/ventana/tickets/${ticketId}` as any)
-      else safeBack()
+      else safeBack('/ventana')
     },
     onError: (err: ApiErrorClass) => {
       error(err?.message ?? 'No se pudo crear el tiquete')
@@ -80,7 +77,7 @@ export default function VentanaNuevoTicket() {
           user={user}
           restrictionsLoading={loadingSorteos || loadingRestrictions}
           loading={createTicketMutation.isPending}
-          onCancel={safeBack}
+          onCancel={() => safeBack('/ventana')}
           vendorMode="ventana"
           onSubmit={(payload) => createTicketMutation.mutate(payload)}
         />
