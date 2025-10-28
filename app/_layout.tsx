@@ -1,9 +1,9 @@
 // app/_layout.tsx
-import React, { useEffect } from 'react'
+import React from 'react'
 import '../lib/patch-animated'
-import { Slot, useRouter, useSegments } from 'expo-router'
+import { Slot, useSegments } from 'expo-router'
 import { TamaguiProvider } from 'tamagui'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
 import config from '@/tamagui.config'
 import { useThemeStore } from '@/store/theme.store'
 import { SystemThemeSync } from '@/components/theme/SystemThemeSync'
@@ -11,21 +11,15 @@ import { LogBox } from 'react-native'
 import { useAuthStore } from '@/store/auth.store'
 import { ToastProvider } from '@/components/ui/Toast'
 import { MainLayout } from '@/components/layout/MainLayout'
-import { ErrorBoundary } from '@/components/ErrorBoundary' // importamos el boundary
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { installGlobalErrorHooks } from '../lib/global-error-hooks'
+import { queryClient } from '../lib/queryClient' // ✅ Importar QueryClient centralizado
 
 installGlobalErrorHooks()
 
 LogBox.ignoreLogs(['Animated: `useNativeDriver` is not supported'])
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: { retry: 2, staleTime: 1000 * 60 * 5 },
-  },
-})
-
 function AuthGateWrapper() {  
-  const { isAuthenticated, isHydrating } = useAuthStore();  
   const segments = useSegments();  
   
   // ELIMINADO TODO EL useEffect  
