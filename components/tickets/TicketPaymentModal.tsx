@@ -177,7 +177,7 @@ const TicketPaymentModal = ({
           </XStack>
 
           {/* Content */}
-          <YStack gap="$3" flex={1} overflow="auto">
+          <YStack gap="$3" flex={1} overflow="unset">
             {/* Info del tiquete */}
             <Card padding="$3" backgroundColor="$backgroundHover" borderColor="$borderColor" borderWidth={1}>
               <YStack gap="$2">
