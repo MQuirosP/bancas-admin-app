@@ -199,7 +199,7 @@ export default function AdminDashboard() {
 
         {/* Quick Stats (arriba) */}
         {/* Quick Stats en una sola fila, centradas y de alto uniforme */}
-        <XStack gap="$7" marginTop="$2" jc="center" flexWrap="wrap">
+        <XStack gap="$3" marginTop="$2" jc="center" flexWrap="wrap">
           {stats.map((s) => {
             const isOpen = openIds.has(s.key)
             return (
@@ -211,8 +211,8 @@ export default function AdminDashboard() {
                 maxWidth="16.3%"
                 $lg={{ flexBasis: '16.3%', maxWidth: '16.3%' }}
                 $md={{ flexBasis: '20%', maxWidth: '20%' }}
-                $sm={{ flexBasis: '33.33%', maxWidth: '33.33%' }}
-                $xs={{ flexBasis: '50%', maxWidth: '50%' }}
+                $sm={{ flexBasis: '48%', maxWidth: '48%' }}
+                $xs={{ flexBasis: '48%', maxWidth: '48%' }}
                 minHeight={isOpen ? 95 : 90}
                 padding="$2"
                 backgroundColor="$backgroundStrong"
