@@ -145,45 +145,43 @@ export default function VendedoresScreen() {
             <YStack gap="$2">
               {vendedores.map((v, i) => (
                 <Card key={v.id || i} padding="$4" hoverStyle={{ backgroundColor: '$backgroundHover' }}>
-                  <YStack gap="$3">
+                  <YStack gap="$2">
                     {/* Nombre y Total Vendido */}
-                    <XStack jc="space-between" ai="flex-start" gap="$3" flexWrap="wrap">
+                    <XStack jc="space-between" ai="center" gap="$3" flexWrap="wrap">
                       <XStack ai="center" gap="$2" flex={1} minWidth={150}>
                         <TrendingUp size={16} color="$primary" />
-                        <YStack gap="$1">
-                          <Text fontSize="$4" fontWeight="600">{v.name || v.id || '—'}</Text>
-                        </YStack>
+                        <Text fontSize="$4" fontWeight="600">{v.name || v.id || '—'}</Text>
                       </XStack>
-                      <YStack ai="flex-end" gap="$1">
-                        <Text fontSize="$2" color="$textSecondary">Total Vendido</Text>
-                        <Text fontSize="$5" fontWeight="bold" color="$green10">{formatCurrency(v.total ?? 0)}</Text>
+                      <YStack ai="center" gap="$0.5">
+                        <Text fontSize="$2" color="$textSecondary" ta="center">Total Vendido</Text>
+                        <Text fontSize="$5" fontWeight="bold" color="$green10" ta="center">{formatCurrency(v.total ?? 0)}</Text>
                       </YStack>
                     </XStack>
 
-                    {/* Estadísticas en grid - 4 columnas */}
-                    <XStack gap="$3" flexWrap="wrap">
+                    {/* Estadísticas en una línea - estilo resumen */}
+                    <XStack jc="space-around" ai="center" gap="$4" flexWrap="wrap">
                       {/* Tiquetes vendidos - SIEMPRE */}
-                      <YStack gap="$1" flex={1} minWidth={110}>
-                        <Text fontSize="$2" color="$textSecondary">Tiquetes Vendidos</Text>
-                        <Text fontSize="$4" fontWeight="bold" color="$primary">{v.tickets ?? 0}</Text>
+                      <YStack ai="center" gap="$0.5">
+                        <Text fontSize="$2" color="$textSecondary" ta="center">Tiquetes Vendidos</Text>
+                        <Text fontSize="$5" fontWeight="bold" color="$primary" ta="center">{v.tickets ?? 0}</Text>
                       </YStack>
 
                       {/* Tiquetes ganadores - SIEMPRE */}
-                      <YStack gap="$1" flex={1} minWidth={110}>
-                        <Text fontSize="$2" color="$textSecondary">Ganadores</Text>
-                        <Text fontSize="$4" fontWeight="bold" color="$orange10">{v.winnerTickets ?? 0}</Text>
+                      <YStack ai="center" gap="$0.5">
+                        <Text fontSize="$2" color="$textSecondary" ta="center">Ganadores</Text>
+                        <Text fontSize="$5" fontWeight="bold" color="$orange10" ta="center">{v.winnerTickets ?? 0}</Text>
                       </YStack>
 
                       {/* Tiquetes pagados - SIEMPRE */}
-                      <YStack gap="$1" flex={1} minWidth={110}>
-                        <Text fontSize="$2" color="$textSecondary">Pagados</Text>
-                        <Text fontSize="$4" fontWeight="bold" color="$blue10">{v.paidTickets ?? 0}</Text>
+                      <YStack ai="center" gap="$0.5">
+                        <Text fontSize="$2" color="$textSecondary" ta="center">Pagados</Text>
+                        <Text fontSize="$5" fontWeight="bold" color="$blue10" ta="center">{v.paidTickets ?? 0}</Text>
                       </YStack>
 
                       {/* Pendientes de pagar - SIEMPRE */}
-                      <YStack gap="$1" flex={1} minWidth={110}>
-                        <Text fontSize="$2" color="$textSecondary">Pendientes</Text>
-                        <Text fontSize="$4" fontWeight="bold" color="$yellow10">{v.pendingPayment ?? 0}</Text>
+                      <YStack ai="center" gap="$0.5">
+                        <Text fontSize="$2" color="$textSecondary" ta="center">Pendientes</Text>
+                        <Text fontSize="$5" fontWeight="bold" color="$yellow10" ta="center">{v.pendingPayment ?? 0}</Text>
                       </YStack>
                     </XStack>
                   </YStack>
