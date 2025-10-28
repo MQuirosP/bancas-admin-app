@@ -146,62 +146,45 @@ export default function VendedoresScreen() {
               {vendedores.map((v, i) => (
                 <Card key={v.id || i} padding="$4" hoverStyle={{ backgroundColor: '$backgroundHover' }}>
                   <YStack gap="$3">
-                    {/* Nombre y total vendido */}
-                    <XStack jc="space-between" ai="center" gap="$3" flexWrap="wrap">
+                    {/* Nombre y Total Vendido */}
+                    <XStack jc="space-between" ai="flex-start" gap="$3" flexWrap="wrap">
                       <XStack ai="center" gap="$2" flex={1} minWidth={150}>
                         <TrendingUp size={16} color="$primary" />
-                        <Text fontSize="$4" fontWeight="600">{v.name || v.id || '—'}</Text>
+                        <YStack gap="$1">
+                          <Text fontSize="$4" fontWeight="600">{v.name || v.id || '—'}</Text>
+                        </YStack>
                       </XStack>
-                      <Text fontSize="$5" fontWeight="bold" color="$green10">{formatCurrency(v.total ?? 0)}</Text>
+                      <YStack ai="flex-end" gap="$1">
+                        <Text fontSize="$2" color="$textSecondary">Total Vendido</Text>
+                        <Text fontSize="$5" fontWeight="bold" color="$green10">{formatCurrency(v.total ?? 0)}</Text>
+                      </YStack>
                     </XStack>
 
-                    {/* Estadísticas en grid */}
+                    {/* Estadísticas en grid - 4 columnas */}
                     <XStack gap="$3" flexWrap="wrap">
-                      {/* Tiquetes vendidos */}
-                      <YStack gap="$1" flex={1} minWidth={100}>
+                      {/* Tiquetes vendidos - SIEMPRE */}
+                      <YStack gap="$1" flex={1} minWidth={110}>
                         <Text fontSize="$2" color="$textSecondary">Tiquetes Vendidos</Text>
                         <Text fontSize="$4" fontWeight="bold" color="$primary">{v.tickets ?? 0}</Text>
                       </YStack>
 
-                      {/* Tiquetes ganadores */}
-                      {(v.winnerTickets ?? 0) > 0 && (
-                        <YStack gap="$1" flex={1} minWidth={100}>
-                          <Text fontSize="$2" color="$textSecondary">Tiquetes Ganadores</Text>
-                          <Text fontSize="$4" fontWeight="bold" color="$orange10">{v.winnerTickets ?? 0}</Text>
-                        </YStack>
-                      )}
+                      {/* Tiquetes ganadores - SIEMPRE */}
+                      <YStack gap="$1" flex={1} minWidth={110}>
+                        <Text fontSize="$2" color="$textSecondary">Ganadores</Text>
+                        <Text fontSize="$4" fontWeight="bold" color="$orange10">{v.winnerTickets ?? 0}</Text>
+                      </YStack>
 
-                      {/* Tiquetes pagados */}
-                      {(v.paidTickets ?? 0) > 0 && (
-                        <YStack gap="$1" flex={1} minWidth={100}>
-                          <Text fontSize="$2" color="$textSecondary">Pagados</Text>
-                          <Text fontSize="$4" fontWeight="bold" color="$blue10">{v.paidTickets ?? 0}</Text>
-                        </YStack>
-                      )}
+                      {/* Tiquetes pagados - SIEMPRE */}
+                      <YStack gap="$1" flex={1} minWidth={110}>
+                        <Text fontSize="$2" color="$textSecondary">Pagados</Text>
+                        <Text fontSize="$4" fontWeight="bold" color="$blue10">{v.paidTickets ?? 0}</Text>
+                      </YStack>
 
-                      {/* Pendientes de pagar */}
-                      {(v.pendingPayment ?? 0) > 0 && (
-                        <YStack gap="$1" flex={1} minWidth={100}>
-                          <Text fontSize="$2" color="$textSecondary">Pendientes</Text>
-                          <Text fontSize="$4" fontWeight="bold" color="$yellow10">{v.pendingPayment ?? 0}</Text>
-                        </YStack>
-                      )}
-
-                      {/* Payout (comisión) */}
-                      {(v.payout ?? 0) > 0 && (
-                        <YStack gap="$1" flex={1} minWidth={100}>
-                          <Text fontSize="$2" color="$textSecondary">Comisión</Text>
-                          <Text fontSize="$4" fontWeight="bold" color="$purple10">{formatCurrency(v.payout ?? 0)}</Text>
-                        </YStack>
-                      )}
-
-                      {/* Neto */}
-                      {(v.neto ?? 0) > 0 && (
-                        <YStack gap="$1" flex={1} minWidth={100}>
-                          <Text fontSize="$2" color="$textSecondary">Neto</Text>
-                          <Text fontSize="$4" fontWeight="bold" color="$cyan10">{formatCurrency(v.neto ?? 0)}</Text>
-                        </YStack>
-                      )}
+                      {/* Pendientes de pagar - SIEMPRE */}
+                      <YStack gap="$1" flex={1} minWidth={110}>
+                        <Text fontSize="$2" color="$textSecondary">Pendientes</Text>
+                        <Text fontSize="$4" fontWeight="bold" color="$yellow10">{v.pendingPayment ?? 0}</Text>
+                      </YStack>
                     </XStack>
                   </YStack>
                 </Card>
