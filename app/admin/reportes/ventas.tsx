@@ -132,46 +132,125 @@ export default function VentasReportScreen() {
         </Card>
 
         {/* KPIs */}
-        <XStack gap="$3" flexWrap="wrap">
-          <Card padding="$4" flex={1} minWidth={220}><Text fontSize="$2" color="$textSecondary">Ventas Totales</Text><Text fontSize="$7" fontWeight="700">{formatCurrency(summary?.ventasTotal??0)}</Text></Card>
-          <Card padding="$4" flex={1} minWidth={220}><Text fontSize="$2" color="$textSecondary">Tickets</Text><Text fontSize="$7" fontWeight="700">{summary?.ticketsCount ?? 0}</Text></Card>
-          <Card padding="$4" flex={1} minWidth={220}><Text fontSize="$2" color="$textSecondary">Jugadas</Text><Text fontSize="$7" fontWeight="700">{summary?.jugadasCount ?? 0}</Text></Card>
-          <Card padding="$4" flex={1} minWidth={220}><Text fontSize="$2" color="$textSecondary">Payout</Text><Text fontSize="$7" fontWeight="700">{formatCurrency(summary?.payoutTotal??0)}</Text></Card>
-          <Card padding="$4" flex={1} minWidth={220}><Text fontSize="$2" color="$textSecondary">Neto</Text><Text fontSize="$7" fontWeight="700">{formatCurrency(summary?.neto??0)}</Text></Card>
-        </XStack>
+        <Card padding="$4" bg="$backgroundHover" borderColor="$borderColor" borderWidth={1}>
+          <Text fontSize="$5" fontWeight="600" marginBottom="$3">Resumen de Ventas</Text>
+          <YStack gap="$3">
+            {/* Fila 1: Ventas y Tickets */}
+            <XStack justifyContent="space-around" flexWrap="wrap" gap="$4">
+              <YStack ai="center" flex={1} minWidth={140}>
+                <Text fontSize="$7" fontWeight="bold" color="$green10">{formatCurrency(summary?.ventasTotal??0)}</Text>
+                <Text fontSize="$2" color="$textSecondary">Ventas Totales</Text>
+              </YStack>
+              <YStack ai="center" flex={1} minWidth={140}>
+                <Text fontSize="$7" fontWeight="bold" color="$primary">{summary?.ticketsCount ?? 0}</Text>
+                <Text fontSize="$2" color="$textSecondary">Tickets</Text>
+              </YStack>
+            </XStack>
+
+            {/* Fila 2: Jugadas y Payout */}
+            <XStack justifyContent="space-around" flexWrap="wrap" gap="$4">
+              <YStack ai="center" flex={1} minWidth={140}>
+                <Text fontSize="$6" fontWeight="bold" color="$blue10">{summary?.jugadasCount ?? 0}</Text>
+                <Text fontSize="$2" color="$textSecondary">Jugadas</Text>
+              </YStack>
+              <YStack ai="center" flex={1} minWidth={140}>
+                <Text fontSize="$6" fontWeight="bold" color="$orange10">{formatCurrency(summary?.payoutTotal??0)}</Text>
+                <Text fontSize="$2" color="$textSecondary">Payout</Text>
+              </YStack>
+            </XStack>
+
+            {/* Fila 3: Neto */}
+            <XStack justifyContent="center" flexWrap="wrap" gap="$4">
+              <YStack ai="center" flex={1}>
+                <Text 
+                  fontSize="$7" 
+                  fontWeight="bold" 
+                  color={(summary?.neto ?? 0) >= 0 ? '$green10' : '$red10'}
+                >
+                  {(summary?.neto ?? 0) >= 0 ? '+' : ''}{formatCurrency(summary?.neto??0)}
+                </Text>
+                <Text fontSize="$2" color="$textSecondary">Neto (Ganancia/Pérdida)</Text>
+              </YStack>
+            </XStack>
+          </YStack>
+        </Card>
 
         {/* Breakdown */}
-        <Card padding="$4" borderColor="$borderColor" borderWidth={1}>
-          <Text fontSize="$5" fontWeight="600" mb="$2">Top {dimension}</Text>
+        <Card padding="$4" bg="$backgroundHover" borderColor="$borderColor" borderWidth={1}>
+          <Text fontSize="$5" fontWeight="600" mb="$3" color="$textPrimary">
+            Top {dimension.charAt(0).toUpperCase() + dimension.slice(1)}es
+          </Text>
           {fetchingBreak ? (
-            <Spinner />
+            <XStack jc="center" py="$4">
+              <Spinner />
+            </XStack>
           ) : (
             <YStack gap="$2">
               {(breakdown ?? []).map((it: BreakdownItem, i: number) => (
-                <XStack key={it.key} jc="space-between" ai="center" borderBottomWidth={1} borderBottomColor="$borderColor" py="$2">
-                  <Text fontWeight="600">{i+1}. {it.name ?? it.key}</Text>
-                  <Text>{formatCurrency(it.ventasTotal)}</Text>
+                <XStack 
+                  key={it.key} 
+                  jc="space-between" 
+                  ai="center" 
+                  borderBottomWidth={i < (breakdown?.length ?? 0) - 1 ? 1 : 0} 
+                  borderBottomColor="$borderColor" 
+                  py="$2"
+                  px="$2"
+                  br="$2"
+                  hoverStyle={{ backgroundColor: '$backgroundPress' }}
+                >
+                  <XStack ai="center" gap="$2" flex={1}>
+                    <Text fontSize="$3" fontWeight="700" color="$primary" minWidth={24}>#{i+1}</Text>
+                    <Text fontSize="$4" fontWeight="600" color="$textPrimary">{it.name ?? it.key}</Text>
+                  </XStack>
+                  <Text fontSize="$5" fontWeight="bold" color="$green10">{formatCurrency(it.ventasTotal)}</Text>
                 </XStack>
               ))}
-              {(breakdown ?? []).length===0 && <Text color="$textSecondary">Sin datos</Text>}
+              {(breakdown ?? []).length===0 && (
+                <YStack ai="center" py="$4">
+                  <Text color="$textSecondary">Sin datos disponibles</Text>
+                </YStack>
+              )}
             </YStack>
           )}
         </Card>
 
         {/* Series (simple list) */}
-        <Card padding="$4" borderColor="$borderColor" borderWidth={1}>
-          <Text fontSize="$5" fontWeight="600" mb="$2">Serie (día)</Text>
+        <Card padding="$4" bg="$backgroundHover" borderColor="$borderColor" borderWidth={1}>
+          <Text fontSize="$5" fontWeight="600" mb="$3" color="$textPrimary">Serie Temporal (por día)</Text>
           {fetchingSeries ? (
-            <Spinner />
+            <XStack jc="center" py="$4">
+              <Spinner />
+            </XStack>
           ) : (
-            <YStack gap="$1">
-              {(series ?? []).map((p: TimeseriesPoint) => (
-                <XStack key={p.ts} jc="space-between">
-                  <Text>{new Date(p.ts).toLocaleDateString()}</Text>
-                  <Text>{formatCurrency(p.ventasTotal)}</Text>
+            <YStack gap="$2">
+              {(series ?? []).map((p: TimeseriesPoint, idx: number) => (
+                <XStack 
+                  key={p.ts} 
+                  jc="space-between" 
+                  ai="center"
+                  borderBottomWidth={idx < (series?.length ?? 0) - 1 ? 1 : 0}
+                  borderBottomColor="$borderColor"
+                  py="$2"
+                  px="$2"
+                  br="$2"
+                  hoverStyle={{ backgroundColor: '$backgroundPress' }}
+                >
+                  <Text fontSize="$4" fontWeight="500" color="$textPrimary">
+                    {new Date(p.ts).toLocaleDateString('es-CR', { 
+                      weekday: 'short', 
+                      year: 'numeric', 
+                      month: 'short', 
+                      day: 'numeric' 
+                    })}
+                  </Text>
+                  <Text fontSize="$5" fontWeight="bold" color="$blue10">{formatCurrency(p.ventasTotal)}</Text>
                 </XStack>
               ))}
-              {(series ?? []).length===0 && <Text color="$textSecondary">Sin datos</Text>}
+              {(series ?? []).length===0 && (
+                <YStack ai="center" py="$4">
+                  <Text color="$textSecondary">Sin datos disponibles</Text>
+                </YStack>
+              )}
             </YStack>
           )}
         </Card>
