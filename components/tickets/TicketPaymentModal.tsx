@@ -366,7 +366,9 @@ const TicketPaymentModal = ({
               onPress={onClose}
               disabled={loading}
             >
-              Cancelar
+              <YStack ai="center">
+                <Text>Cancelar</Text>
+              </YStack>
             </Button>
             <Button
               size="$3"
@@ -385,7 +387,9 @@ const TicketPaymentModal = ({
               borderWidth={1}
               pressStyle={{ backgroundColor: '$green6', scale: 0.98 }}
             >
-              {loading ? <Spinner size="small" /> : <Text>Registrar Pago</Text>}
+              <YStack ai="center">
+                {loading ? <Spinner size="small" /> : <Text>Registrar Pago</Text>}
+              </YStack>
             </Button>
           </XStack>
         </Dialog.Content>
