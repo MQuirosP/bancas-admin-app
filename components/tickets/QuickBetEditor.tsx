@@ -153,9 +153,8 @@ export default function QuickBetEditor({ onCommit, minAmount = 1, maxAmount = 10
             onPress={commit} 
             disabled={!canCommit} 
             size="$4" 
-            flex={1}
-            minWidth={150}
-            $sm={{ minWidth: 120 }}
+            width={180}
+            $sm={{ width: '48%', minWidth: 140 }}
           >
             Agregar al tiquete
           </Button>
@@ -167,9 +166,8 @@ export default function QuickBetEditor({ onCommit, minAmount = 1, maxAmount = 10
               setErrors('')
             }}
             size="$4"
-            flex={1}
-            minWidth={150}
-            $sm={{ minWidth: 120 }}
+            width={180}
+            $sm={{ width: '48%', minWidth: 140 }}
             backgroundColor="$gray4"
             borderColor="$gray8"
             borderWidth={1}
