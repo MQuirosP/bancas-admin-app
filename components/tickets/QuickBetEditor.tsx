@@ -151,26 +151,16 @@ export default function QuickBetEditor({ onCommit, minAmount = 1, maxAmount = 10
           )}
         </YStack>
 
-        <XStack gap="$2" jc="center">
-          <Button onPress={commit} disabled={!canCommit} size="$4" width={280}>
-            Agregar al ticket
-          </Button>
-          <Button
-            onPress={() => {
-              setAmountNumero('')
-              setAmountReventado('')
-              setNumbers([])
-              setErrors('')
-            }}
-            size="$4"
-            width={280}
-            backgroundColor="$gray4"
-            borderColor="$gray8"
-            borderWidth={1}
-            hoverStyle={{ backgroundColor: '$gray5' }}
-            pressStyle={{ scale: 0.98 }}
+        <XStack gap="$2" jc="center" flexWrap="wrap">
+          <Button 
+            onPress={commit} 
+            disabled={!canCommit} 
+            size="$4" 
+            flex={1}
+            minWidth={200}
+            maxWidth={400}
           >
-            Limpiar
+            Agregar al tiquete
           </Button>
         </XStack>
       </YStack>
