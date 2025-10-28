@@ -145,45 +145,42 @@ export default function VendedoresScreen() {
             <YStack gap="$2">
               {vendedores.map((v, i) => (
                 <Card key={v.id || i} padding="$4" hoverStyle={{ backgroundColor: '$backgroundHover' }}>
-                  <XStack jc="space-between" ai="center" gap="$3">
+                  <XStack jc="space-around" ai="center" gap="$2" py="$2">
                     {/* Nombre */}
-                    <XStack ai="center" gap="$1.5">
+                    <XStack ai="center" gap="$1.5" minWidth={120}>
                       <TrendingUp size={14} color="$primary" />
                       <Text fontSize="$3" fontWeight="600">{v.name || v.id || '—'}</Text>
                     </XStack>
 
-                    {/* Estadísticas en línea */}
-                    <XStack ai="center" gap="$4" flex={1}>
-                      {/* Tiquetes vendidos */}
-                      <XStack ai="center" gap="$1">
-                        <Text fontSize="$2" color="$textSecondary">Tiquetes:</Text>
-                        <Text fontSize="$3" fontWeight="bold" color="$primary">{v.tickets ?? 0}</Text>
-                      </XStack>
+                    {/* Tiquetes vendidos */}
+                    <YStack ai="center" gap="$0.5" minWidth={80}>
+                      <Text fontSize="$4" fontWeight="bold" color="$primary">{v.tickets ?? 0}</Text>
+                      <Text fontSize="$1.5" color="$textSecondary" ta="center">Tiquetes</Text>
+                    </YStack>
 
-                      {/* Tiquetes ganadores */}
-                      <XStack ai="center" gap="$1">
-                        <Text fontSize="$2" color="$textSecondary">Ganadores:</Text>
-                        <Text fontSize="$3" fontWeight="bold" color="$orange10">{v.winnerTickets ?? 0}</Text>
-                      </XStack>
+                    {/* Tiquetes ganadores */}
+                    <YStack ai="center" gap="$0.5" minWidth={80}>
+                      <Text fontSize="$4" fontWeight="bold" color="$orange10">{v.winnerTickets ?? 0}</Text>
+                      <Text fontSize="$1.5" color="$textSecondary" ta="center">Ganadores</Text>
+                    </YStack>
 
-                      {/* Tiquetes pagados */}
-                      <XStack ai="center" gap="$1">
-                        <Text fontSize="$2" color="$textSecondary">Pagados:</Text>
-                        <Text fontSize="$3" fontWeight="bold" color="$blue10">{v.paidTickets ?? 0}</Text>
-                      </XStack>
+                    {/* Tiquetes pagados */}
+                    <YStack ai="center" gap="$0.5" minWidth={80}>
+                      <Text fontSize="$4" fontWeight="bold" color="$blue10">{v.paidTickets ?? 0}</Text>
+                      <Text fontSize="$1.5" color="$textSecondary" ta="center">Pagados</Text>
+                    </YStack>
 
-                      {/* Pendientes de pagar */}
-                      <XStack ai="center" gap="$1">
-                        <Text fontSize="$2" color="$textSecondary">Pendientes:</Text>
-                        <Text fontSize="$3" fontWeight="bold" color="$yellow10">{v.pendingPayment ?? 0}</Text>
-                      </XStack>
-                    </XStack>
+                    {/* Pendientes de pagar */}
+                    <YStack ai="center" gap="$0.5" minWidth={80}>
+                      <Text fontSize="$4" fontWeight="bold" color="$yellow10">{v.pendingPayment ?? 0}</Text>
+                      <Text fontSize="$1.5" color="$textSecondary" ta="center">Pendientes</Text>
+                    </YStack>
 
                     {/* Total Vendido */}
-                    <XStack ai="center" gap="$1">
-                      <Text fontSize="$2" color="$textSecondary">Total:</Text>
-                      <Text fontSize="$3" fontWeight="bold" color="$green10">{formatCurrency(v.total ?? 0)}</Text>
-                    </XStack>
+                    <YStack ai="center" gap="$0.5" minWidth={110}>
+                      <Text fontSize="$4" fontWeight="bold" color="$green10">{formatCurrency(v.total ?? 0)}</Text>
+                      <Text fontSize="$1.5" color="$textSecondary" ta="center">Total</Text>
+                    </YStack>
                   </XStack>
                 </Card>
               ))}
