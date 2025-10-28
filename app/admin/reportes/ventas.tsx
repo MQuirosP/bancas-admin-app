@@ -136,46 +136,91 @@ export default function VentasReportScreen() {
           <Text fontSize="$5" fontWeight="600" marginBottom="$3">Resumen de Ventas</Text>
           <YStack gap="$3">
             {/* Fila 1: Ventas y Tickets */}
-            <XStack justifyContent="space-around" flexWrap="wrap" gap="$4">
-              <YStack ai="center" flex={1} minWidth={140}>
-                <Text fontSize="$7" fontWeight="bold" color="$green10">{formatCurrency(summary?.ventasTotal??0)}</Text>
-                <Text fontSize="$2" color="$textSecondary">Ventas Totales</Text>
-              </YStack>
-              <YStack ai="center" flex={1} minWidth={140}>
-                <Text fontSize="$7" fontWeight="bold" color="$primary">{summary?.ticketsCount ?? 0}</Text>
-                <Text fontSize="$2" color="$textSecondary">Tickets</Text>
-              </YStack>
-            </XStack>
-
-            {/* Fila 2: Jugadas y Payout */}
-            <XStack justifyContent="space-around" flexWrap="wrap" gap="$4">
-              <YStack ai="center" flex={1} minWidth={140}>
-                <Text fontSize="$6" fontWeight="bold" color="$blue10">{summary?.jugadasCount ?? 0}</Text>
-                <Text fontSize="$2" color="$textSecondary">Jugadas</Text>
-              </YStack>
-              <YStack ai="center" flex={1} minWidth={140}>
-                <Text fontSize="$6" fontWeight="bold" color="$orange10">{formatCurrency(summary?.payoutTotal??0)}</Text>
-                <Text fontSize="$2" color="$textSecondary">Payout</Text>
-              </YStack>
-            </XStack>
-
-            {/* Neto Destacado */}
-            <YStack 
-              ai="center" 
-              marginTop="$4" 
-              paddingTop="$4" 
-              borderTopWidth={1} 
-              borderTopColor="$borderColor"
-            >
-              <Text 
-                fontSize="$10" 
-                fontWeight="bold" 
-                color={(summary?.neto ?? 0) >= 0 ? '$green10' : '$red10'}
+            <XStack justifyContent="center" flexWrap="wrap" gap="$3">
+              <Card 
+                padding="$3" 
+                flex={1} 
+                minWidth={140} 
+                maxWidth={200}
+                backgroundColor="$background"
+                borderColor="$borderColor"
+                borderWidth={1}
               >
-                {(summary?.neto ?? 0) >= 0 ? '+' : ''}{formatCurrency(summary?.neto??0)}
-              </Text>
-              <Text fontSize="$3" color="$textSecondary" marginTop="$1">Neto (Ganancia/Pérdida)</Text>
-            </YStack>
+                <YStack ai="center" gap="$1">
+                  <Text fontSize="$7" fontWeight="bold" color="$green10">{formatCurrency(summary?.ventasTotal??0)}</Text>
+                  <Text fontSize="$2" color="$textSecondary" textAlign="center">Ventas Totales</Text>
+                </YStack>
+              </Card>
+              <Card 
+                padding="$3" 
+                flex={1} 
+                minWidth={140} 
+                maxWidth={200}
+                backgroundColor="$background"
+                borderColor="$borderColor"
+                borderWidth={1}
+              >
+                <YStack ai="center" gap="$1">
+                  <Text fontSize="$7" fontWeight="bold" color="$primary">{summary?.ticketsCount ?? 0}</Text>
+                  <Text fontSize="$2" color="$textSecondary" textAlign="center">Tickets</Text>
+                </YStack>
+              </Card>
+            </XStack>
+
+            {/* Neto Destacado - Centro */}
+            <Card 
+              padding="$4" 
+              alignSelf="center"
+              minWidth={280}
+              maxWidth={400}
+              width="90%"
+              backgroundColor="$background"
+              borderColor={(summary?.neto ?? 0) >= 0 ? '$green10' : '$red10'}
+              borderWidth={2}
+            >
+              <YStack ai="center" gap="$2">
+                <Text 
+                  fontSize="$10" 
+                  fontWeight="bold" 
+                  color={(summary?.neto ?? 0) >= 0 ? '$green10' : '$red10'}
+                >
+                  {(summary?.neto ?? 0) >= 0 ? '+' : ''}{formatCurrency(summary?.neto??0)}
+                </Text>
+                <Text fontSize="$3" color="$textSecondary" textAlign="center">Neto (Ganancia/Pérdida)</Text>
+              </YStack>
+            </Card>
+
+            {/* Fila 3: Jugadas y Payout */}
+            <XStack justifyContent="center" flexWrap="wrap" gap="$3">
+              <Card 
+                padding="$3" 
+                flex={1} 
+                minWidth={140} 
+                maxWidth={200}
+                backgroundColor="$background"
+                borderColor="$borderColor"
+                borderWidth={1}
+              >
+                <YStack ai="center" gap="$1">
+                  <Text fontSize="$6" fontWeight="bold" color="$blue10">{summary?.jugadasCount ?? 0}</Text>
+                  <Text fontSize="$2" color="$textSecondary" textAlign="center">Jugadas</Text>
+                </YStack>
+              </Card>
+              <Card 
+                padding="$3" 
+                flex={1} 
+                minWidth={140} 
+                maxWidth={200}
+                backgroundColor="$background"
+                borderColor="$borderColor"
+                borderWidth={1}
+              >
+                <YStack ai="center" gap="$1">
+                  <Text fontSize="$6" fontWeight="bold" color="$orange10">{formatCurrency(summary?.payoutTotal??0)}</Text>
+                  <Text fontSize="$2" color="$textSecondary" textAlign="center">Payout</Text>
+                </YStack>
+              </Card>
+            </XStack>
           </YStack>
         </Card>
 
