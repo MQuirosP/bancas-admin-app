@@ -328,9 +328,7 @@ const TicketPreviewModalComponent = ({ isOpen, ticket, onClose }: TicketPreviewM
             hoverStyle={{ backgroundColor: '$gray5' }}
             pressStyle={{ backgroundColor: '$gray6', scale: 0.98 }}
           >
-            <YStack ai="center">
-              <Text>Cerrar</Text>
-            </YStack>
+            <Text>Cerrar</Text>
           </Button>
         </DialogContentWrapper>
       </Dialog.Portal>
