@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react'
-import { YStack, XStack, Text, Dialog, Spinner } from 'tamagui'
+import { YStack, XStack, Text, Dialog, Spinner, VisuallyHidden } from 'tamagui'
 import { Button, Input, Select, Card } from '@/components/ui'
 import { X, Check, ChevronDown } from '@tamagui/lucide-icons'
 import { formatCurrency } from '@/utils/formatters'
@@ -132,24 +132,27 @@ export default function TicketPaymentModal({
     <Dialog modal open={isOpen} onOpenChange={onClose}>
       <Dialog.Portal>
         <Dialog.Overlay
-          key="overlay"
           animation="quick"
           opacity={0.5}
           enterStyle={{ opacity: 0 }}
           exitStyle={{ opacity: 0 }}
         />
         <Dialog.Content
-          key="content"
           bordered
           elevate
-          enterAnimation="quick"
-          exitAnimation="quick"
           width="90%"
           maxWidth={500}
           padding="$4"
           gap="$4"
           backgroundColor="$background"
         >
+          {/* Accessible Title - Hidden visually */}
+          <Dialog.Title asChild>
+            <VisuallyHidden>
+              <Text>Registrar Pago</Text>
+            </VisuallyHidden>
+          </Dialog.Title>
+
           {/* Header */}
           <XStack jc="space-between" ai="center" gap="$2">
             <Text fontSize="$6" fontWeight="bold">

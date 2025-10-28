@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react'
-import { YStack, XStack, Text, ScrollView, Dialog } from 'tamagui'
+import { YStack, XStack, Text, ScrollView, Dialog, VisuallyHidden } from 'tamagui'
 import { Button, Card } from '@/components/ui'
 import { X, TrendingUp } from '@tamagui/lucide-icons'
 import { formatCurrency } from '@/utils/formatters'
@@ -92,19 +92,14 @@ export default function TicketPreviewModal({ isOpen, ticket, onClose }: TicketPr
     <Dialog modal open={isOpen} onOpenChange={onClose}>
       <Dialog.Portal>
         <Dialog.Overlay
-          key="overlay"
           animation="quick"
           opacity={0.5}
           enterStyle={{ opacity: 0 }}
           exitStyle={{ opacity: 0 }}
         />
         <Dialog.Content
-          key="content"
           bordered
           elevate
-          key="dialog"
-          enterAnimation="quick"
-          exitAnimation="quick"
           maxHeight="85vh"
           width="90%"
           maxWidth={700}
@@ -112,6 +107,13 @@ export default function TicketPreviewModal({ isOpen, ticket, onClose }: TicketPr
           gap="$4"
           backgroundColor="$background"
         >
+          {/* Accessible Title - Hidden visually */}
+          <Dialog.Title asChild>
+            <VisuallyHidden>
+              <Text>Tiquete #{calculations.displayNum}</Text>
+            </VisuallyHidden>
+          </Dialog.Title>
+
           {/* Header */}
           <XStack jc="space-between" ai="center" gap="$2">
             <YStack gap="$1" flex={1}>
