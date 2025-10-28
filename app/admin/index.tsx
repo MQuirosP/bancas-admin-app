@@ -1,7 +1,7 @@
 // app/admin/index.tsx
 import React, { useMemo, useState } from 'react';
 import { useRouter } from 'expo-router';
-import { YStack, XStack, Text, ScrollView } from 'tamagui';
+import { YStack, XStack, Text, ScrollView, useTheme } from 'tamagui';
 import { Card, Button } from '@/components/ui';
 import {
   Users,
@@ -12,6 +12,7 @@ import {
   Settings,
   Shield,
   BarChart3,
+  ArrowLeft,
 } from '@tamagui/lucide-icons';
 import { useAuthStore } from '../../store/auth.store';
 import { useVentasSummary, useVentasBreakdown, useVentasTimeseries } from '@/hooks/useVentas'
@@ -103,6 +104,8 @@ const dashboardCards: DashboardCard[] = [
 
 export default function AdminDashboard() {
   const router = useRouter();
+  const theme = useTheme();
+  const iconColor = (theme?.color as any)?.get?.() ?? '#000';
   const { user } = useAuthStore();
   const compareRange = useUIStore((s) => s.compareRange)
 
@@ -189,9 +192,20 @@ export default function AdminDashboard() {
       <YStack padding="$4" gap="$4" maxWidth={1200} alignSelf="center" width="100%">
         {/* Header */}
         <YStack gap="$2">
-          <Text fontSize="$8" fontWeight="bold" color="$textPrimary">
-            Panel de Administración
-          </Text>
+          <XStack ai="center" gap="$2">
+            <Button
+              size="$3"
+              icon={(p:any)=> <ArrowLeft {...p} size={24} color={iconColor} />}
+              onPress={()=> router.push('/admin/dashboard')}
+              backgroundColor="transparent"
+              borderWidth={0}
+              hoverStyle={{ backgroundColor: 'transparent' }}
+              pressStyle={{ scale: 0.98 }}
+            />
+            <Text fontSize="$8" fontWeight="bold" color="$textPrimary">
+              Panel de Administración
+            </Text>
+          </XStack>
           <Text fontSize="$4" color="$textSecondary">
             Bienvenido, {user?.name || 'Administrador'}
           </Text>
