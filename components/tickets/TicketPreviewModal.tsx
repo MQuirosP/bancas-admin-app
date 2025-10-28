@@ -229,7 +229,7 @@ const TicketPreviewModalComponent = ({ isOpen, ticket, onClose }: TicketPreviewM
                 )}
               </XStack>
 
-              {/* Jugadas */}
+              {/* Jugadas - Agrupadas por número */}
               <YStack gap="$2">
                 <XStack ai="center" gap="$2">
                   <Text fontSize="$5" fontWeight="bold">
@@ -248,72 +248,100 @@ const TicketPreviewModalComponent = ({ isOpen, ticket, onClose }: TicketPreviewM
                   <Card padding="$3" backgroundColor="$backgroundHover" borderColor="$borderColor" borderWidth={1}>
                     <Text color="$textSecondary">Sin jugadas registradas</Text>
                   </Card>
-                ) : (
-                  <YStack gap="$2">
-                    {ticket.jugadas?.map((jugada, idx) => (
-                      <Card
-                        key={jugada.id && jugada.id.trim() ? jugada.id : `jugada-${idx}`}
-                        padding="$3"
-                        backgroundColor={jugada.isWinner ? '$green2' : '$backgroundHover'}
-                        borderColor={jugada.isWinner ? '$green8' : '$borderColor'}
-                        borderWidth={jugada.isWinner ? 2 : 1}
-                      >
-                        <YStack gap="$2">
-                          <XStack jc="space-between" ai="center" gap="$2">
-                            <XStack ai="center" gap="$2" flex={1}>
-                              <Text fontSize="$4" fontWeight="600">
-                                {jugada.type}
-                              </Text>
-                              <Text fontSize="$4" fontWeight="700" color="$blue11" fontFamily="$mono">
-                                {jugada.number}
-                              </Text>
-                            </XStack>
-                            {jugada.isWinner && (
-                              <XStack bg="$green4" px="$2" py="$1" br="$2" bw={1} bc="$green8">
-                                <Text fontSize="$2" fontWeight="700" color="$green11">
-                                  GANADOR
-                                </Text>
+                ) : (() => {
+                  // Agrupar jugadas por número
+                  const groupedByNumber = (ticket.jugadas || []).reduce((acc: { [key: string]: typeof ticket.jugadas }, jugada) => {
+                    const key = jugada.number || 'unknown'
+                    if (!acc[key]) acc[key] = []
+                    acc[key].push(jugada)
+                    return acc
+                  }, {})
+
+                  // Ordenar: ganadoras primero
+                  const sortedGroups = Object.entries(groupedByNumber).sort(([_a, jugadasA], [_b, jugadasB]) => {
+                    const hasWinnerA = jugadasA.some((j: any) => j.isWinner)
+                    const hasWinnerB = jugadasB.some((j: any) => j.isWinner)
+                    return hasWinnerA ? -1 : hasWinnerB ? 1 : 0
+                  })
+
+                  return (
+                    <YStack gap="$3">
+                      {sortedGroups.map(([number, jugadas]) => {
+                        const hasWinner = (jugadas as any).some((j: any) => j.isWinner)
+                        const totalAmount = (jugadas as any).reduce((sum: number, j: any) => sum + (j.amount || 0), 0)
+                        const totalPayout = (jugadas as any).reduce((sum: number, j: any) => sum + (j.isWinner ? (j.winAmount || j.payout || 0) : 0), 0)
+
+                        return (
+                          <Card
+                            key={`group-${number}`}
+                            padding="$3"
+                            backgroundColor={hasWinner ? '$green2' : '$backgroundHover'}
+                            borderColor={hasWinner ? '$green8' : '$borderColor'}
+                            borderWidth={hasWinner ? 2 : 1}
+                          >
+                            <YStack gap="$3">
+                              {/* Header con números */}
+                              <XStack ai="center" gap="$3" flexWrap="wrap" jc="space-between">
+                                <XStack ai="center" gap="$2" flex={1}>
+                                  {(jugadas as any).map((jugada: any, idx: number) => (
+                                    <XStack key={`num-${jugada.id || idx}`} ai="center" gap="$1">
+                                      <Text fontSize="$4" fontWeight="600">
+                                        {jugada.type}
+                                      </Text>
+                                      <Text fontSize="$4" fontWeight="700" color="$blue11" fontFamily="$mono">
+                                        {jugada.number}
+                                      </Text>
+                                      {jugada.finalMultiplierX !== undefined && (
+                                        <Text fontSize="$3" fontWeight="600" color="$purple11">
+                                          · {jugada.finalMultiplierX}x
+                                        </Text>
+                                      )}
+                                      {idx < (jugadas as any).length - 1 && (
+                                        <Text fontSize="$3" color="$textSecondary">
+                                          -
+                                        </Text>
+                                      )}
+                                    </XStack>
+                                  ))}
+                                </XStack>
+                                {hasWinner && (
+                                  <XStack bg="$green4" px="$2" py="$1" br="$2" bw={1} bc="$green8">
+                                    <Text fontSize="$2" fontWeight="700" color="$green11">
+                                      GANADOR
+                                    </Text>
+                                  </XStack>
+                                )}
                               </XStack>
-                            )}
-                          </XStack>
 
-                          <XStack gap="$4" jc="space-between" flexWrap="wrap">
-                            <YStack gap="$1">
-                              <Text fontSize="$2" color="$textSecondary" fontWeight="600">
-                                Apuesta
-                              </Text>
-                              <Text fontSize="$3" fontWeight="600">
-                                {formatCurrency(jugada.amount)}
-                              </Text>
+                              {/* Montos */}
+                              <XStack gap="$4" jc="space-between" flexWrap="wrap">
+                                <YStack gap="$1">
+                                  <Text fontSize="$2" color="$textSecondary" fontWeight="600">
+                                    Apuesta
+                                  </Text>
+                                  <Text fontSize="$3" fontWeight="600">
+                                    {formatCurrency(totalAmount)}
+                                  </Text>
+                                </YStack>
+
+                                {hasWinner && totalPayout > 0 && (
+                                  <YStack gap="$1">
+                                    <Text fontSize="$2" color="$textSecondary" fontWeight="600">
+                                      Premio
+                                    </Text>
+                                    <Text fontSize="$4" fontWeight="700" color="$green11">
+                                      {formatCurrency(totalPayout)}
+                                    </Text>
+                                  </YStack>
+                                )}
+                              </XStack>
                             </YStack>
-
-                            {jugada.finalMultiplierX !== undefined && (
-                              <YStack gap="$1">
-                                <Text fontSize="$2" color="$textSecondary" fontWeight="600">
-                                  Multiplicador
-                                </Text>
-                                <Text fontSize="$3" fontWeight="600" color="$purple11">
-                                  {jugada.finalMultiplierX}x
-                                </Text>
-                              </YStack>
-                            )}
-
-                            {jugada.isWinner && (jugada.winAmount || jugada.payout) && (
-                              <YStack gap="$1">
-                                <Text fontSize="$2" color="$textSecondary" fontWeight="600">
-                                  Premio
-                                </Text>
-                                <Text fontSize="$4" fontWeight="700" color="$green11">
-                                  {formatCurrency(jugada.winAmount || jugada.payout || 0)}
-                                </Text>
-                              </YStack>
-                            )}
-                          </XStack>
-                        </YStack>
-                      </Card>
-                    ))}
-                  </YStack>
-                )}
+                          </Card>
+                        )
+                      })}
+                    </YStack>
+                  )
+                })()}
               </YStack>
             </YStack>
           </ScrollView>
