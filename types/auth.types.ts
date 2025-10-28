@@ -1,21 +1,14 @@
 // types/auth.types.ts
+// ✅ Consolidar tipos - usar api.types.ts como fuente de verdad
 
+// Re-export Role and User from api.types.ts as source of truth
+export type { Role, User } from './api.types';
+
+// Keep UserRole enum for backwards compatibility (deprecated, use Role type)
 export enum UserRole {
   ADMIN = 'ADMIN',
   VENTANA = 'VENTANA',
   VENDEDOR = 'VENDEDOR',
-}
-
-export interface User {
-  id: string;
-  username: string; // Cambiado de email a username
-  email?: string;
-  name: string;
-  role: UserRole;
-  bancaId?: string; // Para ADMIN y VENTANA
-  ventanaId?: string; // Para VENDEDOR
-  createdAt?: Date;
-  updatedAt?: Date;
 }
 
 export interface LoginRequest {
