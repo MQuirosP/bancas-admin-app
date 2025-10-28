@@ -21,8 +21,14 @@ export default function VendedoresScreen() {
     staleTime: 60_000,
   })
 
-  // Log para debugging
-  console.log('Vendedores response:', data)
+  // Log para debugging - ver estructura del servidor
+  if (data) {
+    const payload = (data as any)?.data ?? data
+    console.log('Vendedores response:', { data, payload })
+    if (Array.isArray(payload)) {
+      console.log('First vendor:', payload[0])
+    }
+  }
 
   // Extraer vendedores del breakdown con estadísticas completas
   let vendedores: Array<{
@@ -53,7 +59,7 @@ export default function VendedoresScreen() {
         // Pendientes = ganadores - pagados
         const pendingPayment = Math.max(0, winnerTickets - paidTickets)
 
-        return {
+        const result = {
           id: item.key ?? item.id,
           name: item.name,
           total: Number(item.ventasTotal ?? item.total ?? 0),
@@ -64,6 +70,14 @@ export default function VendedoresScreen() {
           paidTickets,
           pendingPayment,
         }
+        console.log(`Vendedor ${item.name}:`, {
+          allTicketsLength: (item.allTickets ?? []).length,
+          tickets,
+          winnerTickets,
+          paidTickets,
+          pendingPayment
+        })
+        return result
       })
     } else if (Array.isArray(payload?.breakdown)) {
       // Breakdown es un array
