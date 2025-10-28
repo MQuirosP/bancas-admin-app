@@ -14,6 +14,7 @@ import FilterSwitch from '@/components/ui/FilterSwitch'
 import { Toolbar } from '@/components/ui/Toolbar'
 import type { Scope } from '@/types/scope'
 import { getDateParam, type DateTokenBasic, formatDateYYYYMMDD } from '@/lib/dateFormat'
+import { object } from 'zod'
 
 // Ajusta a tu modelo real si tienes tipos en '@/types/api.types'
 export type Ticket = {
@@ -60,6 +61,7 @@ const DATE_FILTER_LABELS = {
 
 async function fetchTickets(params: any): Promise<{ data: Ticket[]; meta: any }> {
   const res = await apiClient.get<any>('/tickets', params)
+  console.log('[PROBE tickets]', {typeofRes: typeof res, keys: Object.keys(res || {}), res})
   const payload = res ?? {}
   const actualData = payload?.data?.data ?? payload?.data ?? []
   const actualMeta = payload?.data?.meta ?? payload?.meta ?? {}

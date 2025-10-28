@@ -31,13 +31,7 @@ export default function VentanaNuevoTicket() {
   }, [user?.ventanaId])
 
   const safeBack = () => {
-    try {
-      // @ts-ignore
-      if ((router as any).canGoBack?.()) (router as any).back()
-      else router.replace('/ventana/tickets')
-    } catch {
-      router.replace('/ventana/tickets')
-    }
+    router.replace('/ventana')
   }
 
   const { data: sorteosResp, isLoading: loadingSorteos } = useQuery<ListResp<Sorteo>>({
