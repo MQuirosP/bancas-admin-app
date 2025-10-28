@@ -236,9 +236,18 @@ const TicketPaymentModalComponent = ({
                 disabled={paymentInfo.remaining <= 0 || loading}
               />
               {amount && amountNum > 0 && amountNum <= paymentInfo.remaining && (
-                <Text fontSize="$2" color="$green11">
-                  ✓ Monto válido
-                </Text>
+                <YStack>
+                  <Text fontSize="$2" color="$green11">
+                    ✓ Monto válido
+                  </Text>
+                </YStack>
+              )}
+              {amount && amountNum > paymentInfo.remaining && (
+                <YStack>
+                  <Text fontSize="$2" color="$red11">
+                    El monto supera el pendiente
+                  </Text>
+                </YStack>
               )}
             </YStack>
 
@@ -312,7 +321,6 @@ const TicketPaymentModalComponent = ({
                 backgroundColor="$yellow2"
                 borderColor="$yellow8"
                 borderWidth={1}
-                gap="$2"
               >
                 <XStack ai="center" gap="$2">
                   <Input
@@ -323,9 +331,14 @@ const TicketPaymentModalComponent = ({
                     width={20}
                     height={20}
                   />
-                  <Text fontSize="$2" color="$yellow11" flex={1}>
-                    Marcar como pago final (cliente acepta no recibir el resto: {formatCurrency(paymentInfo.remaining - amountNum)})
-                  </Text>
+                  <YStack flex={1}>
+                    <Text fontSize="$2" color="$yellow11">
+                      Marcar como pago final
+                    </Text>
+                    <Text fontSize="$2" color="$yellow11">
+                      (cliente acepta no recibir el resto: {formatCurrency(paymentInfo.remaining - amountNum)})
+                    </Text>
+                  </YStack>
                 </XStack>
               </Card>
             )}
@@ -349,7 +362,9 @@ const TicketPaymentModalComponent = ({
                 !amount ||
                 !method ||
                 paymentInfo.remaining <= 0 ||
-                isNaN(parseFloat(amount))
+                isNaN(parseFloat(amount)) ||
+                amountNum > paymentInfo.remaining ||
+                amountNum <= 0
               }
               backgroundColor="$green4"
               borderColor="$green8"

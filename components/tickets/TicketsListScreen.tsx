@@ -66,7 +66,6 @@ const DATE_FILTER_LABELS = {
 
 async function fetchTickets(params: any): Promise<{ data: Ticket[]; meta: any }> {
   const res = await apiClient.get<any>('/tickets', params)
-  console.log('[PROBE tickets]', {typeofRes: typeof res, keys: Object.keys(res || {}), res})
   const payload = res ?? {}
   const actualData = payload?.data?.data ?? payload?.data ?? []
   const actualMeta = payload?.data?.meta ?? payload?.meta ?? {}
