@@ -249,7 +249,7 @@ export default function TicketPreviewModal({ isOpen, ticket, onClose }: TicketPr
                   <YStack gap="$2">
                     {ticket.jugadas?.map((jugada, idx) => (
                       <Card
-                        key={jugada.id || idx}
+                        key={jugada.id && jugada.id.trim() ? jugada.id : `jugada-${idx}`}
                         padding="$3"
                         backgroundColor={jugada.isWinner ? '$green2' : '$backgroundHover'}
                         borderColor={jugada.isWinner ? '$green8' : '$borderColor'}
