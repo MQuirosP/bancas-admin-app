@@ -38,7 +38,6 @@ export default function PaymentFormModal({
 
   const [amountPaid, setAmountPaid] = useState('')
   const [method, setMethod] = useState<PaymentMethod>('CASH')
-  const [notes, setNotes] = useState('')
   const [isFinal, setIsFinal] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string>('')
@@ -67,20 +66,13 @@ export default function PaymentFormModal({
     const errs: string[] = []
     const amount = parseFloat(amountPaid) || 0
 
-    if (!amountPaid) {
-      errs.push('Ingresa el monto')
-    } else if (amount <= 0) {
-      errs.push('El monto debe ser mayor a 0')
-    } else if (amount > totals.remaining) {
+    // Solo validar si hay monto
+    if (amountPaid && amount > 0 && amount > totals.remaining) {
       errs.push(`El monto no puede exceder ${formatCurrency(totals.remaining)}`)
     }
 
-    if (!method) {
-      errs.push('Selecciona método de pago')
-    }
-
     return errs
-  }, [amountPaid, method, totals.remaining])
+  }, [amountPaid, totals.remaining])
 
   const canSubmit = errors.length === 0 && !isSubmitting
 
@@ -95,7 +87,6 @@ export default function PaymentFormModal({
         ticketId: ticket.id,
         amountPaid: parseFloat(amountPaid),
         method,
-        notes: notes || undefined,
         idempotencyKey: uuidv4(),
         isFinal,
       }
@@ -119,7 +110,6 @@ export default function PaymentFormModal({
   const handleClose = () => {
     setAmountPaid('')
     setMethod('CASH')
-    setNotes('')
     setIsFinal(false)
     setSubmitError('')
     onClose()
@@ -235,55 +225,63 @@ export default function PaymentFormModal({
                 </Select.Content>
               </Select>
             </YStack>
-
-            {/* Checkbox para marcar como final (siempre reserva espacio con animación) */}
-            <YStack minHeight={90} jc="center">
-              {isPartialPayment && (
-                <Card
-                  padding="$2"
-                  borderColor="$warning"
-                  borderWidth={1}
-                  backgroundColor="$warning1"
-                  gap="$2"
-                  animation="quick"
-                  enterStyle={{ opacity: 0, y: -10 }}
-                  exitStyle={{ opacity: 0, y: -10 }}
-                >
-                  <XStack ai="center" gap="$2">
-                    <Card
-                      width={20}
-                      height={20}
-                      br="$2"
-                      bw={1}
-                      bc={isFinal ? '$warning' : '$borderColor'}
-                      bg={isFinal ? '$warning' : 'transparent'}
-                      ai="center"
-                      jc="center"
-                      cursor="pointer"
-                      onPress={() => setIsFinal(!isFinal)}
-                      animation="quick"
-                      enterStyle={{ scale: 0.8 }}
-                    >
-                      {isFinal && <Text fontSize="$2">✓</Text>}
-                    </Card>
-                    <YStack flex={1}>
-                      <Text fontWeight="500">Marcar como pago final</Text>
-                      <Text fontSize="$2" color="$gray10">
-                        El cliente acepta no recibir los{' '}
-                        {formatCurrency(totals.remaining - parseFloat(amountPaid || '0'))} restantes
-                      </Text>
-                    </YStack>
-                  </XStack>
-                </Card>
-              )}
-            </YStack>
           </YStack>
 
-          {/* Validación - Solo si supera el pendiente */}
-          <YStack minHeight={60} jc="center">
+          {/* Checkbox para marcar como final (altura fija) */}
+          <YStack height={isPartialPayment ? 90 : 90} jc="center" ov="hidden">
+            {isPartialPayment && (
+              <Card
+                padding="$3"
+                borderColor="$warning"
+                borderWidth={2}
+                backgroundColor="$warning1"
+                gap="$2"
+                animation="quick"
+                enterStyle={{ opacity: 0, y: -15 }}
+                exitStyle={{ opacity: 0, y: -15 }}
+              >
+                <XStack ai="center" gap="$2">
+                  <Card
+                    width={22}
+                    height={22}
+                    br="$2"
+                    bw={2}
+                    bc={isFinal ? '$warning10' : '$warning8'}
+                    bg={isFinal ? '$warning9' : 'transparent'}
+                    ai="center"
+                    jc="center"
+                    cursor="pointer"
+                    onPress={() => setIsFinal(!isFinal)}
+                    animation="quick"
+                    enterStyle={{ scale: 0.8 }}
+                  >
+                    {isFinal && <Text fontSize="$3" fontWeight="700" color="white">✓</Text>}
+                  </Card>
+                  <YStack flex={1}>
+                    <Text fontWeight="600" fontSize="$4">Marcar como pago final</Text>
+                    <Text fontSize="$2" color="$warning11" fontWeight="500">
+                      El cliente acepta no recibir los{' '}
+                      {formatCurrency(totals.remaining - parseFloat(amountPaid || '0'))} restantes
+                    </Text>
+                  </YStack>
+                </XStack>
+              </Card>
+            )}
+          </YStack>
+
+          {/* Validación - altura fija */}
+          <YStack height={70} jc="center" ov="hidden">
             {errors.some((e) => e.includes('no puede exceder')) && (
-              <Card padding="$3" backgroundColor="$error1" gap="$1">
-                <Text color="$error" fontSize="$2" fontWeight="500">
+              <Card
+                padding="$3"
+                backgroundColor="$error1"
+                borderColor="$error8"
+                borderWidth={1}
+                animation="quick"
+                enterStyle={{ opacity: 0, y: -10 }}
+                exitStyle={{ opacity: 0, y: -10 }}
+              >
+                <Text color="$error" fontSize="$2" fontWeight="600">
                   ⚠️ El monto supera el pendiente
                 </Text>
               </Card>

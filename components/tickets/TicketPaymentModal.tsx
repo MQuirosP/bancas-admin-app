@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react'
-import { YStack, XStack, Text, Dialog, Spinner, VisuallyHidden, TextArea } from 'tamagui'
+import { YStack, XStack, Text, Dialog, Spinner, VisuallyHidden } from 'tamagui'
 import { Button, Input, Select, Card } from '@/components/ui'
 import { X, Check, ChevronDown } from '@tamagui/lucide-icons'
 import { formatCurrency } from '@/utils/formatters'
@@ -46,7 +46,6 @@ const TicketPaymentModal = ({
   const { success, error: showError } = useToast()
   const [amount, setAmount] = useState('')
   const [method, setMethod] = useState<PaymentMethod>('CASH')
-  const [notes, setNotes] = useState('')
   const [isFinal, setIsFinal] = useState(false)
 
   // Default isLoading to false if not provided
@@ -104,7 +103,6 @@ const TicketPaymentModal = ({
         ticketId: ticket.id,
         amountPaid: parseFloat(amount),
         method,
-        notes: notes || undefined,
         idempotencyKey: uuidv4(),
         isFinal: isFinal && parseFloat(amount) < paymentInfo.remaining,
       }
@@ -117,7 +115,6 @@ const TicketPaymentModal = ({
       // Limpiar
       setAmount('')
       setMethod('CASH')
-      setNotes('')
       setIsFinal(false)
       onClose()
     } catch (err: any) {
@@ -130,7 +127,6 @@ const TicketPaymentModal = ({
 
   const amountNum = amount ? parseFloat(amount) : 0
   const isPartialPayment = amountNum > 0 && amountNum < paymentInfo.remaining
-  const isAmountValid = amountNum > 0 && amountNum <= paymentInfo.remaining
 
   return (
     <Dialog modal open={isOpen} onOpenChange={onClose}>
@@ -236,20 +232,14 @@ const TicketPaymentModal = ({
                   inputMode="decimal"
                   disabled={paymentInfo.remaining <= 0 || loading}
                 />
-                {isAmountValid && (
-                  <YStack>
-                    <Text fontSize="$2" color="$green11">
-                      ✓ Monto válido
-                    </Text>
-                  </YStack>
-                )}
-                {Boolean(amount) && amountNum > paymentInfo.remaining && (
-                  <YStack>
-                    <Text fontSize="$2" color="$red11">
+                {/* Validación - altura fija para no redimensionar */}
+                <YStack height={24} jc="center" ov="hidden">
+                  {Boolean(amount) && amountNum > paymentInfo.remaining && (
+                    <Text fontSize="$2" color="$red11" animation="quick" enterStyle={{ opacity: 0 }} exitStyle={{ opacity: 0 }}>
                       El monto supera el pendiente
                     </Text>
-                  </YStack>
-                )}
+                  )}
+                </YStack>
               </YStack>
 
               {/* Método de pago */}
@@ -301,61 +291,55 @@ const TicketPaymentModal = ({
                 </Select>
               </YStack>
 
-              {/* Notas */}
-              <YStack gap="$1">
-                <Text fontSize="$3" fontWeight="600">
-                  Notas (Opcional)
-                </Text>
-                <TextArea
-                  placeholder="Observaciones sobre el pago..."
-                  value={notes}
-                  onChangeText={setNotes}
-                  disabled={loading}
-                  minHeight={60}
-                />
-              </YStack>
-
-              {/* Pago Final - solo si es parcial */}
-              {isPartialPayment && (
-                <Card
-                  padding="$3"
-                  backgroundColor="$yellow2"
-                  borderColor="$yellow8"
-                  borderWidth={1}
-                >
-                  <XStack ai="flex-start" gap="$2">
-                    <YStack
-                      width={20}
-                      height={20}
-                      borderWidth={2}
-                      borderColor="$yellow11"
-                      br="$2"
-                      ai="center"
-                      jc="center"
-                      opacity={loading ? 0.5 : 1}
-                      onPress={() => !loading && setIsFinal(!isFinal)}
-                      cursor={loading ? 'not-allowed' : 'pointer'}
-                    >
-                      {isFinal && (
-                        <Text fontSize="$3" color="$yellow11" fontWeight="bold">
-                          ✓
+              {/* Pago Final - altura fija para no redimensionar */}
+              <YStack height={isPartialPayment ? 115 : 115} jc="center" ov="hidden">
+                {isPartialPayment && (
+                  <Card
+                    padding="$3"
+                    backgroundColor="$yellow2"
+                    borderColor="$yellow8"
+                    borderWidth={1}
+                    animation="quick"
+                    enterStyle={{ opacity: 0, y: -15 }}
+                    exitStyle={{ opacity: 0, y: -15 }}
+                  >
+                    <XStack ai="flex-start" gap="$2">
+                      <Card
+                        width={22}
+                        height={22}
+                        borderWidth={2}
+                        borderColor={isFinal ? '$yellow11' : '$yellow8'}
+                        bg={isFinal ? '$yellow9' : 'transparent'}
+                        br="$2"
+                        ai="center"
+                        jc="center"
+                        opacity={loading ? 0.5 : 1}
+                        onPress={() => !loading && setIsFinal(!isFinal)}
+                        cursor={loading ? 'not-allowed' : 'pointer'}
+                        animation="quick"
+                        enterStyle={{ scale: 0.8 }}
+                      >
+                        {isFinal && (
+                          <Text fontSize="$3" color="white" fontWeight="bold">
+                            ✓
+                          </Text>
+                        )}
+                      </Card>
+                      <YStack flex={1} gap="$1">
+                        <Text fontSize="$3" color="$yellow11" fontWeight="600">
+                          Marcar como pago final
                         </Text>
-                      )}
-                    </YStack>
-                    <YStack flex={1} gap="$1">
-                      <Text fontSize="$2" color="$yellow11" fontWeight="600">
-                        Marcar como pago final
-                      </Text>
-                      <Text fontSize="$2" color="$yellow11">
-                        Cliente acepta no recibir el resto:
-                      </Text>
-                      <Text fontSize="$3" fontWeight="700" color="$yellow11">
-                        {formatCurrency(paymentInfo.remaining - amountNum)}
-                      </Text>
-                    </YStack>
-                  </XStack>
-                </Card>
-              )}
+                        <Text fontSize="$2" color="$yellow11">
+                          Cliente acepta no recibir el resto:
+                        </Text>
+                        <Text fontSize="$3" fontWeight="700" color="$yellow11">
+                          {formatCurrency(paymentInfo.remaining - amountNum)}
+                        </Text>
+                      </YStack>
+                    </XStack>
+                  </Card>
+                )}
+              </YStack>
             </YStack>
           </YStack>
 
