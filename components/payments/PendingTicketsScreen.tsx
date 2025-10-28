@@ -1,11 +1,12 @@
 import React, { useState, useMemo } from 'react'
-import { YStack, XStack, Text, ScrollView, Card } from 'tamagui'
+import { YStack, XStack, Text, ScrollView, Card, Separator } from 'tamagui'
 import { Button, Input, Select } from '@/components/ui'
 import { useAuth } from '@/hooks/useAuth'
 import { usePendingWinningTicketsQuery } from '@/hooks/useTicketPayments'
 import type { TicketWithPayments } from '@/types/payment.types'
-import { Role } from '@/types/auth.types'
+import { UserRole } from '@/types/auth.types'
 import { formatCurrency } from '@/lib/currency'
+import { Check, ChevronDown, X, CreditCard } from '@tamagui/lucide-icons'
 
 export interface PendingTicketsScreenProps {
   onSelectTicket: (ticket: TicketWithPayments) => void
@@ -18,18 +19,22 @@ const PAYMENT_METHODS = [
   { label: 'Sistema', value: 'SYSTEM' },
 ]
 
+const PAYMENT_METHOD_LABELS = Object.fromEntries(PAYMENT_METHODS.map(m => [m.value, m.label]))
+
 export default function PendingTicketsScreen({ onSelectTicket }: PendingTicketsScreenProps) {
   const { user } = useAuth()
   const [searchTicket, setSearchTicket] = useState('')
   const [filterMethod, setFilterMethod] = useState<string>('')
   const [selectedTickets, setSelectedTickets] = useState<Set<string>>(new Set())
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false)
+  const [selectedForPayment, setSelectedForPayment] = useState<(TicketWithPayments & { totalPayout: number; totalPaid: number; remaining: number }) | null>(null)
 
   // Filtrar por rol: vendedor ve solo sus tiquetes, ventana ve todos sus vendedores
   const params = useMemo(() => {
-    if (user?.role === Role.VENDEDOR) {
+    if (user?.role === UserRole.VENDEDOR) {
       return { vendedorId: user.id }
     }
-    if (user?.role === Role.VENTANA) {
+    if (user?.role === UserRole.VENTANA) {
       return { ventanaId: user.ventanaId }
     }
     return {}
@@ -82,7 +87,7 @@ export default function PendingTicketsScreen({ onSelectTicket }: PendingTicketsS
     })
   }, [ticketsWithTotals, searchTicket, filterMethod])
 
-  const handleSelectTicket = (ticket: TicketWithPayments) => {
+  const handleSelectTicket = (ticket: TicketWithPayments & { totalPayout: number; totalPaid: number; remaining: number }) => {
     setSelectedTickets((prev) => {
       const next = new Set(prev)
       if (next.has(ticket.id)) {
@@ -99,6 +104,16 @@ export default function PendingTicketsScreen({ onSelectTicket }: PendingTicketsS
 
     // TODO: Abrir modal de pago en lote
     console.log('Pay selected:', Array.from(selectedTickets))
+  }
+
+  const handleOpenPaymentModal = (ticket: TicketWithPayments & { totalPayout: number; totalPaid: number; remaining: number }) => {
+    setSelectedForPayment(ticket)
+    setPaymentModalOpen(true)
+  }
+
+  const handleClosePaymentModal = () => {
+    setPaymentModalOpen(false)
+    setSelectedForPayment(null)
   }
 
   if (isLoading) {
@@ -142,12 +157,37 @@ export default function PendingTicketsScreen({ onSelectTicket }: PendingTicketsS
         <Select
           value={filterMethod}
           onValueChange={setFilterMethod}
-          placeholder="Filtrar método..."
         >
-          <Select.Item label="Todos" value="" />
-          {PAYMENT_METHODS.map((method) => (
-            <Select.Item key={method.value} label={method.label} value={method.value} />
-          ))}
+          <Select.Trigger
+            width={200}
+            br="$3"
+            bw={1}
+            bc="$borderColor"
+            backgroundColor="$background"
+            px="$3"
+            hoverStyle={{ bg: '$backgroundHover' }}
+            focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
+            iconAfter={ChevronDown}
+          >
+            <Select.Value>{filterMethod ? PAYMENT_METHOD_LABELS[filterMethod] : 'Filtrar método...'}</Select.Value>
+          </Select.Trigger>
+
+          <Select.Content zIndex={1000}>
+            <YStack br="$3" bw={1} bc="$borderColor" backgroundColor="$background">
+              <Select.Viewport>
+                <Select.Item key="all" value="" index={0} pressStyle={{ bg: '$backgroundHover' }} bw={0} px="$3">
+                  <Select.ItemText>Todos</Select.ItemText>
+                  {!filterMethod && <Select.ItemIndicator ml="auto"><Check size={16} /></Select.ItemIndicator>}
+                </Select.Item>
+                {PAYMENT_METHODS.map((method, idx) => (
+                  <Select.Item key={method.value} value={method.value} index={idx + 1} pressStyle={{ bg: '$backgroundHover' }} bw={0} px="$3">
+                    <Select.ItemText>{method.label}</Select.ItemText>
+                    {filterMethod === method.value && <Select.ItemIndicator ml="auto"><Check size={16} /></Select.ItemIndicator>}
+                  </Select.Item>
+                ))}
+              </Select.Viewport>
+            </YStack>
+          </Select.Content>
         </Select>
       </XStack>
 
@@ -167,8 +207,8 @@ export default function PendingTicketsScreen({ onSelectTicket }: PendingTicketsS
                 ticket={ticket}
                 isSelected={selectedTickets.has(ticket.id)}
                 onSelect={() => handleSelectTicket(ticket)}
-                onPay={() => onSelectTicket(ticket)}
-                showCheckbox={user?.role === Role.VENTANA}
+                onPay={() => handleOpenPaymentModal(ticket)}
+                showCheckbox={user?.role === UserRole.VENTANA}
               />
             ))
           )}
@@ -176,7 +216,7 @@ export default function PendingTicketsScreen({ onSelectTicket }: PendingTicketsS
       </ScrollView>
 
       {/* Botón de pago en lote (solo VENTANA) */}
-      {user?.role === Role.VENTANA && selectedTickets.size > 0 && (
+      {user?.role === UserRole.VENTANA && selectedTickets.size > 0 && (
         <XStack gap="$2" jc="flex-end">
           <Button
             onPress={() => setSelectedTickets(new Set())}
@@ -186,11 +226,28 @@ export default function PendingTicketsScreen({ onSelectTicket }: PendingTicketsS
           </Button>
           <Button
             onPress={handlePaySelected}
-            theme="green"
+            backgroundColor="$green4"
+            borderColor="$green8"
+            borderWidth={1}
+            hoverStyle={{ backgroundColor: '$green5' }}
+            pressStyle={{ backgroundColor: '$green6', scale: 0.98 }}
           >
             Pagar {selectedTickets.size} tiquete(s)
           </Button>
         </XStack>
+      )}
+
+      {/* Payment Modal */}
+      {paymentModalOpen && selectedForPayment && (
+        <PaymentModal
+          ticket={selectedForPayment}
+          isOpen={paymentModalOpen}
+          onClose={handleClosePaymentModal}
+          onSave={(data) => {
+            console.log('Payment saved:', data)
+            handleClosePaymentModal()
+          }}
+        />
       )}
     </YStack>
   )
@@ -289,26 +346,213 @@ function TicketCard({
             </YStack>
           </XStack>
 
-          <XStack gap="$2" mt="$2" fontSize="$2">
-            <Text color="$gray10">Sorteo: {ticket.sorteoId}</Text>
-            <Text color="$gray10">•</Text>
-            <Text color="$gray10">
+          <XStack gap="$2" mt="$2">
+            <Text color="$gray10" fontSize="$2">
+              Tiquete #{ticket.ticketNumber}
+            </Text>
+            <Text color="$gray10" fontSize="$2">
+              •
+            </Text>
+            <Text color="$gray10" fontSize="$2">
               Creado: {new Date(ticket.createdAt).toLocaleDateString()}
             </Text>
           </XStack>
         </YStack>
 
-        {/* Botones de acción */}
+        {/* Botón de pago discreto y bonito */}
         {!isPaid && (
           <Button
             size="$3"
             onPress={onPay}
             disabled={isPaid}
-          >
-            Pagar
-          </Button>
+            icon={(p: any) => <CreditCard {...p} size={16} />}
+            backgroundColor="$blue4"
+            borderColor="$blue8"
+            borderWidth={1}
+            hoverStyle={{ backgroundColor: '$blue5' }}
+            pressStyle={{ backgroundColor: '$blue6', scale: 0.98 }}
+            minWidth={50}
+          />
         )}
       </XStack>
     </Card>
+  )
+}
+
+interface PaymentModalProps {
+  ticket: TicketWithPayments & { totalPayout: number; totalPaid: number; remaining: number }
+  isOpen: boolean
+  onClose: () => void
+  onSave: (data: any) => void
+}
+
+function PaymentModal({ ticket, isOpen, onClose, onSave }: PaymentModalProps) {
+  const [amount, setAmount] = useState(ticket.remaining.toString())
+  const [method, setMethod] = useState('CASH')
+  const [notes, setNotes] = useState('')
+
+  if (!isOpen) return null
+
+  return (
+    <YStack
+      position="absolute"
+      top={0}
+      left={0}
+      right={0}
+      bottom={0}
+      bg="rgba(0,0,0,0.5)"
+      ai="center"
+      jc="center"
+      zIndex={2000}
+      onPress={onClose}
+    >
+      <Card
+        width="90%"
+        maxWidth={500}
+        padding="$4"
+        gap="$4"
+        bg="$background"
+        onPress={(e: any) => e.stopPropagation()}
+      >
+        {/* Modal Header - Botón X en la esquina superior derecha */}
+        <XStack jc="space-between" ai="center">
+          <Text fontSize="$6" fontWeight="bold">
+            Registrar Pago
+          </Text>
+          <Button
+            size="$2"
+            icon={(p: any) => <X {...p} size={20} />}
+            onPress={onClose}
+            variant="ghost"
+            backgroundColor="transparent"
+            borderWidth={0}
+          />
+        </XStack>
+
+        <Separator />
+
+        {/* Información del tiquete */}
+        <YStack gap="$2">
+          <Text fontSize="$3" fontWeight="600">
+            Tiquete #{ticket.ticketNumber}
+          </Text>
+          <XStack gap="$4" jc="space-between">
+            <YStack gap="$1">
+              <Text fontSize="$2" color="$gray10">
+                Total Premio
+              </Text>
+              <Text fontWeight="600" fontSize="$4">
+                {formatCurrency(ticket.totalPayout)}
+              </Text>
+            </YStack>
+            <YStack gap="$1">
+              <Text fontSize="$2" color="$gray10">
+                Ya Pagado
+              </Text>
+              <Text fontWeight="600" fontSize="$4">
+                {formatCurrency(ticket.totalPaid)}
+              </Text>
+            </YStack>
+            <YStack gap="$1">
+              <Text fontSize="$2" color="$gray10">
+                Pendiente
+              </Text>
+              <Text fontWeight="600" fontSize="$4" color="$error">
+                {formatCurrency(ticket.remaining)}
+              </Text>
+            </YStack>
+          </XStack>
+        </YStack>
+
+        <Separator />
+
+        {/* Formulario de pago */}
+        <YStack gap="$3">
+          {/* Monto */}
+          <YStack gap="$1">
+            <Text fontSize="$3" fontWeight="600">
+              Monto a pagar
+            </Text>
+            <Input
+              value={amount}
+              onChangeText={setAmount}
+              placeholder="0.00"
+              keyboardType="decimal-pad"
+            />
+            <Text fontSize="$2" color="$gray10">
+              Máximo: {formatCurrency(ticket.remaining)}
+            </Text>
+          </YStack>
+
+          {/* Método de pago */}
+          <YStack gap="$1">
+            <Text fontSize="$3" fontWeight="600">
+              Método de pago
+            </Text>
+            <Select value={method} onValueChange={setMethod}>
+              <Select.Trigger
+                br="$3"
+                bw={1}
+                bc="$borderColor"
+                backgroundColor="$background"
+                px="$3"
+                hoverStyle={{ bg: '$backgroundHover' }}
+                focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
+                iconAfter={ChevronDown}
+              >
+                <Select.Value>{PAYMENT_METHOD_LABELS[method as keyof typeof PAYMENT_METHOD_LABELS]}</Select.Value>
+              </Select.Trigger>
+
+              <Select.Content zIndex={3000}>
+                <YStack br="$3" bw={1} bc="$borderColor" backgroundColor="$background">
+                  <Select.Viewport>
+                    {PAYMENT_METHODS.map((m, idx) => (
+                      <Select.Item key={m.value} value={m.value} index={idx} pressStyle={{ bg: '$backgroundHover' }} bw={0} px="$3">
+                        <Select.ItemText>{m.label}</Select.ItemText>
+                        {method === m.value && <Select.ItemIndicator ml="auto"><Check size={16} /></Select.ItemIndicator>}
+                      </Select.Item>
+                    ))}
+                  </Select.Viewport>
+                </YStack>
+              </Select.Content>
+            </Select>
+          </YStack>
+
+          {/* Notas */}
+          <YStack gap="$1">
+            <Text fontSize="$3" fontWeight="600">
+              Notas (opcional)
+            </Text>
+            <Input
+              value={notes}
+              onChangeText={setNotes}
+              placeholder="Agregar notas sobre el pago..."
+              multiline
+              numberOfLines={3}
+            />
+          </YStack>
+        </YStack>
+
+        {/* Footer - Botones de acción */}
+        <XStack gap="$3" jc="flex-end" mt="$2">
+          <Button
+            variant="ghost"
+            onPress={onClose}
+          >
+            Cancelar
+          </Button>
+          <Button
+            onPress={() => onSave({ amount: parseFloat(amount), method, notes })}
+            backgroundColor="$green4"
+            borderColor="$green8"
+            borderWidth={1}
+            hoverStyle={{ backgroundColor: '$green5' }}
+            pressStyle={{ backgroundColor: '$green6', scale: 0.98 }}
+          >
+            Guardar Pago
+          </Button>
+        </XStack>
+      </Card>
+    </YStack>
   )
 }
