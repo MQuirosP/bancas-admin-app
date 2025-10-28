@@ -10,7 +10,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import FilterSwitch from '@/components/ui/FilterSwitch'
 import { useConfirm } from '@/components/ui/Confirm'
 import { useToast } from '@/hooks/useToast'
-import { listVentanas, Ventana, softDeleteVentana, restoreVentana } from '@/services/ventanas.service'
+import { listVentanas, Ventana, softDeleteVentana, restoreVentana } from '@/services/ventanas.service' // Removed unused: updateVentana
 
 export default function VentanasListScreen() {
   const theme = useTheme()
@@ -30,7 +30,7 @@ export default function VentanasListScreen() {
 
   // ✅ NO incluimos isActive en params para el backend
   const { data, isLoading, isFetching, isError, refetch } = useQuery({
-    queryKey: ['ventanas', 'list', { page, pageSize, search }], // ← sin isActive
+    queryKey: queryKeys.ventanas.list({ page, pageSize, search }), // ✅ Usar queryKeys centralizados
     queryFn: () => listVentanas({ page, pageSize, search }),
     placeholderData: { data: [], meta: { page: 1, pageSize: 20, total: 0, totalPages: 1 } },
     staleTime: 60_000,
@@ -46,14 +46,14 @@ export default function VentanasListScreen() {
 
   const mDelete = useMutation({
     mutationFn: (id: string) => softDeleteVentana(id),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['ventanas'] }); toast.success('Ventana eliminada') },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: queryKeys.ventanas.all }); toast.success('Ventana eliminada') },
     onError: (e: any) => toast.error(e?.message || 'No fue posible eliminar'),
   })
 
   // ✅ Restaurar inactivas => set isActive = true vía update
   const mRestoreInactive = useMutation({
     mutationFn: (id: string) => restoreVentana(id),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['ventanas'] }); toast.success('Ventana restaurada') },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: queryKeys.ventanas.all }); toast.success('Ventana restaurada') },
     onError: (e: any) => toast.error(e?.message || 'No fue posible restaurar'),
   })
 

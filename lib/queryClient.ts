@@ -35,6 +35,34 @@ export const queryKeys = {
     me: ['auth', 'me'] as const,
   },
   
+  // Ventanas
+  ventanas: {
+    all: ['ventanas'] as const,
+    list: (params?: any) => ['ventanas', 'list', params] as const,
+    detail: (id: string) => ['ventanas', 'detail', id] as const,
+  },
+  
+  // Bancas
+  bancas: {
+    all: ['bancas'] as const,
+    list: (params?: any) => ['bancas', 'list', params] as const,
+    detail: (id: string) => ['bancas', 'detail', id] as const,
+  },
+  
+  // Loterías
+  loterias: {
+    all: ['loterias'] as const,
+    list: (params?: any) => ['loterias', 'list', params] as const,
+    detail: (id: string) => ['loterias', 'detail', id] as const,
+  },
+  
+  // Usuarios
+  users: {
+    all: ['users'] as const,
+    list: (params?: any) => ['users', 'list', params] as const,
+    detail: (id: string) => ['users', 'detail', id] as const,
+  },
+  
   // Tickets
   tickets: {
     all: ['tickets'] as const,
