@@ -54,9 +54,21 @@ const TicketPaymentModal = ({
   const loading = isLoading ?? false
 
   // Calcular payout pendiente
+  // ✅ v2.0: Usar campos unificados si están disponibles, fallback a cálculo manual
   const paymentInfo = useMemo(() => {
     if (!ticket) return { totalPayout: 0, totalPaid: 0, remaining: 0, hasWinner: false }
 
+    // ✅ Priorizar campos unificados del backend (v2.0)
+    if (ticket.totalPayout !== undefined && ticket.totalPayout !== null) {
+      return {
+        totalPayout: ticket.totalPayout || 0,
+        totalPaid: ticket.totalPaid || 0,
+        remaining: ticket.remainingAmount || 0,
+        hasWinner: ticket.isWinner || false,
+      }
+    }
+
+    // Fallback: calcular manualmente (compatibilidad con backend antiguo)
     const jugadas = ticket.jugadas || []
     const totalPayout = jugadas
       .filter((j: any) => j.isWinner)

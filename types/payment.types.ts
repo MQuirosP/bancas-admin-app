@@ -1,9 +1,14 @@
 /**
  * Tipos para el módulo de pagos de tiquetes ganadores
+ * @version 2.0 - Sistema Unificado
  */
 
 export type PaymentMethod = 'cash' | 'check' | 'transfer' | 'system'
 
+/**
+ * @deprecated Use RegisterPaymentRequest from api.types.ts
+ * Se mantiene para compatibilidad temporal
+ */
 export interface CreatePaymentInput {
   ticketId: string
   amountPaid: number
@@ -12,6 +17,18 @@ export interface CreatePaymentInput {
   idempotencyKey?: string
   isFinal?: boolean // Marca pago parcial como final
   ventanaId?: string // ID de la ventana del usuario (para VENTANA rol)
+}
+
+/**
+ * Input para registrar pago usando el sistema unificado
+ * @since v2.0 - Compatible con POST /tickets/:id/pay
+ */
+export interface RegisterPaymentInput {
+  amountPaid: number
+  method?: PaymentMethod
+  notes?: string
+  isFinal?: boolean
+  idempotencyKey?: string
 }
 
 export interface TicketPayment {
@@ -40,6 +57,15 @@ export interface TicketPayment {
   ticket?: any
 }
 
+/**
+ * @deprecated Use Ticket from api.types.ts directamente
+ * El Ticket ahora incluye todos los campos de pago unificados:
+ * - totalPayout, totalPaid, remainingAmount
+ * - paymentHistory (array completo de pagos)
+ * - lastPaymentAt, paymentMethod, etc
+ * @see Ticket
+ * @see PaymentHistoryEntry
+ */
 export interface TicketWithPayments {
   id: string
   ticketNumber: string

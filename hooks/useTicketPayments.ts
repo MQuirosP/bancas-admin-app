@@ -55,14 +55,17 @@ export function useTicketDetailsQuery(ticketId?: string) {
 
 /**
  * Hook para obtener historial de pagos de un tiquete
+ * @since v2.0 - Ahora obtiene datos de ticket.paymentHistory en vez de endpoint separado
+ * @deprecated Usar useTicketQuery directamente y acceder a ticket.paymentHistory
  */
 export function useTicketPaymentHistoryQuery(ticketId?: string) {
   return useQuery({
     queryKey: ['ticketPaymentHistory', ticketId],
     queryFn: async () => {
       if (!ticketId) return []
-      const queryString = apiClient.buildQueryString({ ticketId })
-      return apiClient.get<TicketPayment[]>(`/ticket-payments${queryString}`)
+      // ✅ v2.0: Obtener del ticket unificado
+      const ticket = await apiClient.get<any>(`/tickets/${ticketId}`)
+      return ticket.paymentHistory || []
     },
     enabled: !!ticketId,
   })
@@ -70,23 +73,25 @@ export function useTicketPaymentHistoryQuery(ticketId?: string) {
 
 /**
  * Hook para registrar un pago de tiquete
- * POST /ticket-payments
+ * POST /tickets/:id/pay (Sistema Unificado v2.0)
+ * @since v2.0 - Migrado a sistema unificado
  */
 export function useCreatePaymentMutation() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (data: CreatePaymentInput) =>
-      apiClient.post<TicketPayment>('/ticket-payments', data),
-    onSuccess: (data) => {
+    mutationFn: ({ ticketId, ...paymentData }: CreatePaymentInput) =>
+      apiClient.post<any>(`/tickets/${ticketId}/pay`, paymentData),
+    onSuccess: () => {
       // Invalidar todas las queries de tickets (pending, list, detail, etc.)
       queryClient.invalidateQueries({
         queryKey: queryKeys.tickets.all,
         exact: false // ✅ Invalida todas las variantes con prefix ['tickets']
       })
-      // Invalidar historial de pagos específico
+      // Invalidar historial de pagos específico (ya no es necesario query separada)
       queryClient.invalidateQueries({
-        queryKey: ['ticketPaymentHistory', data.ticketId]
+        queryKey: ['ticketPaymentHistory'],
+        exact: false
       })
       // Invalidar lista de pagos
       queryClient.invalidateQueries({
@@ -98,23 +103,25 @@ export function useCreatePaymentMutation() {
 }
 
 /**
- * Hook para revertir un pago
- * POST /ticket-payments/:id/reverse
+ * Hook para revertir el último pago de un ticket
+ * POST /tickets/:id/reverse-payment (Sistema Unificado v2.0)
+ * @since v2.0 - Migrado a sistema unificado
  */
 export function useReversePaymentMutation() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (paymentId: string) =>
-      apiClient.post<TicketPayment>(`/ticket-payments/${paymentId}/reverse`, {}),
-    onSuccess: (data) => {
+    mutationFn: ({ ticketId, reason }: { ticketId: string; reason?: string }) =>
+      apiClient.post<any>(`/tickets/${ticketId}/reverse-payment`, { reason }),
+    onSuccess: () => {
       // Invalidar todas las queries de tickets
       queryClient.invalidateQueries({
         queryKey: queryKeys.tickets.all,
         exact: false
       })
       queryClient.invalidateQueries({
-        queryKey: ['ticketPaymentHistory', data.ticketId]
+        queryKey: ['ticketPaymentHistory'],
+        exact: false
       })
       queryClient.invalidateQueries({
         queryKey: ['paymentList'],
@@ -125,26 +132,27 @@ export function useReversePaymentMutation() {
 }
 
 /**
- * Hook para actualizar un pago (marcar como final)
- * PATCH /ticket-payments/:id
+ * Hook para finalizar pago parcial (aceptar deuda)
+ * POST /tickets/:id/finalize-payment (Sistema Unificado v2.0)
+ * @since v2.0 - Migrado a sistema unificado
  */
 export function useUpdatePaymentMutation() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (data: { paymentId: string; isFinal: boolean; notes?: string }) =>
-      apiClient.patch<TicketPayment>(`/ticket-payments/${data.paymentId}`, {
-        isFinal: data.isFinal,
+    mutationFn: (data: { ticketId: string; notes?: string }) =>
+      apiClient.post<any>(`/tickets/${data.ticketId}/finalize-payment`, {
         notes: data.notes,
       }),
-    onSuccess: (data) => {
+    onSuccess: () => {
       // Invalidar todas las queries de tickets
       queryClient.invalidateQueries({
         queryKey: queryKeys.tickets.all,
         exact: false
       })
       queryClient.invalidateQueries({
-        queryKey: ['ticketPaymentHistory', data.ticketId]
+        queryKey: ['ticketPaymentHistory'],
+        exact: false
       })
       queryClient.invalidateQueries({
         queryKey: ['paymentList'],
@@ -153,6 +161,12 @@ export function useUpdatePaymentMutation() {
     },
   })
 }
+
+/**
+ * Alias para mantener compatibilidad
+ * @see useUpdatePaymentMutation
+ */
+export const useFinalizePaymentMutation = useUpdatePaymentMutation
 
 /**
  * Hook para obtener lista paginada de pagos registrados

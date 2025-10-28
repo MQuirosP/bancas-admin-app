@@ -1,9 +1,10 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { YStack, XStack, Text, Card, ScrollView, Modal } from 'tamagui'
 import { Button } from '@/components/ui'
 import { useAuth } from '@/hooks/useAuth'
-import { useTicketPaymentHistoryQuery, useReversePaymentMutation } from '@/hooks/useTicketPayments'
-import type { TicketPayment } from '@/types/payment.types'
+import { useTicketQuery } from '@/hooks/useTickets'
+import { useReversePaymentMutation } from '@/hooks/useTicketPayments'
+import type { PaymentHistoryEntry } from '@/types/api.types'
 import { formatCurrency } from '@/lib/currency'
 import { Role } from '@/types/auth.types'
 
@@ -19,13 +20,15 @@ export default function PaymentHistoryModal({
   onClose,
 }: PaymentHistoryModalProps) {
   const { user } = useAuth()
-  const { data: payments = [], isLoading } = useTicketPaymentHistoryQuery(ticketId)
+  // ✅ v2.0: Obtener ticket completo con paymentHistory embebido
+  const { data: ticket, isLoading } = useTicketQuery(ticketId || '', !!ticketId)
   const reversePaymentMutation = useReversePaymentMutation()
 
-  const handleReverse = async (paymentId: string) => {
-    if (confirm('¿Revertir este pago?')) {
+  const handleReverse = async () => {
+    if (!ticketId) return
+    if (confirm('¿Revertir el último pago?')) {
       try {
-        await reversePaymentMutation.mutateAsync(paymentId)
+        await reversePaymentMutation.mutateAsync({ ticketId, reason: 'Reversión desde modal' })
         // Toast success
       } catch (error) {
         console.error('Reverse error:', error)
@@ -33,6 +36,11 @@ export default function PaymentHistoryModal({
       }
     }
   }
+
+  // ✅ v2.0: Usar paymentHistory del ticket unificado
+  const payments = useMemo(() => {
+    return ticket?.paymentHistory || []
+  }, [ticket])
 
   const activePayments = payments.filter((p) => !p.isReversed)
   const reversedPayments = payments.filter((p) => p.isReversed)
@@ -106,7 +114,7 @@ export default function PaymentHistoryModal({
                           key={payment.id}
                           payment={payment}
                           canReverse={user?.role === Role.ADMIN}
-                          onReverse={() => handleReverse(payment.id)}
+                          onReverse={handleReverse}
                         />
                       ))}
                     </YStack>
@@ -139,14 +147,15 @@ export default function PaymentHistoryModal({
 }
 
 interface PaymentRowProps {
-  payment: TicketPayment
+  payment: PaymentHistoryEntry
   isReversed?: boolean
   canReverse?: boolean
   onReverse?: () => void
 }
 
 function PaymentRow({ payment, isReversed = false, canReverse = false, onReverse }: PaymentRowProps) {
-  const date = new Date(payment.paymentDate)
+  // ✅ v2.0: PaymentHistoryEntry usa 'paidAt' en vez de 'paymentDate'
+  const date = new Date(payment.paidAt)
   const reversedDate = payment.reversedAt ? new Date(payment.reversedAt) : null
 
   return (
@@ -165,7 +174,7 @@ function PaymentRow({ payment, isReversed = false, canReverse = false, onReverse
                 {formatCurrency(payment.amountPaid)}
               </Text>
               <Text fontSize="$2" color="$gray10">
-                {payment.method || 'Sin método'} • {payment.paidBy?.name || 'Usuario desconocido'}
+                {payment.method || 'Sin método'} • {payment.paidByName || 'Usuario desconocido'}
               </Text>
             </YStack>
 
@@ -180,10 +189,9 @@ function PaymentRow({ payment, isReversed = false, canReverse = false, onReverse
                 </Text>
               )}
 
-              {payment.isPartial && (
+              {payment.isFinal && (
                 <Text fontSize="$2" color="$warning">
-                  Pago Parcial
-                  {payment.isFinal && ' (Final)'}
+                  Pago Final
                 </Text>
               )}
             </YStack>
@@ -202,15 +210,6 @@ function PaymentRow({ payment, isReversed = false, canReverse = false, onReverse
               Revertido por: {payment.reversedBy}
             </Text>
           )}
-
-          {/* Remaining amount si es parcial */}
-          {payment.isPartial && payment.remainingAmount !== undefined && (
-            <XStack ai="center" gap="$1" mt="$1">
-              <Text fontSize="$2" color="$warning">
-                Pendiente: {formatCurrency(payment.remainingAmount)}
-              </Text>
-            </XStack>
-          )}
         </YStack>
 
         {/* Botones */}
@@ -221,7 +220,7 @@ function PaymentRow({ payment, isReversed = false, canReverse = false, onReverse
             onPress={onReverse}
             color="$error"
           >
-            Revertir
+            Revertir Último
           </Button>
         )}
       </XStack>

@@ -42,10 +42,21 @@ export default function PaymentFormModal({
   const [submitError, setSubmitError] = useState<string>('')
 
   // Calcular totales
+  // ✅ v2.0: Usar campos unificados si están disponibles, fallback a cálculo manual
   const totals = useMemo(() => {
     const current = ticketDetails || ticket
     if (!current) return { totalPayout: 0, totalPaid: 0, remaining: 0 }
 
+    // ✅ Priorizar campos unificados del backend (v2.0)
+    if (current.totalPayout !== undefined && current.totalPayout !== null) {
+      return {
+        totalPayout: current.totalPayout || 0,
+        totalPaid: current.totalPaid || 0,
+        remaining: current.remainingAmount || 0,
+      }
+    }
+
+    // Fallback: calcular manualmente (compatibilidad con backend antiguo)
     const totalPayout = (current.jugadas || [])
       .filter((j) => j.isWinner)
       .reduce((sum, j) => sum + (j.payout || 0), 0)

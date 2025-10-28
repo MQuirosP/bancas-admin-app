@@ -165,14 +165,45 @@ export interface Ticket {
   status: TicketStatus;
   isWinner: boolean;
   isActive: boolean;
+  
+  // ============ UNIFIED PAYMENT FIELDS (Sistema Unificado v2.0) ============
+  totalPayout: number | null;        // Total de premios ganados
+  totalPaid: number | null;          // Total pagado acumulado
+  remainingAmount: number | null;    // Monto pendiente de pago
+  lastPaymentAt: string | null;      // Fecha del último pago (ISO 8601)
+  paidById: string | null;           // ID del usuario que pagó
+  paymentMethod: string | null;      // 'cash' | 'transfer' | 'check' | 'other'
+  paymentNotes: string | null;       // Notas del último pago
+  paymentHistory: PaymentHistoryEntry[] | null; // Historial completo de pagos
+  
+  // Relaciones expandidas
   loteria?: Loteria;
   ventana?: Ventana;
   vendedor?: User;
   sorteo?: Sorteo;
+  paidBy?: User;                     // Usuario que realizó el pago
   jugadas: Jugada[];
   deletedAt?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+/**
+ * Entrada del historial de pagos embebida en el ticket
+ * @since v2.0 - Sistema Unificado
+ */
+export interface PaymentHistoryEntry {
+  id: string;
+  amountPaid: number;
+  paidAt: string;                    // ISO 8601
+  paidById: string;
+  paidByName: string;
+  method: 'cash' | 'transfer' | 'check' | 'other';
+  notes?: string;
+  isFinal: boolean;
+  isReversed: boolean;
+  reversedAt?: string;
+  reversedBy?: string;
 }
 
 export interface CreateJugadaInput {
@@ -331,6 +362,13 @@ export interface RestrictionRulesQueryParams {
 }
 
 // ============ TICKET PAYMENT ============
+/**
+ * @deprecated Este tipo está deprecado. Use los campos unificados en Ticket.
+ * Se mantiene solo para compatibilidad con auditoría backend.
+ * Los pagos ahora están integrados en el modelo Ticket.
+ * @see Ticket.paymentHistory
+ * @see PaymentHistoryEntry
+ */
 export interface TicketPayment {
   id: string;
   ticketId: string;
@@ -351,12 +389,47 @@ export interface TicketPayment {
   updatedAt: string;
 }
 
+/**
+ * @deprecated Use RegisterPaymentRequest en su lugar
+ */
 export interface CreateTicketPaymentRequest {
   ticketId: string;
   amountPaid: number;
   method?: string;
   notes?: string;
   idempotencyKey?: string;
+}
+
+// ============ UNIFIED PAYMENT SYSTEM (v2.0) ============
+/**
+ * Request para registrar un pago (total o parcial)
+ * POST /api/v1/tickets/:id/pay
+ * @since v2.0 - Sistema Unificado
+ */
+export interface RegisterPaymentRequest {
+  amountPaid: number;           // REQUERIDO: Monto a pagar (> 0)
+  method?: string;              // OPCIONAL: 'cash' | 'transfer' | 'check' | 'other' (default: 'cash')
+  notes?: string;               // OPCIONAL: Notas (max 500 chars)
+  isFinal?: boolean;            // OPCIONAL: Marcar como final (default: false)
+  idempotencyKey?: string;      // OPCIONAL: Para evitar duplicados (min 8 chars)
+}
+
+/**
+ * Request para revertir el último pago
+ * POST /api/v1/tickets/:id/reverse-payment
+ * @since v2.0 - Sistema Unificado
+ */
+export interface ReversePaymentRequest {
+  reason?: string;  // OPCIONAL: Motivo de reversión (min 5 chars)
+}
+
+/**
+ * Request para finalizar pago parcial (aceptar deuda)
+ * POST /api/v1/tickets/:id/finalize-payment
+ * @since v2.0 - Sistema Unificado
+ */
+export interface FinalizePaymentRequest {
+  notes?: string;  // OPCIONAL: Notas adicionales
 }
 
 // ============ PAGINATION ============
