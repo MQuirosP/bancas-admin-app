@@ -29,15 +29,13 @@ export default function MisVentasScreen() {
 
   const payload = (data as any)?.data ?? data ?? {}
   const totals = {
-    tickets: payload?.ticketsCount ?? payload?.totalTickets ?? 0,
-    amount: payload?.totalAmount ?? 0,
-    active: payload?.activeTickets ?? payload?.ticketsActive ?? 0,
-    evaluated: payload?.evaluatedTickets ?? payload?.ticketsEvaluated ?? 0,
-    winners: payload?.winnerTickets ?? payload?.ticketsWithWinners ?? 0,
-    hasWinners: (payload?.winnerTickets ?? payload?.ticketsWithWinners ?? 0) > 0,
+    tickets: payload?.ticketsCount ?? 0,
+    amount: payload?.ventasTotal ?? 0,
+    payout: payload?.payoutTotal ?? 0,
+    neto: payload?.neto ?? 0,
+    commission: payload?.commissionTotal ?? 0,
+    netoDespuesComision: payload?.netoDespuesComision ?? 0,
   }
-  const perSeller: Array<{ id?: string; name?: string; total?: number; tickets?: number }>
-    = Array.isArray(payload?.bySeller) ? payload.bySeller : Array.isArray(payload?.sellers) ? payload.sellers : []
 
   return (
     <ScrollView flex={1} backgroundColor={'$background'}>
@@ -97,50 +95,49 @@ export default function MisVentasScreen() {
           </XStack>
         </Card>
 
+        {/* Resumen KPI */}
         <Card padding="$4" bg="$backgroundHover" borderColor="$borderColor" borderWidth={1}>
-          <Text fontSize="$5" fontWeight="600" marginBottom="$3">Resumen</Text>
-          <XStack justifyContent="space-around" flexWrap="wrap" gap="$4">
-            <YStack ai="center">
-              <Text fontSize="$7" fontWeight="bold" color="$primary">{totals.tickets}</Text>
-              <Text color="$textSecondary">Tickets Vendidos</Text>
-            </YStack>
-            <YStack ai="center">
-              <Text fontSize="$7" fontWeight="bold" color="$green10">{formatCurrency(totals.amount)}</Text>
-              <Text color="$textSecondary">Total Vendido</Text>
-            </YStack>
-            <YStack ai="center">
-              <Text fontSize="$7" fontWeight="bold" color="$blue10">{totals.active}</Text>
-              <Text color="$textSecondary">Activos para Sorteos</Text>
-            </YStack>
-            <YStack ai="center">
-              <Text fontSize="$7" fontWeight="bold" color="$yellow10">{totals.evaluated}</Text>
-              <Text color="$textSecondary">Ya Evaluados</Text>
-            </YStack>
-            <YStack ai="center">
-              <Text fontSize="$7" fontWeight="bold" color={totals.hasWinners ? '$orange10' : '$gray9'}>{totals.winners}</Text>
-              <Text color="$textSecondary">Tiques Ganadores {totals.hasWinners ? '✓' : ''}</Text>
-            </YStack>
-          </XStack>
-        </Card>
+          <Text fontSize="$5" fontWeight="600" marginBottom="$3">Resumen de Ventas</Text>
+          <YStack gap="$3">
+            {/* Fila 1: Tickets y Ventas Totales */}
+            <XStack justifyContent="space-around" flexWrap="wrap" gap="$4">
+              <YStack ai="center" flex={1} minWidth={140}>
+                <Text fontSize="$7" fontWeight="bold" color="$primary">{totals.tickets}</Text>
+                <Text fontSize="$2" color="$textSecondary">Tickets Vendidos</Text>
+              </YStack>
+              <YStack ai="center" flex={1} minWidth={140}>
+                <Text fontSize="$7" fontWeight="bold" color="$green10">{formatCurrency(totals.amount)}</Text>
+                <Text fontSize="$2" color="$textSecondary">Total Vendido</Text>
+              </YStack>
+            </XStack>
 
-        {perSeller?.length ? (
-          <>
-            <Text fontSize="$5" fontWeight="600" mt="$2">Vendedores</Text>
-            <YStack gap="$2">
-              {perSeller.map((s, i) => (
-                <Card key={s.id || i} padding="$4">
-                  <XStack jc="space-between" ai="center">
-                    <YStack>
-                      <Text fontSize="$4" fontWeight="600">{s.name || s.id || '—'}</Text>
-                      <Text fontSize="$3" color="$textSecondary">{s.tickets ?? '—'} tickets</Text>
-                    </YStack>
-                    <Text fontSize="$5" fontWeight="bold" color="$primary">{formatCurrency(s.total ?? 0)}</Text>
-                  </XStack>
-                </Card>
-              ))}
-            </YStack>
-          </>
-        ) : null}
+            {/* Fila 2: Premios y Comisiones */}
+            <XStack justifyContent="space-around" flexWrap="wrap" gap="$4">
+              <YStack ai="center" flex={1} minWidth={140}>
+                <Text fontSize="$6" fontWeight="bold" color="$orange10">{formatCurrency(totals.payout)}</Text>
+                <Text fontSize="$2" color="$textSecondary">Total en Premios</Text>
+              </YStack>
+              <YStack ai="center" flex={1} minWidth={140}>
+                <Text fontSize="$6" fontWeight="bold" color="$blue10">{formatCurrency(totals.commission)}</Text>
+                <Text fontSize="$2" color="$textSecondary">Comisiones</Text>
+              </YStack>
+            </XStack>
+
+            {/* Fila 3: Neto (Ganancia/Pérdida) */}
+            <XStack justifyContent="center" flexWrap="wrap" gap="$4">
+              <YStack ai="center" flex={1}>
+                <Text
+                  fontSize="$7"
+                  fontWeight="bold"
+                  color={totals.neto >= 0 ? '$green10' : '$red10'}
+                >
+                  {totals.neto >= 0 ? '+' : ''}{formatCurrency(totals.neto)}
+                </Text>
+                <Text fontSize="$2" color="$textSecondary">Neto (Ganancia/Pérdida)</Text>
+              </YStack>
+            </XStack>
+          </YStack>
+        </Card>
       </YStack>
     </ScrollView>
   )
