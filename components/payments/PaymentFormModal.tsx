@@ -88,6 +88,7 @@ export default function PaymentFormModal({
         method,
         idempotencyKey: uuidv4(),
         isFinal,
+        ...(user?.ventanaId && { ventanaId: user.ventanaId }), // Enviar ventanaId si existe
       }
 
       const result = await createPaymentMutation.mutateAsync(input)

@@ -5,6 +5,7 @@ import { X, Check, ChevronDown } from '@tamagui/lucide-icons'
 import { formatCurrency } from '@/utils/formatters'
 import { v4 as uuidv4 } from 'uuid'
 import { useToast } from '@/hooks/useToast'
+import { useAuth } from '@/hooks/useAuth'
 import type { PaymentMethod, CreatePaymentInput } from '@/types/payment.types'
 import DialogContentWrapper from './DialogContentWrapper'
 
@@ -44,6 +45,7 @@ const TicketPaymentModal = ({
   isLoading,
 }: TicketPaymentModalProps) => {
   const { success, error: showError } = useToast()
+  const { user } = useAuth()
   const [amount, setAmount] = useState('')
   const [method, setMethod] = useState<PaymentMethod>('cash')
   const [isFinal, setIsFinal] = useState(false)
@@ -105,6 +107,7 @@ const TicketPaymentModal = ({
         method,
         idempotencyKey: uuidv4(),
         isFinal: isFinal && parseFloat(amount) < paymentInfo.remaining,
+        ...(user?.ventanaId && { ventanaId: user.ventanaId }),
       }
 
       await onSubmit(input)

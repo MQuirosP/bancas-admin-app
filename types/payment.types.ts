@@ -11,6 +11,7 @@ export interface CreatePaymentInput {
   notes?: string
   idempotencyKey?: string
   isFinal?: boolean // Marca pago parcial como final
+  ventanaId?: string // ID de la ventana del usuario (para VENTANA rol)
 }
 
 export interface TicketPayment {
