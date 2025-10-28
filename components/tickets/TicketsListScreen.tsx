@@ -15,6 +15,11 @@ import { Toolbar } from '@/components/ui/Toolbar'
 import type { Scope } from '@/types/scope'
 import { getDateParam, type DateTokenBasic, formatDateYYYYMMDD } from '@/lib/dateFormat'
 import { object } from 'zod'
+import TicketActionButtons from './TicketActionButtons'
+import TicketPreviewModal from './TicketPreviewModal'
+import TicketPaymentModal from './TicketPaymentModal'
+import type { CreatePaymentInput } from '@/types/payment.types'
+import { useToast } from '@/hooks/useToast'
 
 // Ajusta a tu modelo real si tienes tipos en '@/types/api.types'
 export type Ticket = {
@@ -79,6 +84,7 @@ async function fetchTickets(params: any): Promise<{ data: Ticket[]; meta: any }>
 export default function TicketsListScreen({ scope }: Props) {
   const router = useRouter()
   const theme = useTheme()
+  const { success, error } = useToast()
   const iconColor = (theme?.color as any)?.get?.() ?? '#000'
 
   const [page, setPage] = useState(1)
@@ -88,6 +94,13 @@ export default function TicketsListScreen({ scope }: Props) {
   const [dateFrom, setDateFrom] = useState<Date | null>(null)
   const [dateTo, setDateTo] = useState<Date | null>(null)
   const [statusFilter, setStatusFilter] = useState<string>('ALL')
+
+  // Modals
+  const [previewOpen, setPreviewOpen] = useState(false)
+  const [previewTicket, setPreviewTicket] = useState<Ticket | null>(null)
+  const [paymentOpen, setPaymentOpen] = useState(false)
+  const [paymentTicket, setPaymentTicket] = useState<Ticket | null>(null)
+  const [paymentLoading, setPaymentLoading] = useState(false)
 
   const backendParams = useMemo(() => {
     const params: any = {
@@ -145,8 +158,36 @@ export default function TicketsListScreen({ scope }: Props) {
 
   const meta = data?.meta
 
+  // Handlers para modals
+  const handlePreviewTicket = (ticket: Ticket) => {
+    setPreviewTicket(ticket)
+    setPreviewOpen(true)
+  }
+
+  const handlePaymentTicket = (ticket: Ticket) => {
+    setPaymentTicket(ticket)
+    setPaymentOpen(true)
+  }
+
+  const handlePaymentSubmit = async (input: CreatePaymentInput) => {
+    try {
+      setPaymentLoading(true)
+      const result = await apiClient.post('/ticket-payments', input)
+      success(`Pago de ${formatCurrency(input.amountPaid)} registrado correctamente`)
+      // Refrescar la lista de tiquetes
+      refetch()
+      setPaymentOpen(false)
+      setPaymentTicket(null)
+    } catch (err: any) {
+      error(err.message || 'Error al registrar pago')
+    } finally {
+      setPaymentLoading(false)
+    }
+  }
+
   return (
-    <ScrollView flex={1} backgroundColor="$background" contentContainerStyle={{ flexGrow: 1 }}>
+    <>
+      <ScrollView flex={1} backgroundColor="$background" contentContainerStyle={{ flexGrow: 1 }}>
       <YStack padding="$4" gap="$4" maxWidth={1200} alignSelf="center" width="100%">
         <XStack justifyContent="space-between" ai="center" gap="$3" flexWrap="wrap">
           <XStack ai="center" gap="$2">
@@ -401,18 +442,7 @@ export default function TicketsListScreen({ scope }: Props) {
                   backgroundColor="$backgroundHover"
                   borderColor={hasWinner ? '$green8' : '$borderColor'}
                   borderWidth={hasWinner ? 2 : 1}
-                  pressStyle={{ backgroundColor: '$backgroundPress', borderColor: '$borderColorHover' }}
-                  onPress={() => {
-                    // navegación por pathname dinámico + params (expo-router)
-                    router.push({
-                      pathname: scope === 'admin'
-                        ? '/admin/tickets/[id]'
-                        : scope === 'ventana'
-                        ? '/ventana/tickets/[id]'
-                        : '/vendedor/tickets/[id]',
-                      params: { id: ticket.id },
-                    })
-                  }}
+                  gap="$3"
                 >
                   <XStack justifyContent="space-between" ai="flex-start" gap="$3" flexWrap="wrap">
                     <YStack flex={1} gap="$1" minWidth={260}>
@@ -451,6 +481,15 @@ export default function TicketsListScreen({ scope }: Props) {
                       )}
                     </YStack>
                   </XStack>
+
+                  {/* Botones de acción */}
+                  <XStack gap="$2" jc="flex-end">
+                    <TicketActionButtons
+                      ticket={ticket}
+                      onView={handlePreviewTicket}
+                      onPayment={handlePaymentTicket}
+                    />
+                  </XStack>
                 </Card>
               )
             })}
@@ -474,6 +513,28 @@ export default function TicketsListScreen({ scope }: Props) {
         )}
       </YStack>
     </ScrollView>
+
+    {/* Modals */}
+    <TicketPreviewModal
+      isOpen={previewOpen}
+      ticket={previewTicket}
+      onClose={() => {
+        setPreviewOpen(false)
+        setPreviewTicket(null)
+      }}
+    />
+
+    <TicketPaymentModal
+      isOpen={paymentOpen}
+      ticket={paymentTicket}
+      onClose={() => {
+        setPaymentOpen(false)
+        setPaymentTicket(null)
+      }}
+      onSubmit={handlePaymentSubmit}
+      isLoading={paymentLoading}
+    />
+    </>
   )
 }
 
