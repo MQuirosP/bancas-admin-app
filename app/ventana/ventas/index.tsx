@@ -13,13 +13,13 @@ export default function MisVentasScreen() {
   const theme = useTheme()
   const iconColor = (theme?.color as any)?.get?.() ?? '#000'
   const [dateToken, setDateToken] = useState<DateToken>('today')
-  const [page, setPage] = useState(1)
 
   const params = useMemo(() => {
     // ✅ Backend authority: Only send token, let backend calculate
+    // ✅ /ventas/summary does NOT support pagination (returns single aggregated record)
     const dateParams = getDateParam(dateToken)
-    return { page, pageSize: 20, scope: 'mine', ...dateParams }
-  }, [page, dateToken])
+    return { scope: 'mine', ...dateParams }
+  }, [dateToken])
 
   const { data, isLoading, isFetching, refetch } = useQuery({
     queryKey: ['ventas', params],
@@ -87,7 +87,7 @@ export default function MisVentasScreen() {
 
             <YStack gap="$1">
               <Text fontSize="$3" opacity={0}>Acción</Text>
-              <Button height={36} px="$4" icon={(p:any)=> <RefreshCw {...p} color={iconColor} />} onPress={() => { setPage(1); refetch() }}
+              <Button height={36} px="$4" icon={(p:any)=> <RefreshCw {...p} color={iconColor} />} onPress={() => refetch()}
                 backgroundColor="$green4" borderColor="$green8" borderWidth={1}
                 hoverStyle={{ backgroundColor: '$green5' }} pressStyle={{ backgroundColor: '$green6' }}
               >
