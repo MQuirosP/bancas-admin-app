@@ -13,10 +13,10 @@ export interface PendingTicketsScreenProps {
 }
 
 const PAYMENT_METHODS = [
-  { label: 'Efectivo', value: 'CASH' },
-  { label: 'Cheque', value: 'CHECK' },
-  { label: 'Transferencia', value: 'TRANSFER' },
-  { label: 'Sistema', value: 'SYSTEM' },
+  { label: 'Efectivo', value: 'cash' },
+  { label: 'Cheque', value: 'check' },
+  { label: 'Transferencia', value: 'transfer' },
+  { label: 'Sinpe Móvil', value: 'system' },
 ]
 
 const PAYMENT_METHOD_LABELS = Object.fromEntries(PAYMENT_METHODS.map(m => [m.value, m.label]))

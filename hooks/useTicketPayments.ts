@@ -48,6 +48,8 @@ export function useTicketDetailsQuery(ticketId?: string) {
       return apiClient.get<TicketWithPayments>(`/tickets/${ticketId}`)
     },
     enabled: !!ticketId,
+    staleTime: 10000, // Considera stale después de 10s
+    refetchInterval: 30000, // Refresca cada 30s automáticamente
   })
 }
 
@@ -77,9 +79,20 @@ export function useCreatePaymentMutation() {
     mutationFn: (data: CreatePaymentInput) =>
       apiClient.post<TicketPayment>('/ticket-payments', data),
     onSuccess: (data) => {
-      // Invalidar listas y detalles
-      queryClient.invalidateQueries({ queryKey: queryKeys.tickets.all })
-      queryClient.invalidateQueries({ queryKey: ['ticketPaymentHistory', data.ticketId] })
+      // Invalidar todas las queries de tickets (pending, list, detail, etc.)
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.tickets.all,
+        exact: false // ✅ Invalida todas las variantes con prefix ['tickets']
+      })
+      // Invalidar historial de pagos específico
+      queryClient.invalidateQueries({
+        queryKey: ['ticketPaymentHistory', data.ticketId]
+      })
+      // Invalidar lista de pagos
+      queryClient.invalidateQueries({
+        queryKey: ['paymentList'],
+        exact: false
+      })
     },
   })
 }
@@ -95,9 +108,18 @@ export function useReversePaymentMutation() {
     mutationFn: (paymentId: string) =>
       apiClient.post<TicketPayment>(`/ticket-payments/${paymentId}/reverse`, {}),
     onSuccess: (data) => {
-      // Invalidar listas y detalles
-      queryClient.invalidateQueries({ queryKey: queryKeys.tickets.all })
-      queryClient.invalidateQueries({ queryKey: ['ticketPaymentHistory', data.ticketId] })
+      // Invalidar todas las queries de tickets
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.tickets.all,
+        exact: false
+      })
+      queryClient.invalidateQueries({
+        queryKey: ['ticketPaymentHistory', data.ticketId]
+      })
+      queryClient.invalidateQueries({
+        queryKey: ['paymentList'],
+        exact: false
+      })
     },
   })
 }
@@ -116,9 +138,18 @@ export function useUpdatePaymentMutation() {
         notes: data.notes,
       }),
     onSuccess: (data) => {
-      // Invalidar listas y detalles
-      queryClient.invalidateQueries({ queryKey: queryKeys.tickets.all })
-      queryClient.invalidateQueries({ queryKey: ['ticketPaymentHistory', data.ticketId] })
+      // Invalidar todas las queries de tickets
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.tickets.all,
+        exact: false
+      })
+      queryClient.invalidateQueries({
+        queryKey: ['ticketPaymentHistory', data.ticketId]
+      })
+      queryClient.invalidateQueries({
+        queryKey: ['paymentList'],
+        exact: false
+      })
     },
   })
 }

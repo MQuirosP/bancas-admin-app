@@ -1,10 +1,11 @@
 import React, { useMemo, useState } from 'react'
 import { YStack, XStack, Text, ScrollView, Spinner } from 'tamagui'
-import { Card, Button } from '@/components/ui'
+import { Card, Button, Select } from '@/components/ui'
 import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '../../../lib/api.client'
 import { formatCurrency } from '../../../utils/formatters'
-import { ArrowLeft, RefreshCw, TrendingUp } from '@tamagui/lucide-icons'
+import { getDateParam, type DateToken } from '../../../lib/dateFormat'
+import { ArrowLeft, RefreshCw, TrendingUp, Check, ChevronDown } from '@tamagui/lucide-icons'
 import { useTheme } from 'tamagui'
 import { safeBack } from '../../../lib/navigation'
 import { DEFAULT_TOP } from '../../../lib/constants'
@@ -12,8 +13,12 @@ import { DEFAULT_TOP } from '../../../lib/constants'
 export default function VendedoresScreen() {
   const theme = useTheme()
   const iconColor = (theme?.color as any)?.get?.() ?? '#000'
+  const [dateToken, setDateToken] = useState<DateToken>('today')
 
-  const params = useMemo(() => ({ date: 'today', scope: 'mine', dimension: 'vendedor', top: DEFAULT_TOP }), [])
+  const params = useMemo(() => {
+    const dateParams = getDateParam(dateToken)
+    return { ...dateParams, scope: 'mine', dimension: 'vendedor', top: DEFAULT_TOP }
+  }, [dateToken])
 
   const { data, isLoading, isFetching, refetch } = useQuery({
     queryKey: ['vendedores', params],
@@ -112,9 +117,29 @@ export default function VendedoresScreen() {
         {/* Controls */}
         <Card padding="$3" borderColor="$borderColor" borderWidth={1}>
           <XStack gap="$3" flexWrap="wrap" ai="flex-end">
-            <YStack gap="$1" flex={1} minWidth={220}>
+            <YStack gap="$1" minWidth={220}>
               <Text fontSize="$3">Período</Text>
-              <Text fontSize="$4" fontWeight="500">Hoy</Text>
+              <Select value={dateToken} onValueChange={(v) => setDateToken(v as DateToken)}>
+                <Select.Trigger width={220} height={36} br="$4" bw={1} bc="$borderColor" backgroundColor="$background" iconAfter={ChevronDown}>
+                  <Select.Value />
+                </Select.Trigger>
+                <Select.Content zIndex={200000}>
+                  <Select.Viewport>
+                    {([
+                      { value: 'today', label: 'Hoy' },
+                      { value: 'yesterday', label: 'Ayer' },
+                      { value: 'week', label: 'Esta Semana' },
+                      { value: 'month', label: 'Este Mes' },
+                      { value: 'year', label: 'Este Año' },
+                    ] as const).map((it, idx) => (
+                      <Select.Item key={it.value} value={it.value} index={idx}>
+                        <Select.ItemText>{it.label}</Select.ItemText>
+                        <Select.ItemIndicator ml="auto"><Check size={16} /></Select.ItemIndicator>
+                      </Select.Item>
+                    ))}
+                  </Select.Viewport>
+                </Select.Content>
+              </Select>
             </YStack>
             <YStack gap="$1">
               <Text fontSize="$3" opacity={0}>Acción</Text>

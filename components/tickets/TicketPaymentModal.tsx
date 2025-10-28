@@ -26,10 +26,10 @@ interface TicketPaymentModalProps {
 }
 
 const PAYMENT_METHODS: { label: string; value: PaymentMethod }[] = [
-  { label: 'Efectivo', value: 'CASH' },
-  { label: 'Cheque', value: 'CHECK' },
-  { label: 'Transferencia', value: 'TRANSFER' },
-  { label: 'Sistema', value: 'SYSTEM' },
+  { label: 'Efectivo', value: 'cash' },
+  { label: 'Cheque', value: 'check' },
+  { label: 'Transferencia', value: 'transfer' },
+  { label: 'Sinpe Móvil', value: 'system' },
 ]
 
 /**
@@ -45,7 +45,7 @@ const TicketPaymentModal = ({
 }: TicketPaymentModalProps) => {
   const { success, error: showError } = useToast()
   const [amount, setAmount] = useState('')
-  const [method, setMethod] = useState<PaymentMethod>('CASH')
+  const [method, setMethod] = useState<PaymentMethod>('cash')
   const [isFinal, setIsFinal] = useState(false)
 
   // Default isLoading to false if not provided
@@ -114,7 +114,7 @@ const TicketPaymentModal = ({
 
       // Limpiar
       setAmount('')
-      setMethod('CASH')
+      setMethod('cash')
       setIsFinal(false)
       onClose()
     } catch (err: any) {

@@ -19,11 +19,10 @@ interface PaymentFormModalProps {
 }
 
 const PAYMENT_METHODS: Array<{ label: string; value: PaymentMethod }> = [
-  { label: 'Efectivo', value: 'CASH' as PaymentMethod },
-  { label: 'Cheque', value: 'CHECK' as PaymentMethod },
-  { label: 'Transferencia', value: 'TRANSFER' as PaymentMethod },
-  { label: 'Sinpe Móvil', value: 'SINPE' as PaymentMethod },
-  { label: 'Sistema', value: 'SYSTEM' as PaymentMethod },
+  { label: 'Efectivo', value: 'cash' as PaymentMethod },
+  { label: 'Cheque', value: 'check' as PaymentMethod },
+  { label: 'Transferencia', value: 'transfer' as PaymentMethod },
+  { label: 'Sinpe Móvil', value: 'system' as PaymentMethod },
 ]
 
 export default function PaymentFormModal({
@@ -37,7 +36,7 @@ export default function PaymentFormModal({
   const createPaymentMutation = useCreatePaymentMutation()
 
   const [amountPaid, setAmountPaid] = useState('')
-  const [method, setMethod] = useState<PaymentMethod>('CASH')
+  const [method, setMethod] = useState<PaymentMethod>('cash')
   const [isFinal, setIsFinal] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string>('')
@@ -109,7 +108,7 @@ export default function PaymentFormModal({
 
   const handleClose = () => {
     setAmountPaid('')
-    setMethod('CASH')
+    setMethod('cash')
     setIsFinal(false)
     setSubmitError('')
     onClose()
