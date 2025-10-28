@@ -97,35 +97,32 @@ export default function QuickBetEditor({ onCommit, minAmount = 1, maxAmount = 10
 
         {/* Captura de números - Limpio */}
         <YStack gap="$2">
-          <XStack gap="$2" ai="flex-end" jc="center">
-            <YStack width={140}>
-              <Text fontSize="$3" fontWeight="500" mb="$1">Números</Text>
-              <Input
-                value={numInput}
-                onChangeText={(v) => {
-                  const s = sanitizeNumber2(v)
-                  setNumInput(s)
-                  if (s.length === 2) {
-                    setErrors('')
-                    setNumbers((prev) => (prev.includes(s) ? prev : [...prev, s]))
-                    setNumInput('')
-                  }
-                }}
-                placeholder="00-99"
-                maxLength={2}
-                keyboardType="number-pad"
-                height={56}
-                fontSize="$6"
-                ta="center"
-                editable={!!amountNumero}
-                opacity={amountNumero ? 1 : 0.5}
-                onKeyPress={(e: any) => {
-                  if (e?.nativeEvent?.key === 'Enter' && numInput.length === 2) addNumber()
-                }}
-              />
-            </YStack>
-            <Button size="$3" variant="ghost" onPress={() => setNumbers([])} disabled={numbers.length === 0}>Limpiar</Button>
-          </XStack>
+          <YStack width={140} alignSelf="center">
+            <Text fontSize="$3" fontWeight="500" mb="$1">Números</Text>
+            <Input
+              value={numInput}
+              onChangeText={(v) => {
+                const s = sanitizeNumber2(v)
+                setNumInput(s)
+                if (s.length === 2) {
+                  setErrors('')
+                  setNumbers((prev) => (prev.includes(s) ? prev : [...prev, s]))
+                  setNumInput('')
+                }
+              }}
+              placeholder="00-99"
+              maxLength={2}
+              keyboardType="number-pad"
+              height={56}
+              fontSize="$6"
+              ta="center"
+              editable={!!amountNumero}
+              opacity={amountNumero ? 1 : 0.5}
+              onKeyPress={(e: any) => {
+                if (e?.nativeEvent?.key === 'Enter' && numInput.length === 2) addNumber()
+              }}
+            />
+          </YStack>
           {errors ? <Text color="$error" fontSize="$2">{errors}</Text> : null}
 
           {/* Lista de números - Sin X, solo click para eliminar */}
@@ -151,16 +148,35 @@ export default function QuickBetEditor({ onCommit, minAmount = 1, maxAmount = 10
           )}
         </YStack>
 
-        <XStack gap="$2" jc="center" flexWrap="wrap">
+        <XStack gap="$2" jc="center" flexWrap="wrap" width="100%">
           <Button 
             onPress={commit} 
             disabled={!canCommit} 
             size="$4" 
             flex={1}
-            minWidth={200}
-            maxWidth={400}
+            minWidth={150}
+            $sm={{ minWidth: 120 }}
           >
             Agregar al tiquete
+          </Button>
+          <Button
+            onPress={() => {
+              setAmountNumero('')
+              setAmountReventado('')
+              setNumbers([])
+              setErrors('')
+            }}
+            size="$4"
+            flex={1}
+            minWidth={150}
+            $sm={{ minWidth: 120 }}
+            backgroundColor="$gray4"
+            borderColor="$gray8"
+            borderWidth={1}
+            hoverStyle={{ backgroundColor: '$gray5' }}
+            pressStyle={{ scale: 0.98 }}
+          >
+            Limpiar
           </Button>
         </XStack>
       </YStack>
