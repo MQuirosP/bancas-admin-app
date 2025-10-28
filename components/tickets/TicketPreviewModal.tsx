@@ -92,12 +92,14 @@ const TicketPreviewModalComponent = ({ isOpen, ticket, onClose }: TicketPreviewM
     <Dialog modal open={isOpen} onOpenChange={onClose}>
       <Dialog.Portal>
         <Dialog.Overlay
+          key="preview-overlay"
           animation="quick"
           opacity={0.5}
           enterStyle={{ opacity: 0 }}
           exitStyle={{ opacity: 0 }}
         />
         <Dialog.Content
+          key={`preview-content-${calculations.displayNum}`}
           bordered
           elevate
           maxHeight="85vh"

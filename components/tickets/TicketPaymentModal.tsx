@@ -135,12 +135,14 @@ const TicketPaymentModalComponent = ({
     <Dialog modal open={isOpen} onOpenChange={onClose}>
       <Dialog.Portal>
         <Dialog.Overlay
+          key="payment-overlay"
           animation="quick"
           opacity={0.5}
           enterStyle={{ opacity: 0 }}
           exitStyle={{ opacity: 0 }}
         />
         <Dialog.Content
+          key={`payment-content-${ticket?.id ?? ticket?.ticketNumber ?? 'temp'}`}
           bordered
           elevate
           width="90%"
