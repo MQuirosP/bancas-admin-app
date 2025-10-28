@@ -46,7 +46,7 @@ interface TicketPreviewModalProps {
  * - Total ganado (si aplica)
  * - Estado del tiquete
  */
-export default function TicketPreviewModal({ isOpen, ticket, onClose }: TicketPreviewModalProps) {
+const TicketPreviewModalComponent = ({ isOpen, ticket, onClose }: TicketPreviewModalProps) => {
   const calculations = useMemo(() => {
     if (!ticket?.jugadas) return { totalWinnings: 0, hasWinner: false, displayNum: '' }
 
@@ -332,3 +332,5 @@ export default function TicketPreviewModal({ isOpen, ticket, onClose }: TicketPr
     </Dialog>
   )
 }
+
+export default TicketPreviewModalComponent

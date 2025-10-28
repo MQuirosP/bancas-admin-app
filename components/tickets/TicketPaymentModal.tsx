@@ -34,7 +34,7 @@ const PAYMENT_METHODS: { label: string; value: PaymentMethod }[] = [
  * Modal simplificado para registrar pago de un tiquete
  * Usado en listas de tiquetes (admin, ventana, vendedor)
  */
-export default function TicketPaymentModal({
+const TicketPaymentModalComponent = ({
   isOpen,
   ticket,
   onClose,
@@ -365,3 +365,5 @@ export default function TicketPaymentModal({
     </Dialog>
   )
 }
+
+export default TicketPaymentModalComponent
