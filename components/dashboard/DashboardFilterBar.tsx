@@ -7,7 +7,7 @@ import React, { useCallback, useEffect } from 'react'
 import { YStack, XStack, Text } from 'tamagui'
 import { Button, Select, DatePicker } from '@/components/ui'
 import { RefreshCw, Download, Check, ChevronDown } from '@tamagui/lucide-icons'
-import { useRouter, useSearchParams } from 'expo-router'
+import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useDashboardFiltersStore, useSyncFiltersWithURL } from '@/store/dashboardFilters.store'
 import { useAuth } from '@/hooks/useAuth'
 import { UserRole } from '@/types/auth.types'
@@ -37,7 +37,7 @@ const BET_TYPES: Array<{ value: BetType; label: string }> = [
 
 export function DashboardFilterBar({ onExport, exportLoading }: DashboardFilterBarProps) {
   const router = useRouter()
-  const searchParams = useSearchParams()
+  const searchParams = useLocalSearchParams()
   const queryClient = useQueryClient()
   const { user } = useAuth()
   const { loadFromURL, getURLParams } = useSyncFiltersWithURL()
@@ -60,7 +60,11 @@ export function DashboardFilterBar({ onExport, exportLoading }: DashboardFilterB
   // Cargar filtros desde URL al montar
   useEffect(() => {
     if (searchParams) {
-      loadFromURL(searchParams as URLSearchParams)
+      const params = new URLSearchParams()
+      Object.entries(searchParams).forEach(([key, value]) => {
+        if (value) params.set(key, String(value))
+      })
+      loadFromURL(params)
     }
   }, [])
 
