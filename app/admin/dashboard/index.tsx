@@ -69,11 +69,16 @@ export default function DashboardScreen() {
   const {
     data: timeSeriesData,
     isLoading: timeSeriesLoading,
-  } = useDashboardTimeSeries({
-    ...filters,
-    granularity: 'day',
-    compare: false,
-  })
+  } = useDashboardTimeSeries(
+    {
+      ...filters,
+      granularity: 'day',
+      compare: false,
+    },
+    {
+      enabled: false, // TODO: Habilitar cuando backend implemente /timeseries
+    }
+  )
 
   if (!user || user.role === UserRole.VENDEDOR) {
     return null
