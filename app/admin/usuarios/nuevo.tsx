@@ -1,7 +1,9 @@
 // app/admin/usuarios/nuevo.tsx
 import React, { useMemo } from 'react'
-import { YStack, Text, ScrollView } from 'tamagui'
+import { YStack, XStack, Text, ScrollView, useTheme } from 'tamagui'
 import { Button } from '@/components/ui'
+import { ArrowLeft } from '@tamagui/lucide-icons'
+import { useRouter } from 'expo-router'
 import { useCreateUser } from '@/hooks/useUsers'
 import { useToast } from '@/hooks/useToast'
 import { safeBack, goToList } from '@/lib/navigation'
@@ -12,8 +14,11 @@ import { getErrorMessage } from '../../../lib/errors'
 import { safe } from '../../../utils/safe'
 
 export default function NuevoUsuarioScreen() {
+  const router = useRouter()
   const toast = useToast()
   const createUser = useCreateUser()
+  const theme = useTheme()
+  const iconColor = (theme?.color as any)?.get?.() ?? '#000'
 
   // Ventanas para el Select (misma lógica que en [id].tsx)
   const {
@@ -43,7 +48,18 @@ export default function NuevoUsuarioScreen() {
   return (
     <ScrollView flex={1} backgroundColor="$background">
       <YStack padding="$4" gap="$4" maxWidth={1200} alignSelf="center" width="100%">
-        <Text fontSize="$8" fontWeight="bold">Nuevo Usuario</Text>
+        <XStack ai="center" gap="$2">
+          <Button
+            size="$3"
+            icon={(p: any) => <ArrowLeft {...p} size={24} color={iconColor} />}
+            onPress={() => router.push('/admin/usuarios')}
+            backgroundColor="transparent"
+            borderWidth={0}
+            hoverStyle={{ backgroundColor: 'transparent' }}
+            pressStyle={{ scale: 0.98 }}
+          />
+          <Text fontSize="$8" fontWeight="bold">Nuevo Usuario</Text>
+        </XStack>
 
         <UserForm
           mode="create"
