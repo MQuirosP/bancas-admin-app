@@ -6,6 +6,7 @@ import { formatCurrency } from '@/utils/formatters'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import DialogContentWrapper from './DialogContentWrapper'
+import { JugadasList } from './shared'
 
 export type Jugada = {
   id: string
@@ -229,7 +230,7 @@ const TicketPreviewModalComponent = ({ isOpen, ticket, onClose }: TicketPreviewM
                 )}
               </XStack>
 
-              {/* Jugadas - Agrupadas por número */}
+              {/* Jugadas - Usando componente unificado */}
               <YStack gap="$2">
                 <XStack ai="center" gap="$2">
                   <Text fontSize="$5" fontWeight="bold">
@@ -244,110 +245,11 @@ const TicketPreviewModalComponent = ({ isOpen, ticket, onClose }: TicketPreviewM
                   )}
                 </XStack>
 
-                {(ticket.jugadas ?? []).length === 0 ? (
-                  <Card padding="$3" backgroundColor="$backgroundHover" borderColor="$borderColor" borderWidth={1}>
-                    <Text color="$textSecondary">Sin jugadas registradas</Text>
-                  </Card>
-                ) : (() => {
-                  // Agrupar jugadas por número
-                  const groupedByNumber = (ticket.jugadas || []).reduce((acc: { [key: string]: typeof ticket.jugadas }, jugada) => {
-                    const key = jugada.number || 'unknown'
-                    if (!acc[key]) acc[key] = []
-                    acc[key].push(jugada)
-                    return acc
-                  }, {})
-
-                  // Ordenar: ganadoras primero
-                  const sortedGroups = Object.entries(groupedByNumber).sort(([_a, jugadasA], [_b, jugadasB]) => {
-                    const hasWinnerA = jugadasA.some((j: any) => j.isWinner)
-                    const hasWinnerB = jugadasB.some((j: any) => j.isWinner)
-                    return hasWinnerA ? -1 : hasWinnerB ? 1 : 0
-                  })
-
-                  return (
-                    <YStack gap="$3">
-                      {sortedGroups.map(([number, jugadas]) => {
-                        const hasWinner = (jugadas as any).some((j: any) => j.isWinner)
-                        const totalAmount = (jugadas as any).reduce((sum: number, j: any) => sum + (j.amount || 0), 0)
-                        const totalPayout = (jugadas as any).reduce((sum: number, j: any) => sum + (j.isWinner ? (j.winAmount || j.payout || 0) : 0), 0)
-
-                        return (
-                          <Card
-                            key={`group-${number}`}
-                            padding="$3"
-                            backgroundColor={hasWinner ? '$green2' : '$backgroundHover'}
-                            borderColor={hasWinner ? '$green8' : '$borderColor'}
-                            borderWidth={hasWinner ? 2 : 1}
-                          >
-                            <YStack gap="$3">
-                              {/* Grid layout: jugadas izquierda, badges derecha */}
-                              <XStack gap="$4" jc="space-between" ai="flex-start">
-                                {/* Columnas de tipos con sus números, multiplicadores y apuestas */}
-                                <XStack gap="$3" flex={1}>
-                                  {(jugadas as any).map((jugada: any, idx: number) => (
-                                    <XStack key={`num-${jugada.id || idx}`} gap="$1" ai="flex-start">
-                                      <YStack ai="center" gap="$1">
-                                        {/* Type + Number en la misma línea */}
-                                        <XStack ai="center" gap="$1">
-                                          <Text fontSize="$4" fontWeight="600">
-                                            {jugada.type}:
-                                          </Text>
-                                          <Text fontSize="$6" fontWeight="700" color="$blue11" fontFamily="$mono">
-                                            {jugada.number}
-                                          </Text>
-                                        </XStack>
-                                        {/* Multiplicador con color según tipo */}
-                                        {jugada.finalMultiplierX !== undefined && (
-                                          <Text
-                                            fontSize="$3"
-                                            fontWeight="600"
-                                            color={jugada.type === 'NUMERO' ? '$yellow10' : '$orange10'}
-                                          >
-                                            {jugada.finalMultiplierX}x
-                                          </Text>
-                                        )}
-                                        {/* Monto sin etiqueta */}
-                                        <Text fontSize="$3" fontWeight="600">
-                                          {formatCurrency(jugada.amount || 0)}
-                                        </Text>
-                                      </YStack>
-                                      {idx < (jugadas as any).length - 1 && (
-                                        <Text fontSize="$4" color="$textSecondary" alignSelf="center">
-                                          -
-                                        </Text>
-                                      )}
-                                    </XStack>
-                                  ))}
-                                </XStack>
-
-                                {/* Badges lado a lado */}
-                                {hasWinner && (
-                                  <XStack gap="$2" ai="center">
-                                    <XStack bg="$green4" px="$3" py="$2" br="$2" bw={1} bc="$green8" ai="center" jc="center">
-                                      <Text fontSize="$2" fontWeight="700" color="$green11">
-                                        GANADOR
-                                      </Text>
-                                    </XStack>
-                                    {totalPayout > 0 && (
-                                      <YStack ai="center" gap="$0" padding="$2" backgroundColor="$green1" borderRadius="$2">
-                                        <Text fontSize="$2" color="$textSecondary" fontWeight="600">
-                                          Premio
-                                        </Text>
-                                        <Text fontSize="$4" fontWeight="700" color="$green11">
-                                          {formatCurrency(totalPayout)}
-                                        </Text>
-                                      </YStack>
-                                    )}
-                                  </XStack>
-                                )}
-                              </XStack>
-                            </YStack>
-                          </Card>
-                        )
-                      })}
-                    </YStack>
-                  )
-                })()}
+                <JugadasList 
+                  jugadas={ticket.jugadas || []} 
+                  grouped={true}
+                  size="sm"
+                />
               </YStack>
             </YStack>
           </ScrollView>

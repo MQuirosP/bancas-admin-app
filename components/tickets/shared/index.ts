@@ -46,3 +46,12 @@ export type {
   PaymentModalProps,
 } from './PaymentModal'
 
+// Jugadas list (vista normal o agrupada)
+export {
+  JugadasList,
+} from './JugadasList'
+
+export type {
+  JugadasListProps,
+} from './JugadasList'
+

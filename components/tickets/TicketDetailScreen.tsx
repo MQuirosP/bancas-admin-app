@@ -15,7 +15,8 @@ import {
   WinnerBadge,
   PaymentAmountsGrid,
   PaymentProgressBar,
-  WinningJugadasList
+  WinningJugadasList,
+  JugadasList
 } from './shared'
 
 type Props = {
@@ -67,6 +68,7 @@ export default function TicketDetailScreen({ scope, ticketId, buildBackPath }: P
   const loteriaName = ticket.loteria?.name || 'N/A'
   const sorteoName = ticket.sorteo?.name || 'N/A'
   const createdAt = ticket.createdAt ? formatTicketDate(ticket.createdAt) : 'N/A'
+  const jugadas = ticket.jugadas || []
   
   // ✅ v2.0: Usar utility centralizado para cálculos
   const totals = calculatePaymentTotals(ticket)
@@ -203,70 +205,11 @@ export default function TicketDetailScreen({ scope, ticketId, buildBackPath }: P
 
         <YStack gap="$2">
           <Text fontSize="$6" fontWeight="bold">Jugadas ({jugadas.length})</Text>
-          {jugadas.length === 0 ? (
-            <Card padding="$4" ai="center" bg="$backgroundHover" borderColor="$borderColor" borderWidth={1}>
-              <Text color="$textSecondary">Este ticket no tiene jugadas</Text>
-            </Card>
-          ) : (
-            jugadas.map((jugada: any, idx: number) => {
-              const isWinner = jugada.isWinner === true
-              const winAmount = jugada.payout ?? jugada.winAmount ?? 0
-              return (
-                <Card
-                  key={jugada.id || idx}
-                  padding="$4"
-                  bg={isWinner ? '$green2' : '$backgroundHover'}
-                  borderColor={isWinner ? '$green8' : '$borderColor'}
-                  borderWidth={isWinner ? 2 : 1}
-                >
-                  <XStack jc="space-between" ai="center" gap="$3" flexWrap="wrap">
-                    <YStack flex={1} gap="$1">
-                      <XStack ai="center" gap="$2" flexWrap="wrap">
-                        <Text fontSize="$5" fontWeight="700" color="$blue11">Número: {jugada.number || 'N/A'}</Text>
-                        {jugada.type && (
-                          <XStack bg="$blue3" px="$2" py="$1" br="$2" bw={1} bc="$blue7">
-                            <Text fontSize="$2" fontWeight="600" color="$blue11">
-                              {jugada.type === 'REVENTADO' ? 'EXTRA' : jugada.type}
-                            </Text>
-                          </XStack>
-                        )}
-                        {isWinner && (
-                          <XStack bg="$green4" px="$2" py="$1" br="$2" bw={1} bc="$green8">
-                            <Text fontSize="$2" fontWeight="700" color="$green11">GANADOR</Text>
-                          </XStack>
-                        )}
-                      </XStack>
-
-                      <Text fontSize="$3" color="$textSecondary">
-                        <Text fontWeight="600">Monto apostado:</Text> {formatCurrency(jugada.amount)}
-                      </Text>
-
-                      {jugada.finalMultiplierX && (
-                        <Text fontSize="$3" color="$textSecondary">
-                          <Text fontWeight="600">Multiplicador:</Text> {jugada.finalMultiplierX}x
-                        </Text>
-                      )}
-
-                      {jugada.multiplier?.name && (
-                        <Text fontSize="$3" color="$textSecondary">
-                          <Text fontWeight="600">Multiplicador:</Text> {jugada.multiplier.name}
-                        </Text>
-                      )}
-                    </YStack>
-
-                    {isWinner && winAmount > 0 && (
-                      <YStack ai="flex-end" gap="$1">
-                        <Text fontSize="$2" color="$textSecondary">Ganancia</Text>
-                        <Text fontSize="$7" fontWeight="bold" color="$green10">
-                          {formatCurrency(winAmount)}
-                        </Text>
-                      </YStack>
-                    )}
-                  </XStack>
-                </Card>
-              )
-            })
-          )}
+          <JugadasList 
+            jugadas={jugadas} 
+            grouped={true}
+            size="md" 
+          />
         </YStack>
       </YStack>
     </ScrollView>

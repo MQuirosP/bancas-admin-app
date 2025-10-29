@@ -42,6 +42,21 @@ export type Ticket = {
 type Props = {
   scope: Scope
   filterPendientes?: boolean
+  /**
+   * Modo de operación de la lista
+   * - 'general': Lista normal con todos los filtros
+   * - 'pending-payments': Solo ganadores pendientes, filtros simplificados
+   */
+  variant?: 'general' | 'pending-payments'
+  /**
+   * Callback cuando se selecciona un ticket (modo pending-payments)
+   * Si se proporciona, se usa en lugar de los botones normales
+   */
+  onSelectTicket?: (ticket: Ticket) => void
+  /**
+   * Ocultar el header con título y botón "Nuevo Ticket"
+   */
+  hideHeader?: boolean
 }
 
 // ✅ Tickets endpoint only supports: today, yesterday, range
@@ -82,7 +97,13 @@ async function fetchTickets(params: any): Promise<{ data: Ticket[]; meta: any }>
   }
 }
 
-export default function TicketsListScreen({ scope, filterPendientes }: Props) {
+export default function TicketsListScreen({ 
+  scope, 
+  filterPendientes,
+  variant = 'general',
+  onSelectTicket,
+  hideHeader = false
+}: Props) {
   const router = useRouter()
   const theme = useTheme()
   const { success, error } = useToast()
@@ -91,10 +112,10 @@ export default function TicketsListScreen({ scope, filterPendientes }: Props) {
   const [page, setPage] = useState(1)
   const [pageSize] = useState(20)
   const [searchInput, setSearchInput] = useState('')
-  const [dateFilter, setDateFilter] = useState<DateFilter>('today')
+  const [dateFilter, setDateFilter] = useState<DateFilter>(variant === 'pending-payments' ? 'today' : 'today')
   const [dateFrom, setDateFrom] = useState<Date | null>(null)
   const [dateTo, setDateTo] = useState<Date | null>(null)
-  const [statusFilter, setStatusFilter] = useState<string>('ALL')
+  const [statusFilter, setStatusFilter] = useState<string>(variant === 'pending-payments' ? 'EVALUATED' : 'ALL')
 
   // Modals
   const [previewOpen, setPreviewOpen] = useState(false)
@@ -124,8 +145,14 @@ export default function TicketsListScreen({ scope, filterPendientes }: Props) {
       params.status = statusFilter
     }
 
+    // Para modo pending-payments, forzar solo tickets evaluados con ganadores
+    if (variant === 'pending-payments') {
+      params.status = 'EVALUATED'
+      params.hasWinner = true
+    }
+
     return params
-  }, [page, pageSize, dateFilter, dateFrom, dateTo, statusFilter, scope])
+  }, [page, pageSize, dateFilter, dateFrom, dateTo, statusFilter, scope, variant])
 
   const { data, isLoading, isFetching, isError, refetch } = useQuery({
     queryKey: ['tickets', 'list', scope, backendParams],
@@ -199,44 +226,49 @@ export default function TicketsListScreen({ scope, filterPendientes }: Props) {
     <>
       <ScrollView flex={1} backgroundColor="$background" contentContainerStyle={{ flexGrow: 1 }}>
       <YStack padding="$4" gap="$4" maxWidth={1200} alignSelf="center" width="100%">
-        <XStack justifyContent="space-between" ai="center" gap="$3" flexWrap="wrap">
-          <XStack ai="center" gap="$2">
-            {(scope === 'admin' || scope === 'ventana') && (
+        {!hideHeader && (
+          <XStack justifyContent="space-between" ai="center" gap="$3" flexWrap="wrap">
+            <XStack ai="center" gap="$2">
+              {(scope === 'admin' || scope === 'ventana') && (
+                <Button
+                  size="$3"
+                  icon={(p:any)=> <ArrowLeft {...p} size={24} color={iconColor} />}
+                  onPress={()=> safeBack(scope === 'admin' ? '/admin' : '/ventana')}
+                  backgroundColor="transparent"
+                  borderWidth={0}
+                  hoverStyle={{ backgroundColor: 'transparent' }}
+                  pressStyle={{ scale: 0.98 }}
+                />
+              )}
+              <Text fontSize="$8" fontWeight="bold">
+                {variant === 'pending-payments' 
+                  ? 'Tiquetes Ganadores Pendientes'
+                  : scope === 'admin' ? 'Tickets (Admin)' : 'Tickets de la Ventana'
+                }
+              </Text>
+              {isFetching && <Spinner size="small" />}
+            </XStack>
+            {(scope === 'admin' || scope === 'ventana') && variant !== 'pending-payments' && (
               <Button
                 size="$3"
-                icon={(p:any)=> <ArrowLeft {...p} size={24} color={iconColor} />}
-                onPress={()=> safeBack(scope === 'admin' ? '/admin' : '/ventana')}
-                backgroundColor="transparent"
-                borderWidth={0}
-                hoverStyle={{ backgroundColor: 'transparent' }}
-                pressStyle={{ scale: 0.98 }}
-              />
+                onPress={() => router.push((scope === 'admin' ? '/admin/tickets/nuevo' : '/ventana/tickets/nuevo') as any)}
+              >
+                Nuevo Ticket
+              </Button>
             )}
-            <Text fontSize="$8" fontWeight="bold">
-              {scope === 'admin' ? 'Tickets (Admin)' : 'Tickets de la Ventana'}
-            </Text>
-            {isFetching && <Spinner size="small" />}
           </XStack>
-          {(scope === 'admin' || scope === 'ventana') && (
-            <Button
-              size="$3"
-              onPress={() => router.push((scope === 'admin' ? '/admin/tickets/nuevo' : '/ventana/tickets/nuevo') as any)}
-            >
-              Nuevo Ticket
-            </Button>
-          )}
-        </XStack>
+        )}
 
         <Toolbar>
           <YStack gap="$3">
-            {/* Fila 1: búsqueda + fecha + solo ganadores (responsiva) */}
+            {/* Fila 1: búsqueda + filtros (ocultar filtros avanzados en modo pending-payments) */}
             <XStack gap="$3" ai="center" flexWrap="wrap">
               {/* Buscar */}
               <XStack position="relative" ai="center" flex={1} minWidth={260} maxWidth="100%">
                 <Input
                   flex={1}
                   minWidth={240}
-                  placeholder="Buscar por ID, vendedor, ventana, lotería..."
+                  placeholder={variant === 'pending-payments' ? "Buscar por # ticket..." : "Buscar por ID, vendedor, ventana, lotería..."}
                   value={searchInput}
                   onChangeText={setSearchInput}
                   inputMode="search"
@@ -264,99 +296,100 @@ export default function TicketsListScreen({ scope, filterPendientes }: Props) {
                 Buscar
               </Button>
 
-              <Separator vertical />
+              {/* Filtros avanzados solo en modo general */}
+              {variant !== 'pending-payments' && (
+                <>
+                  <Separator vertical />
 
-              {/* Fecha + Solo ganadores (no se sobreponen, se envuelven si no hay espacio) */}
-              <XStack ai="center" gap="$3" flexWrap="wrap">
-                {/* Bloque Fecha */}
-                <XStack ai="center" gap="$2" flexShrink={0}>
-                  <Text fontSize="$3" fontWeight="600">Fecha:</Text>
-                  <Select
-                    size="$3"
-                    value={dateFilter}
-                    onValueChange={(v: any) => setDateFilter(v)}
-                  >
-                    <Select.Trigger
-                      // ← evita que se expanda y se monte sobre el switch
-                      width={160}
-                      flexShrink={0}
-                      br="$3"
-                      bw={1}
-                      bc="$borderColor"
-                      backgroundColor="$background"
-                      px="$3"
-                      hoverStyle={{ bg: '$backgroundHover' }}
-                      focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
-                      iconAfter={ChevronDown}
-                    >
-                      <Select.Value>{DATE_FILTER_LABELS[dateFilter]}</Select.Value>
-                    </Select.Trigger>
+                  {/* Fecha + Solo ganadores (no se sobreponen, se envuelven si no hay espacio) */}
+                  <XStack ai="center" gap="$3" flexWrap="wrap">
+                    {/* Bloque Fecha */}
+                    <XStack ai="center" gap="$2" flexShrink={0}>
+                      <Text fontSize="$3" fontWeight="600">Fecha:</Text>
+                      <Select
+                        size="$3"
+                        value={dateFilter}
+                        onValueChange={(v: any) => setDateFilter(v)}
+                      >
+                        <Select.Trigger
+                          width={160}
+                          flexShrink={0}
+                          br="$3"
+                          bw={1}
+                          bc="$borderColor"
+                          backgroundColor="$background"
+                          px="$3"
+                          hoverStyle={{ bg: '$backgroundHover' }}
+                          focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
+                          iconAfter={ChevronDown}
+                        >
+                          <Select.Value>{DATE_FILTER_LABELS[dateFilter]}</Select.Value>
+                        </Select.Trigger>
 
-                    <Select.Content zIndex={1000}>
-                      <YStack br="$3" bw={1} bc="$borderColor" backgroundColor="$background">
-                        <Select.Viewport>
-                          {[
-                            { value: 'today', label: 'Hoy' },
-                            { value: 'yesterday', label: 'Ayer' },
-                            { value: 'range', label: 'Rango personalizado' },
-                          ].map((it, idx) => (
-                            <Select.Item key={it.value} value={it.value} index={idx} pressStyle={{ bg: '$backgroundHover' }} bw={0} px="$3">
-                              <Select.ItemText>{it.label}</Select.ItemText>
-                              <Select.ItemIndicator ml="auto"><Check size={16} /></Select.ItemIndicator>
-                            </Select.Item>
-                          ))}
-                        </Select.Viewport>
-                      </YStack>
-                    </Select.Content>
-                  </Select>
-                </XStack>
+                        <Select.Content zIndex={1000}>
+                          <YStack br="$3" bw={1} bc="$borderColor" backgroundColor="$background">
+                            <Select.Viewport>
+                              {[
+                                { value: 'today', label: 'Hoy' },
+                                { value: 'yesterday', label: 'Ayer' },
+                                { value: 'range', label: 'Rango personalizado' },
+                              ].map((it, idx) => (
+                                <Select.Item key={it.value} value={it.value} index={idx} pressStyle={{ bg: '$backgroundHover' }} bw={0} px="$3">
+                                  <Select.ItemText>{it.label}</Select.ItemText>
+                                  <Select.ItemIndicator ml="auto"><Check size={16} /></Select.ItemIndicator>
+                                </Select.Item>
+                              ))}
+                            </Select.Viewport>
+                          </YStack>
+                        </Select.Content>
+                      </Select>
+                    </XStack>
 
-                {/* Bloque Status */}
-                <XStack ai="center" gap="$2" flexShrink={0}>
-                  <Text fontSize="$3" fontWeight="600">Estado:</Text>
-                  <Select
-                    size="$3"
-                    value={statusFilter}
-                    onValueChange={(v: any) => setStatusFilter(v)}
-                  >
-                    <Select.Trigger
-                      width={180}
-                      flexShrink={0}
-                      br="$3"
-                      bw={1}
-                      bc="$borderColor"
-                      backgroundColor="$background"
-                      px="$3"
-                      hoverStyle={{ bg: '$backgroundHover' }}
-                      focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
-                      iconAfter={ChevronDown}
-                    >
-                      <Select.Value>{STATUS_LABEL_MAP[statusFilter as keyof typeof STATUS_LABEL_MAP] || 'Todos'}</Select.Value>
-                    </Select.Trigger>
+                    {/* Bloque Status */}
+                    <XStack ai="center" gap="$2" flexShrink={0}>
+                      <Text fontSize="$3" fontWeight="600">Estado:</Text>
+                      <Select
+                        size="$3"
+                        value={statusFilter}
+                        onValueChange={(v: any) => setStatusFilter(v)}
+                      >
+                        <Select.Trigger
+                          width={180}
+                          flexShrink={0}
+                          br="$3"
+                          bw={1}
+                          bc="$borderColor"
+                          backgroundColor="$background"
+                          px="$3"
+                          hoverStyle={{ bg: '$backgroundHover' }}
+                          focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
+                          iconAfter={ChevronDown}
+                        >
+                          <Select.Value>{STATUS_LABEL_MAP[statusFilter as keyof typeof STATUS_LABEL_MAP] || 'Todos'}</Select.Value>
+                        </Select.Trigger>
 
-                    <Select.Content zIndex={1000}>
-                      <YStack br="$3" bw={1} bc="$borderColor" backgroundColor="$background">
-                        <Select.Viewport>
-                          {TICKET_STATUSES.map((it, idx) => (
-                            <Select.Item key={it.value} value={it.value} index={idx} pressStyle={{ bg: '$backgroundHover' }} bw={0} px="$3">
-                              <Select.ItemText>{it.label}</Select.ItemText>
-                              <Select.ItemIndicator ml="auto"><Check size={16} /></Select.ItemIndicator>
-                            </Select.Item>
-                          ))}
-                        </Select.Viewport>
-                      </YStack>
-                    </Select.Content>
-                  </Select>
-                </XStack>
-
-                {/* Winners filtering is done on backend via API */}
-                {/* Removed client-side FilterSwitch for "Solo ganadores" */}
-              </XStack>
+                        <Select.Content zIndex={1000}>
+                          <YStack br="$3" bw={1} bc="$borderColor" backgroundColor="$background">
+                            <Select.Viewport>
+                              {TICKET_STATUSES.map((it, idx) => (
+                                <Select.Item key={it.value} value={it.value} index={idx} pressStyle={{ bg: '$backgroundHover' }} bw={0} px="$3">
+                                  <Select.ItemText>{it.label}</Select.ItemText>
+                                  <Select.ItemIndicator ml="auto"><Check size={16} /></Select.ItemIndicator>
+                                </Select.Item>
+                              ))}
+                            </Select.Viewport>
+                          </YStack>
+                        </Select.Content>
+                      </Select>
+                    </XStack>
+                  </XStack>
+                </>
+              )}
 
             </XStack>
 
-            {/* Fila 2: rango personalizado (también responsiva) */}
-            {dateFilter === 'range' && (
+            {/* Fila 2: rango personalizado (solo modo general) */}
+            {variant !== 'pending-payments' && dateFilter === 'range' && (
               <XStack gap="$3" ai="flex-start" flexWrap="wrap">
                 <DatePicker
                   value={dateFrom}
@@ -371,40 +404,42 @@ export default function TicketsListScreen({ scope, filterPendientes }: Props) {
               </XStack>
             )}
 
-            {/* Fila 3: acciones a la derecha pero que no desborden */}
-            <XStack gap="$3" ai="center" flexWrap="wrap">
-              <Button
-                size="$3"
-                icon={(p:any)=> <RefreshCw {...p} color={iconColor} />}
-                onPress={() => { setPage(1); refetch() }}
-                backgroundColor="$green4"
-                borderColor="$green8"
-                borderWidth={1}
-                hoverStyle={{ backgroundColor: '$green5' }}
-                pressStyle={{ backgroundColor: '$green6', scale: 0.98 }}
-              >
-                Refrescar
-              </Button>
+            {/* Fila 3: acciones (solo modo general) */}
+            {variant !== 'pending-payments' && (
+              <XStack gap="$3" ai="center" flexWrap="wrap">
+                <Button
+                  size="$3"
+                  icon={(p:any)=> <RefreshCw {...p} color={iconColor} />}
+                  onPress={() => { setPage(1); refetch() }}
+                  backgroundColor="$green4"
+                  borderColor="$green8"
+                  borderWidth={1}
+                  hoverStyle={{ backgroundColor: '$green5' }}
+                  pressStyle={{ backgroundColor: '$green6', scale: 0.98 }}
+                >
+                  Refrescar
+                </Button>
 
-              <Button
-                size="$3"
-                onPress={() => {
-                  setSearchInput('')
-                  setDateFilter('today')
-                  setDateFrom(null)
-                  setDateTo(null)
-                  setStatusFilter('ALL')
-                  setPage(1)
-                }}
-                backgroundColor="$gray4"
-                borderColor="$gray8"
-                borderWidth={1}
-                hoverStyle={{ backgroundColor: '$gray5' }}
-                pressStyle={{ backgroundColor: '$gray6' }}
-              >
-                Limpiar
-              </Button>
-            </XStack>
+                <Button
+                  size="$3"
+                  onPress={() => {
+                    setSearchInput('')
+                    setDateFilter('today')
+                    setDateFrom(null)
+                    setDateTo(null)
+                    setStatusFilter('ALL')
+                    setPage(1)
+                  }}
+                  backgroundColor="$gray4"
+                  borderColor="$gray8"
+                  borderWidth={1}
+                  hoverStyle={{ backgroundColor: '$gray5' }}
+                  pressStyle={{ backgroundColor: '$gray6' }}
+                >
+                  Limpiar
+                </Button>
+              </XStack>
+            )}
           </YStack>
         </Toolbar>
 
@@ -539,11 +574,25 @@ export default function TicketsListScreen({ scope, filterPendientes }: Props) {
 
                   {/* Botones de acción */}
                   <XStack gap="$2" jc="flex-end">
-                    <TicketActionButtons
-                      ticket={ticket}
-                      onView={handlePreviewTicket}
-                      onPayment={handlePaymentTicket}
-                    />
+                    {onSelectTicket ? (
+                      <Button
+                        size="$3"
+                        onPress={() => onSelectTicket(ticket)}
+                        backgroundColor="$green4"
+                        borderColor="$green8"
+                        borderWidth={1}
+                        hoverStyle={{ backgroundColor: '$green5' }}
+                        pressStyle={{ backgroundColor: '$green6', scale: 0.98 }}
+                      >
+                        <Text>Pagar</Text>
+                      </Button>
+                    ) : (
+                      <TicketActionButtons
+                        ticket={ticket}
+                        onView={handlePreviewTicket}
+                        onPayment={handlePaymentTicket}
+                      />
+                    )}
                   </XStack>
                 </Card>
               )

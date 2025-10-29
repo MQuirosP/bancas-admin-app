@@ -4,11 +4,12 @@ import { useAuth } from '@/hooks/useAuth'
 import { Role } from '@/types/auth.types'
 import type { TicketWithPayments, TicketPayment, CreatePaymentInput } from '@/types/payment.types'
 
-import PendingTicketsScreen from '@/components/payments/PendingTicketsScreen'
+import TicketsListScreen from '@/components/tickets/TicketsListScreen'
 import { PaymentModal } from '@/components/tickets/shared'
 import PaymentHistoryModal from '@/components/payments/PaymentHistoryModal'
 import PaymentConfirmationModal from '@/components/payments/PaymentConfirmationModal'
 import { useCreatePaymentMutation } from '@/hooks/useTicketPayments'
+import type { Ticket } from '@/components/tickets/TicketsListScreen'
 
 export default function PagosScreen() {
   const { user } = useAuth()
@@ -35,8 +36,8 @@ export default function PagosScreen() {
     )
   }
 
-  const handleSelectTicket = (ticket: TicketWithPayments) => {
-    setSelectedTicket(ticket)
+  const handleSelectTicket = (ticket: Ticket | TicketWithPayments) => {
+    setSelectedTicket(ticket as TicketWithPayments)
     setShowPaymentForm(true)
   }
 
@@ -64,8 +65,13 @@ export default function PagosScreen() {
 
   return (
     <YStack flex={1}>
-      {/* Lista de tiquetes pendientes */}
-      <PendingTicketsScreen onSelectTicket={handleSelectTicket} />
+      {/* Lista de tiquetes pendientes - usando TicketsListScreen unificado */}
+      <TicketsListScreen
+        scope={user.role === Role.ADMIN ? 'admin' : 'ventana'}
+        variant="pending-payments"
+        onSelectTicket={handleSelectTicket}
+        hideHeader={false}
+      />
 
       {/* Modal de formulario de pago */}
       <PaymentModal
