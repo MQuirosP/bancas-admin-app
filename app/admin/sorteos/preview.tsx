@@ -263,9 +263,9 @@ export default function PreviewSorteosScreen() {
               {sortedOccurrences.map((sorteo, idx) => {
                 const isChecked = selectedIds.has(String(idx))
                 if (!sorteo.scheduledAt) return null
-                // El backend puede devolver fechas con 'Z' (UTC), removerla para interpretar como hora local
-                const dateString = sorteo.scheduledAt.replace('Z', '').replace('T', ' ')
-                const date = new Date(dateString)
+                
+                // Parsear fecha UTC y convertir automáticamente a hora local
+                const date = new Date(sorteo.scheduledAt)
                 const formattedDate = format(date, "EEEE, d 'de' MMMM 'de' yyyy", { locale: es })
                 const formattedTime = format(date, 'HH:mm', { locale: es })
 
