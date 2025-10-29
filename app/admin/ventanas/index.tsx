@@ -11,6 +11,7 @@ import FilterSwitch from '@/components/ui/FilterSwitch'
 import { useConfirm } from '@/components/ui/Confirm'
 import { useToast } from '@/hooks/useToast'
 import { listVentanas, Ventana, softDeleteVentana, restoreVentana } from '@/services/ventanas.service' // Removed unused: updateVentana
+import { queryKeys } from '@/lib/queryClient'
 
 export default function VentanasListScreen() {
   const theme = useTheme()
