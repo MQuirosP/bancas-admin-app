@@ -139,23 +139,19 @@ export default function DashboardScreen() {
           )}
 
           {/* KPIs */}
-          {dashboardData && (
-            <DashboardKPIsGrid
-              data={dashboardData.kpis}
-              isLoading={dashboardLoading}
-              meta={dashboardData.meta}
-            />
-          )}
+          <DashboardKPIsGrid
+            data={dashboardData?.kpis}
+            isLoading={dashboardLoading}
+            meta={dashboardData?.meta}
+          />
 
           {/* Time Series */}
-          {timeSeriesData && (
-            <DashboardTimeSeries
-              data={timeSeriesData.data}
-              comparison={timeSeriesData.comparison}
-              granularity={timeSeriesData.granularity}
-              isLoading={timeSeriesLoading}
-            />
-          )}
+          <DashboardTimeSeries
+            data={timeSeriesData?.data || []}
+            comparison={timeSeriesData?.comparison}
+            granularity={timeSeriesData?.granularity || 'day'}
+            isLoading={timeSeriesLoading}
+          />
 
           {/* Grid de 2 columnas: Tabs de Desgloses | Alertas */}
           <XStack gap="$4" flexWrap="wrap" ai="flex-start">

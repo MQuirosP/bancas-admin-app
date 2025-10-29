@@ -21,6 +21,26 @@ interface DashboardKPIsGridProps {
 }
 
 export function DashboardKPIsGrid({ data, isLoading, meta }: DashboardKPIsGridProps) {
+  // Si no hay datos, mostrar loading
+  if (!data || isLoading) {
+    return (
+      <XStack gap="$3" flexWrap="wrap">
+        {[1, 2, 3, 4, 5, 6].map((i) => (
+          <YStack
+            key={i}
+            flex={1}
+            minWidth={280}
+            height={140}
+            br="$4"
+            backgroundColor="$backgroundHover"
+            animation="quick"
+            opacity={0.5}
+          />
+        ))}
+      </XStack>
+    )
+  }
+
   const kpis = [
     {
       icon: DollarSign,
@@ -73,25 +93,6 @@ export function DashboardKPIsGrid({ data, isLoading, meta }: DashboardKPIsGridPr
       suffix: '%',
     },
   ]
-
-  if (isLoading) {
-    return (
-      <XStack gap="$3" flexWrap="wrap">
-        {[1, 2, 3, 4, 5, 6].map((i) => (
-          <YStack
-            key={i}
-            flex={1}
-            minWidth={280}
-            height={140}
-            br="$4"
-            backgroundColor="$backgroundHover"
-            animation="quick"
-            opacity={0.5}
-          />
-        ))}
-      </XStack>
-    )
-  }
 
   return (
     <YStack gap="$3">
