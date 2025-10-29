@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react'
-import { YStack, XStack, Text, Dialog, Spinner, VisuallyHidden } from 'tamagui'
+import { YStack, XStack, Text, Dialog, Spinner, VisuallyHidden, ScrollView } from 'tamagui'
 import { Button, Input, Select, Card } from '@/components/ui'
 import { X, Check, ChevronDown } from '@tamagui/lucide-icons'
 import { formatCurrency } from '@/utils/formatters'
@@ -158,7 +158,7 @@ const TicketPaymentModal = ({
           bordered
           elevate
           width="90%"
-          maxWidth={500}
+          maxWidth={600}
           padding="$4"
           gap="$4"
           backgroundColor="$background"
@@ -191,45 +191,96 @@ const TicketPaymentModal = ({
           <YStack gap="$3" flex={1} overflow="unset">
             {/* Info del tiquete */}
             <Card padding="$3" backgroundColor="$backgroundHover" borderColor="$borderColor" borderWidth={1}>
-              <YStack gap="$2">
-                <YStack gap="$1">
-                  <Text fontSize="$2" color="$textSecondary" fontWeight="600">
-                    Tiquete
-                  </Text>
-                  <Text fontSize="$4" fontWeight="700">
-                    #{ticket.ticketNumber || ticket.id.slice(-8)}
-                  </Text>
-                </YStack>
-                <XStack gap="$4" jc="space-between" flexWrap="wrap">
+              <YStack gap="$3">
+                {/* Header con # de ticket */}
+                <XStack jc="space-between" ai="center">
                   <YStack gap="$1">
                     <Text fontSize="$2" color="$textSecondary" fontWeight="600">
-                      Total Premio
+                      Tiquete
                     </Text>
-                    <Text fontSize="$4" fontWeight="700" color="$green11">
-                      {formatCurrency(paymentInfo.totalPayout)}
-                    </Text>
-                  </YStack>
-                  <YStack gap="$1">
-                    <Text fontSize="$2" color="$textSecondary" fontWeight="600">
-                      Ya Pagado
-                    </Text>
-                    <Text fontSize="$4" fontWeight="700" color="$blue11">
-                      {formatCurrency(paymentInfo.totalPaid)}
+                    <Text fontSize="$5" fontWeight="700">
+                      #{ticket.ticketNumber || ticket.id.slice(-8)}
                     </Text>
                   </YStack>
-                  <YStack gap="$1">
-                    <Text fontSize="$2" color="$textSecondary" fontWeight="600">
-                      Pendiente
-                    </Text>
-                    <Text
-                      fontSize="$4"
-                      fontWeight="700"
-                      color={paymentInfo.remaining > 0 ? '$red11' : '$gray11'}
-                    >
-                      {formatCurrency(paymentInfo.remaining)}
-                    </Text>
-                  </YStack>
+                  {paymentInfo.hasWinner && (
+                    <XStack bg="$green4" px="$3" py="$2" br="$3" bw={1} bc="$green8">
+                      <Text color="$green11" fontSize="$3" fontWeight="700">GANADOR</Text>
+                    </XStack>
+                  )}
                 </XStack>
+
+                {/* Grid de montos - MÁS GRANDE */}
+                <XStack gap="$2" jc="space-between" flexWrap="wrap">
+                  <Card flex={1} minWidth={100} padding="$3" backgroundColor="$green2" ai="center" jc="center" borderRadius="$3">
+                    <YStack ai="center" gap="$1">
+                      <Text fontSize="$2" color="$green11" fontWeight="600">Total Premio</Text>
+                      <Text fontSize="$6" fontWeight="700" color="$green11">
+                        {formatCurrency(paymentInfo.totalPayout)}
+                      </Text>
+                    </YStack>
+                  </Card>
+                  <Card flex={1} minWidth={100} padding="$3" backgroundColor="$blue2" ai="center" jc="center" borderRadius="$3">
+                    <YStack ai="center" gap="$1">
+                      <Text fontSize="$2" color="$blue11" fontWeight="600">Ya Pagado</Text>
+                      <Text fontSize="$6" fontWeight="700" color="$blue11">
+                        {formatCurrency(paymentInfo.totalPaid)}
+                      </Text>
+                    </YStack>
+                  </Card>
+                  <Card flex={1} minWidth={100} padding="$3" backgroundColor={paymentInfo.remaining > 0 ? '$red2' : '$gray2'} ai="center" jc="center" borderRadius="$3">
+                    <YStack ai="center" gap="$1">
+                      <Text fontSize="$2" color={paymentInfo.remaining > 0 ? '$red11' : '$gray11'} fontWeight="600">Pendiente</Text>
+                      <Text fontSize="$6" fontWeight="700" color={paymentInfo.remaining > 0 ? '$red11' : '$gray11'}>
+                        {formatCurrency(paymentInfo.remaining)}
+                      </Text>
+                    </YStack>
+                  </Card>
+                </XStack>
+
+                {/* Jugadas Ganadoras */}
+                {paymentInfo.hasWinner && ticket.jugadas && ticket.jugadas.length > 0 && (() => {
+                  const winningJugadas = ticket.jugadas.filter((j: any) => j.isWinner)
+                  return winningJugadas.length > 0 && (
+                    <YStack gap="$2">
+                      <Text fontSize="$3" fontWeight="600" color="$textSecondary">
+                        Jugadas Ganadoras ({winningJugadas.length})
+                      </Text>
+                      <ScrollView maxHeight={200} showsVerticalScrollIndicator={true}>
+                        <YStack gap="$2">
+                          {winningJugadas.map((jugada: any, idx: number) => (
+                            <Card key={jugada.id || idx} padding="$2" backgroundColor="$green1" borderColor="$green8" borderWidth={1} borderRadius="$2">
+                              <XStack jc="space-between" ai="center" gap="$2" flexWrap="wrap">
+                                <XStack gap="$2" ai="center" flex={1} minWidth={180}>
+                                  <Text fontSize="$5" fontWeight="700" color="$blue11" fontFamily="$mono">
+                                    {jugada.number}
+                                  </Text>
+                                  {jugada.type && (
+                                    <XStack bg="$blue4" px="$2" py="$1" br="$2">
+                                      <Text fontSize="$1" fontWeight="600" color="$blue11">
+                                        {jugada.type === 'REVENTADO' ? 'EXTRA' : jugada.type}
+                                      </Text>
+                                    </XStack>
+                                  )}
+                                  <Text fontSize="$2" color="$textSecondary">
+                                    Apuesta: {formatCurrency(jugada.amount)}
+                                  </Text>
+                                  {jugada.finalMultiplierX && (
+                                    <Text fontSize="$2" color="$yellow10" fontWeight="600">
+                                      {jugada.finalMultiplierX}x
+                                    </Text>
+                                  )}
+                                </XStack>
+                                <Text fontSize="$4" fontWeight="700" color="$green11">
+                                  Premio: {formatCurrency(jugada.payout || jugada.winAmount || 0)}
+                                </Text>
+                              </XStack>
+                            </Card>
+                          ))}
+                        </YStack>
+                      </ScrollView>
+                    </YStack>
+                  )
+                })()}
               </YStack>
             </Card>
 
