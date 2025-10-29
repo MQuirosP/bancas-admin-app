@@ -77,10 +77,24 @@ export function useConfirm() {
                 )}
 
                 <XStack gap="$2" jc="flex-end" mt="$2" flexWrap="wrap">
-                  <Button onPress={() => resolveAndClose(false)}>
+                  <Button 
+                    onPress={() => resolveAndClose(false)}
+                    backgroundColor="$gray4"
+                    borderColor="$gray8"
+                    borderWidth={1}
+                    hoverStyle={{ backgroundColor: '$gray5' }}
+                    pressStyle={{ scale: 0.98 }}
+                  >
                     {opts.cancelText}
                   </Button>
-                  <Button onPress={() => resolveAndClose(true)}>
+                  <Button 
+                    onPress={() => resolveAndClose(true)}
+                    backgroundColor="$blue4"
+                    borderColor="$blue8"
+                    borderWidth={1}
+                    hoverStyle={{ backgroundColor: '$blue5' }}
+                    pressStyle={{ scale: 0.98 }}
+                  >
                     {opts.okText}
                   </Button>
                 </XStack>
