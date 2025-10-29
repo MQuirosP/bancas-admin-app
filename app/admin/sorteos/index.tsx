@@ -105,14 +105,14 @@ function DateFilterSelect({
   const internal: DateFilter = (value ?? 'ALL') as DateFilter
 
   const items: { value: DateFilter; label: string }[] = [
-    { value: 'ALL', label: 'Todas las fechas' },
+    { value: 'ALL', label: 'Todas' },
     { value: 'TODAY', label: 'Hoy' },
     { value: 'TOMORROW', label: 'Mañana' },
     { value: 'THIS_WEEK', label: 'Esta semana' },
-    { value: 'NEXT_WEEK', label: 'Próxima semana' },
+    { value: 'NEXT_WEEK', label: 'Próx. semana' },
   ]
 
-  const labelOf = (v: DateFilter) => items.find(i => i.value === v)?.label ?? 'Todas las fechas'
+  const labelOf = (v: DateFilter) => items.find(i => i.value === v)?.label ?? 'Todas'
 
   return (
     <Select
@@ -129,7 +129,6 @@ function DateFilterSelect({
         hoverStyle={{ bg: '$backgroundHover' }}
         focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
         iconAfter={ChevronDown}
-        minWidth={150}
       >
         <Select.Value>{labelOf(internal)}</Select.Value>
       </Select.Trigger>
@@ -473,11 +472,11 @@ export default function SorteosListScreen() {
 
         {/* Filtros */}
         <Toolbar>
-          <YStack gap="$3" width="100%">
+          <YStack gap="$3">
             {/* Fila 1: Búsqueda + Filtros */}
-            <XStack gap="$3" ai="center" width="100%">
+            <XStack gap="$3" ai="center" flexWrap="wrap">
               {/* Búsqueda */}
-              <XStack position="relative" width={300}>
+              <XStack flex={1} position="relative" ai="center" minWidth={260}>
                 <Input
                   flex={1}
                   placeholder="Buscar por nombre o lotería"
@@ -513,29 +512,33 @@ export default function SorteosListScreen() {
                 Buscar
               </Button>
 
+              <Separator vertical />
+
               {/* Estado */}
-              <XStack ai="center" gap="$2" width={200}>
-                <Text fontSize="$3" width={60}>Estado:</Text>
+              <XStack ai="center" gap="$2" minWidth={180}>
+                <Text fontSize="$3">Estado:</Text>
                 <StatusSelect value={status} onChange={setStatus} />
               </XStack>
 
+              <Separator vertical />
+
               {/* Fecha */}
-              <XStack ai="center" gap="$2" width={260}>
-                <Text fontSize="$3" width={60}>Fecha:</Text>
+              <XStack ai="center" gap="$2" minWidth={220}>
+                <Text fontSize="$3">Fecha:</Text>
                 <DateFilterSelect value={dateFilter} onChange={(v) => { setDateFilter(v); setPage(1) }} />
               </XStack>
 
+              <Separator vertical />
+
               {/* Activos */}
-              <XStack width={150}>
-                <FilterSwitch
-                  label="Activos:"
-                  checked={activeOnly}
-                  onCheckedChange={(v) => { setActiveOnly(!!v); setPage(1) }}
-                />
-              </XStack>
+              <FilterSwitch
+                label="Activos:"
+                checked={activeOnly}
+                onCheckedChange={(v) => { setActiveOnly(!!v); setPage(1) }}
+              />
             </XStack>
 
-            {/* Fila 2: SOLO Botones */}
+            {/* Fila 2: Botones */}
             <XStack gap="$2" ai="center">
               <Button
                 icon={(p:any)=> <RefreshCw {...p} color={iconColor} />}
