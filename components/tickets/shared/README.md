@@ -122,6 +122,70 @@ import { WinningJugadasList, WinningJugadasCompact } from '@/components/tickets/
 
 ---
 
+### `PaymentModal`
+
+Modal unificado para registrar pagos de tickets.
+
+**Props:**
+```typescript
+interface PaymentModalProps {
+  isOpen: boolean
+  ticket?: TicketForCalculations | null
+  onClose: () => void
+  onSubmit?: (input: CreatePaymentInput) => Promise<void>
+  onSuccess?: (payment: any) => void
+  isLoading?: boolean
+  mode?: 'simple' | 'advanced'
+  showSuccessToast?: boolean
+}
+```
+
+**Ejemplo:**
+```tsx
+import { PaymentModal } from '@/components/tickets/shared'
+
+// Uso simple (desde listas):
+<PaymentModal
+  isOpen={open}
+  ticket={ticket}
+  onClose={() => setOpen(false)}
+  onSubmit={async (input) => {
+    await apiClient.post(`/tickets/${input.ticketId}/pay`, input)
+  }}
+/>
+
+// Uso con loading externo:
+<PaymentModal
+  isOpen={open}
+  ticket={ticket}
+  onClose={() => setOpen(false)}
+  onSubmit={handlePayment}
+  isLoading={mutation.isPending}
+  onSuccess={() => refetch()}
+/>
+```
+
+**Reemplaza archivos completos:**
+- ❌ TicketPaymentModal.tsx (478 líneas) → ELIMINAR
+- ❌ PaymentFormModal.tsx (416 líneas) → ELIMINAR
+- ❌ Modal embebido en PendingTicketsScreen (~170 líneas) → ELIMINAR
+
+**Total eliminado:** ~1,064 líneas
+
+**Características:**
+- ✅ Usa PaymentAmountsGrid (componente compartido)
+- ✅ Usa WinningJugadasList (componente compartido)
+- ✅ Usa calculatePaymentTotals (utility centralizado)
+- ✅ Usa validatePaymentAmount (utility centralizado)
+- ✅ Usa PAYMENT_METHODS (constantes centralizadas)
+- ✅ Manejo de errores robusto
+- ✅ Validaciones en tiempo real
+- ✅ Soporte para pagos parciales y finales
+- ✅ Toast de éxito automático (configurable)
+- ✅ Loading state (interno o externo)
+
+---
+
 ## 📊 Impacto
 
 ### Antes de la Fase 2

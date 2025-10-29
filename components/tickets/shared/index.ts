@@ -37,3 +37,12 @@ export type {
   WinningJugadasListProps,
 } from './WinningJugadasList'
 
+// Payment modal (unificado)
+export {
+  PaymentModal,
+} from './PaymentModal'
+
+export type {
+  PaymentModalProps,
+} from './PaymentModal'
+
