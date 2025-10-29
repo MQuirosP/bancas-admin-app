@@ -100,7 +100,7 @@ export default function MultipliersListScreen() {
         {/* Filtros */}
         <Toolbar>
           <YStack gap="$3">
-            {/* Fila 1: Búsqueda */}
+            {/* Fila 1: Búsqueda + Selects + Switch */}
             <XStack gap="$2" ai="center" fw="wrap">
               <XStack flex={1} position="relative" ai="center">
                 <Input
@@ -138,37 +138,9 @@ export default function MultipliersListScreen() {
               >
                 Buscar
               </Button>
-            </XStack>
 
-            {/* Fila 2: Refrescar y Limpiar debajo del input */}
-            <XStack gap="$2" ai="center" fw="wrap">
-              <Button
-                icon={(p:any)=> <RefreshCw {...p} color={iconColor} />}
-                onPress={() => refetch()}
-                backgroundColor={'$green4'}
-                borderColor={'$green8'}
-                hoverStyle={{ backgroundColor: '$green5' }}
-                pressStyle={{ scale: 0.98 }}
-              >
-                Refrescar
-              </Button>
+              <Separator vertical />
 
-              <Button
-                onPress={clearFilters}
-                backgroundColor={'$gray4'}
-                borderColor={'$gray8'}
-                borderWidth={1}
-                hoverStyle={{ backgroundColor: '$gray5' }}
-                pressStyle={{ scale: 0.98 }}
-              >
-                <Text>Limpiar</Text>
-              </Button>
-            </XStack>
-
-            <Separator />
-
-            {/* Fila 3: Selects y Switch */}
-            <XStack gap="$2" ai="center" fw="wrap">
               {/* Lotería (más angosto) */}
               <Select value={loteriaId ?? ''} onValueChange={(v) => setLoteriaId(v || undefined)}>
                 <Select.Trigger
@@ -262,6 +234,31 @@ export default function MultipliersListScreen() {
                   onCheckedChange={(v) => setActiveOnly(!!v)}
                 />
               </XStack>
+            </XStack>
+
+            {/* Fila 2: Refrescar y Limpiar debajo */}
+            <XStack gap="$2" ai="center" fw="wrap">
+              <Button
+                icon={(p:any)=> <RefreshCw {...p} color={iconColor} />}
+                onPress={() => refetch()}
+                backgroundColor={'$green4'}
+                borderColor={'$green8'}
+                hoverStyle={{ backgroundColor: '$green5' }}
+                pressStyle={{ scale: 0.98 }}
+              >
+                Refrescar
+              </Button>
+
+              <Button
+                onPress={clearFilters}
+                backgroundColor={'$gray4'}
+                borderColor={'$gray8'}
+                borderWidth={1}
+                hoverStyle={{ backgroundColor: '$gray5' }}
+                pressStyle={{ scale: 0.98 }}
+              >
+                <Text>Limpiar</Text>
+              </Button>
             </XStack>
           </YStack>
         </Toolbar>
