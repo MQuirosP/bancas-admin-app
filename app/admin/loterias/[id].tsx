@@ -1,6 +1,8 @@
 // app/admin/loterias/[id].tsx
 import React, { useMemo, useState, useEffect } from 'react'
-import { YStack, Text, ScrollView, Spinner } from 'tamagui'
+import { YStack, XStack, Text, ScrollView, Spinner, useTheme } from 'tamagui'
+import { Button } from '@/components/ui'
+import { ArrowLeft } from '@tamagui/lucide-icons'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useToast } from '@/hooks/useToast'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -14,6 +16,8 @@ export default function EditLoteriaScreen() {
   const router = useRouter()
   const toast = useToast()
   const qc = useQueryClient()
+  const theme = useTheme()
+  const iconColor = (theme?.color as any)?.get?.() ?? '#000'
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['loterias', 'detail', id],
@@ -61,7 +65,18 @@ const rulesDirty = useMemo(
   return (
     <ScrollView flex={1} backgroundColor="$background">
       <YStack padding="$4" gap="$4" maxWidth={900} alignSelf="center" width="100%">
-        <Text fontSize="$8" fontWeight="bold">Editar Lotería</Text>
+        <XStack ai="center" gap="$2">
+          <Button
+            size="$3"
+            icon={(p: any) => <ArrowLeft {...p} size={24} color={iconColor} />}
+            onPress={() => router.push('/admin/loterias')}
+            backgroundColor="transparent"
+            borderWidth={0}
+            hoverStyle={{ backgroundColor: 'transparent' }}
+            pressStyle={{ scale: 0.98 }}
+          />
+          <Text fontSize="$8" fontWeight="bold">Editar Lotería</Text>
+        </XStack>
 
         <LoteriaForm
           mode="edit"
