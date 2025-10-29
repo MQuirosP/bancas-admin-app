@@ -24,6 +24,7 @@ export default function VendedoresScreen() {
     queryKey: ['vendedores', params],
     queryFn: () => apiClient.get('/ventas/breakdown', params),
     staleTime: 60_000,
+    refetchOnMount: 'always', // ✅ Refrescar cada vez que se entra en la pantalla
   })
 
   // Extraer vendedores del breakdown

@@ -11,6 +11,7 @@ export function useVentasSummary(q: Omit<VentasListQuery, 'page' | 'pageSize'>) 
     },
     placeholderData: { ventasTotal: 0, ticketsCount: 0, jugadasCount: 0, payoutTotal: 0, neto: 0, lastTicketAt: null },
     staleTime: 60_000,
+    refetchOnMount: 'always', // ✅ Refrescar cada vez que se entra en la pantalla
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
     retry: 1,
@@ -26,6 +27,7 @@ export function useVentasBreakdown(q: Omit<VentasListQuery, 'page' | 'pageSize'>
     },
     placeholderData: [],
     staleTime: 60_000,
+    refetchOnMount: 'always', // ✅ Refrescar cada vez que se entra en la pantalla
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
     retry: 1,
@@ -41,6 +43,7 @@ export function useVentasTimeseries(q: Omit<VentasListQuery, 'page' | 'pageSize'
     },
     placeholderData: [],
     staleTime: 60_000,
+    refetchOnMount: 'always', // ✅ Refrescar cada vez que se entra en la pantalla
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
     retry: 1,

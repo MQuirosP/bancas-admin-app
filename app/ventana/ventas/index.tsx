@@ -25,6 +25,7 @@ export default function MisVentasScreen() {
     queryKey: ['ventas', params],
     queryFn: () => apiClient.get('/ventas/summary', params),
     staleTime: 60_000,
+    refetchOnMount: 'always', // ✅ Refrescar cada vez que se entra en la pantalla
   })
 
   const payload = (data as any)?.data ?? data ?? {}
