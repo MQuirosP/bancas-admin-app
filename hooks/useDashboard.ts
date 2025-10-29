@@ -89,7 +89,7 @@ export function useDashboard(
       buildQueryParams(filters)
     ),
     staleTime: 5 * 60 * 1000, // 5 minutos
-    refetchOnMount: 'always',
+    refetchOnMount: false, // Evitar refetches automáticos excesivos
     refetchOnWindowFocus: false,
     retry: 2,
     ...options,
@@ -117,7 +117,7 @@ export function useDashboardTimeSeries(
       }
     ),
     staleTime: 5 * 60 * 1000,
-    refetchOnMount: 'always',
+    refetchOnMount: false,
     refetchOnWindowFocus: false,
     retry: 2,
     ...options,
@@ -141,7 +141,7 @@ export function useDashboardExposure(
       }
     ),
     staleTime: 5 * 60 * 1000,
-    refetchOnMount: 'always',
+    refetchOnMount: false,
     refetchOnWindowFocus: false,
     retry: 2,
     ...options,
@@ -165,7 +165,7 @@ export function useDashboardCxC(
       }
     ),
     staleTime: 5 * 60 * 1000,
-    refetchOnMount: 'always',
+    refetchOnMount: false,
     refetchOnWindowFocus: false,
     retry: 2,
     ...options,
@@ -189,7 +189,7 @@ export function useDashboardCxP(
       }
     ),
     staleTime: 5 * 60 * 1000,
-    refetchOnMount: 'always',
+    refetchOnMount: false,
     refetchOnWindowFocus: false,
     retry: 2,
     ...options,
@@ -213,7 +213,7 @@ export function useDashboardGanancia(
       }
     ),
     staleTime: 5 * 60 * 1000,
-    refetchOnMount: 'always',
+    refetchOnMount: false,
     refetchOnWindowFocus: false,
     retry: 2,
     ...options,
@@ -245,7 +245,7 @@ export function useDashboardVendedores(
       }
     ),
     staleTime: 5 * 60 * 1000,
-    refetchOnMount: 'always',
+    refetchOnMount: false,
     refetchOnWindowFocus: false,
     retry: 2,
     ...options,

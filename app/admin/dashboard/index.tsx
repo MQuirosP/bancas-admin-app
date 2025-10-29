@@ -17,11 +17,15 @@ import { AlertsPanel } from '@/components/dashboard/AlertsPanel'
 import { ExportDialog } from '@/components/dashboard/ExportDialog'
 import { useToast } from '@/hooks/useToast'
 import { useLocalSearchParams } from 'expo-router'
+import { Card, Button } from '@/components/ui'
+import { RefreshCw } from '@tamagui/lucide-icons'
+import { useQueryClient } from '@tanstack/react-query'
 
 export default function DashboardScreen() {
   const router = useRouter()
   const { user } = useAuth()
   const { error: showError } = useToast()
+  const queryClient = useQueryClient()
   const searchParams = useLocalSearchParams()
   const { loadFromURL } = useSyncFiltersWithURL()
   
@@ -69,16 +73,11 @@ export default function DashboardScreen() {
   const {
     data: timeSeriesData,
     isLoading: timeSeriesLoading,
-  } = useDashboardTimeSeries(
-    {
-      ...filters,
-      granularity: 'day',
-      compare: false,
-    },
-    {
-      enabled: false, // TODO: Habilitar cuando backend implemente /timeseries
-    }
-  )
+  } = useDashboardTimeSeries({
+    ...filters,
+    granularity: 'day',
+    compare: false,
+  })
 
   if (!user || user.role === UserRole.VENDEDOR) {
     return null
@@ -134,13 +133,42 @@ export default function DashboardScreen() {
           )}
 
           {/* Loading State */}
-          {dashboardLoading && (
+          {dashboardLoading && !dashboardError && (
             <XStack ai="center" jc="center" padding="$8">
               <Spinner size="large" />
               <Text ml="$3" color="$textSecondary">
                 Cargando dashboard...
               </Text>
             </XStack>
+          )}
+
+          {/* Error State - Backend SQL Error */}
+          {dashboardError && (
+            <Card padding="$4" backgroundColor="$red2" borderColor="$red8" borderWidth={1}>
+              <YStack gap="$2">
+                <Text fontSize="$6" fontWeight="600" color="$red11">
+                  ⚠️ Error al cargar el dashboard
+                </Text>
+                <Text color="$red10">
+                  Error del backend: La consulta SQL tiene un problema con la columna "betType".
+                </Text>
+                <Text fontSize="$2" color="$textSecondary" mt="$2">
+                  El backend está intentando acceder a "j.betType" pero esa columna no existe en la base de datos.
+                  Por favor, contacta al equipo de backend para que corrijan el query SQL.
+                </Text>
+                <Button
+                  size="$3"
+                  backgroundColor="$red4"
+                  borderColor="$red8"
+                  onPress={() => queryClient.invalidateQueries({ queryKey: ['dashboard'] })}
+                  mt="$3"
+                  alignSelf="flex-start"
+                >
+                  <RefreshCw size={16} />
+                  <Text ml="$2">Reintentar</Text>
+                </Button>
+              </YStack>
+            </Card>
           )}
 
           {/* KPIs */}

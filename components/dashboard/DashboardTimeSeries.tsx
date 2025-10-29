@@ -24,7 +24,7 @@ export function DashboardTimeSeries({
 }: DashboardTimeSeriesProps) {
   const [showComparison, setShowComparison] = useState(false)
 
-  if (isLoading || !data || data.length === 0) {
+  if (isLoading || !data || !Array.isArray(data) || data.length === 0) {
     return (
       <Card padding="$4" gap="$3">
         <YStack height={300} br="$3" backgroundColor="$backgroundHover" animation="quick" opacity={0.5} ai="center" jc="center">

@@ -68,15 +68,8 @@ export function DashboardFilterBar({ onExport, exportLoading }: DashboardFilterB
     }
   }, [])
 
-  // Sincronizar cambios de filtros con URL
-  const syncWithURL = useCallback(() => {
-    const params = getURLParams()
-    router.replace(`/admin/dashboard?${params.toString()}`)
-  }, [router, getURLParams])
-
-  useEffect(() => {
-    syncWithURL()
-  }, [date, fromDate, toDate, ventanaId, loteriaId, betType])
+  // NO sincronizar automáticamente - causa loop infinito
+  // La sincronización se hace manualmente en los handlers de cambio
 
   // Refrescar todas las queries del dashboard
   const handleRefresh = () => {

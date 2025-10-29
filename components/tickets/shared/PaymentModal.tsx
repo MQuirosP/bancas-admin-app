@@ -21,11 +21,9 @@ import {
   PAYMENT_METHODS,
 } from '@/lib/tickets'
 import type { TicketForCalculations } from '@/lib/tickets'
-import { 
-  PaymentAmountsGrid, 
-  WinningJugadasList,
-  WinnerBadge 
-} from './index'
+import { PaymentAmountsGrid } from './PaymentAmountsGrid'
+import { WinningJugadasList } from './WinningJugadasList'
+import { WinnerBadge } from './TicketStatusBadge'
 import { formatCurrency, formatTicketNumber } from '@/utils/formatters'
 
 export interface PaymentModalProps {

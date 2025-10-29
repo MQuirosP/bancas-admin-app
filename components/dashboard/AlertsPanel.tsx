@@ -39,8 +39,8 @@ export function AlertsPanel({ alerts, isLoading }: AlertsPanelProps) {
 
       <ScrollView maxHeight={400}>
         <YStack gap="$2">
-          {alerts.map((alert) => (
-            <AlertItem key={alert.id} alert={alert} />
+          {alerts.map((alert, index) => (
+            <AlertItem key={alert.id || `alert-${index}`} alert={alert} />
           ))}
         </YStack>
       </ScrollView>
