@@ -514,12 +514,33 @@ export default function RestrictionRulesForm({
                           <Select.ItemText>(Ninguno)</Select.ItemText>
                           <Select.ItemIndicator ml="auto"><Check size={16} /></Select.ItemIndicator>
                         </Select.Item>
-                        {users.map((u, i) => (
-                          <Select.Item key={u.id} value={u.id} index={i + 1}>
-                            <Select.ItemText>{u.name} ({u.username})</Select.ItemText>
-                            <Select.ItemIndicator ml="auto"><Check size={16} /></Select.ItemIndicator>
-                          </Select.Item>
-                        ))}
+                        {users.map((u, i) => {
+                          // Construir label con código de usuario y ventana si aplica
+                          let label = u.name
+                          
+                          // Agregar código de usuario si existe
+                          if (u.code) {
+                            label += ` [${u.code}]`
+                          }
+                          
+                          // Si es vendedor, agregar código de ventana
+                          if (u.role === 'VENDEDOR' && u.ventanaId) {
+                            const ventana = ventanas.find(v => v.id === u.ventanaId)
+                            if (ventana?.code) {
+                              label += ` - Ventana: ${ventana.code}`
+                            }
+                          }
+                          
+                          // Agregar username
+                          label += ` (${u.username})`
+                          
+                          return (
+                            <Select.Item key={u.id} value={u.id} index={i + 1}>
+                              <Select.ItemText>{label}</Select.ItemText>
+                              <Select.ItemIndicator ml="auto"><Check size={16} /></Select.ItemIndicator>
+                            </Select.Item>
+                          )
+                        })}
                       </Select.Group>
                     </Select.Viewport>
                   </Select.Content>
