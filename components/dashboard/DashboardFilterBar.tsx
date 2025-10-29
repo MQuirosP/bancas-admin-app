@@ -10,7 +10,7 @@ import { RefreshCw, Download, Check, ChevronDown } from '@tamagui/lucide-icons'
 import { useRouter, useSearchParams } from 'expo-router'
 import { useDashboardFiltersStore, useSyncFiltersWithURL } from '@/store/dashboardFilters.store'
 import { useAuth } from '@/hooks/useAuth'
-import { Role } from '@/types/auth.types'
+import { UserRole } from '@/types/auth.types'
 import type { DatePreset, BetType } from '@/types/dashboard.types'
 import { useQueryClient } from '@tanstack/react-query'
 
@@ -180,7 +180,7 @@ export function DashboardFilterBar({ onExport, exportLoading }: DashboardFilterB
         )}
 
         {/* Ventana (solo para ADMIN) */}
-        {user?.role === Role.ADMIN && (
+        {user?.role === UserRole.ADMIN && (
           <YStack gap="$1" minWidth={180}>
             <Text fontSize="$2" fontWeight="600" color="$textSecondary">
               Ventana

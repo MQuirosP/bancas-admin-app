@@ -7,7 +7,7 @@ import React, { useEffect, useState } from 'react'
 import { YStack, ScrollView, Text, Spinner, XStack } from 'tamagui'
 import { useRouter } from 'expo-router'
 import { useAuth } from '@/hooks/useAuth'
-import { Role } from '@/types/auth.types'
+import { UserRole } from '@/types/auth.types'
 import { useDashboard, useDashboardTimeSeries } from '@/hooks/useDashboard'
 import { useDashboardFiltersStore, useSyncFiltersWithURL } from '@/store/dashboardFilters.store'
 import { DashboardFilterBar } from '@/components/dashboard/DashboardFilterBar'
@@ -52,7 +52,7 @@ export default function DashboardScreen() {
   // RBAC: Solo ADMIN y VENTANA pueden acceder
   useEffect(() => {
     if (!user) return
-    if (user.role === Role.VENDEDOR) {
+    if (user.role === UserRole.VENDEDOR) {
       showError('Acceso denegado: Solo administradores pueden ver el dashboard')
       router.replace('/vendedor')
     }
@@ -75,7 +75,7 @@ export default function DashboardScreen() {
     compare: false,
   })
 
-  if (!user || user.role === Role.VENDEDOR) {
+  if (!user || user.role === UserRole.VENDEDOR) {
     return null
   }
 
