@@ -475,9 +475,9 @@ export default function SorteosListScreen() {
         <Toolbar>
           <YStack gap="$3">
             {/* Fila 1: Búsqueda + Filtros */}
-            <XStack gap="$2" ai="center" flexWrap="wrap">
+            <XStack gap="$3" ai="center" flexWrap="wrap">
               {/* Input búsqueda - ancho fijo para evitar redimensionamiento */}
-              <XStack position="relative" minWidth={300} maxWidth={400} flexBasis={300}>
+              <XStack position="relative" minWidth={300} maxWidth={400} flexBasis={300} flexShrink={0}>
                 <Input
                   flex={1}
                   placeholder="Buscar por nombre o lotería"
@@ -509,34 +509,37 @@ export default function SorteosListScreen() {
                 icon={(p:any)=> <Search {...p} color={iconColor} />} 
                 onPress={handleSearch}
                 pressStyle={{ scale: 0.98 }}
+                flexShrink={0}
               >
                 Buscar
               </Button>
 
-              <Separator vertical />
+              <Separator vertical height={32} />
 
               {/* Select Estado */}
-              <XStack ai="center" gap="$2">
-                <Text fontSize="$3">Estado:</Text>
+              <XStack ai="center" gap="$2" flexShrink={0} minWidth={180}>
+                <Text fontSize="$3" flexShrink={0}>Estado:</Text>
                 <StatusSelect value={status} onChange={setStatus} />
               </XStack>
 
-              <Separator vertical />
+              <Separator vertical height={32} />
 
               {/* Select Fecha */}
-              <XStack ai="center" gap="$2">
-                <Text fontSize="$3">Fecha:</Text>
+              <XStack ai="center" gap="$2" flexShrink={0} minWidth={220}>
+                <Text fontSize="$3" flexShrink={0}>Fecha:</Text>
                 <DateFilterSelect value={dateFilter} onChange={(v) => { setDateFilter(v); setPage(1) }} />
               </XStack>
 
-              <Separator vertical />
+              <Separator vertical height={32} />
 
               {/* Switch Activos */}
-              <FilterSwitch
-                label="Activos:"
-                checked={activeOnly}
-                onCheckedChange={(v) => { setActiveOnly(!!v); setPage(1) }}
-              />
+              <XStack flexShrink={0}>
+                <FilterSwitch
+                  label="Activos:"
+                  checked={activeOnly}
+                  onCheckedChange={(v) => { setActiveOnly(!!v); setPage(1) }}
+                />
+              </XStack>
             </XStack>
 
             {/* Fila 2: Botones de acción debajo del input de búsqueda */}
