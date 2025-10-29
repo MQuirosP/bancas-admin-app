@@ -482,11 +482,21 @@ export default function TicketsListScreen({ scope }: Props) {
                       <Text fontSize="$6" fontWeight="700" color="$blue11">
                         {formatCurrency(ticket.totalAmount)}
                       </Text>
-                      <XStack px="$2" py="$1" br="$2" bw={1} {...statusBadgeProps}>
-                        <Text fontSize="$2" fontWeight="700" textTransform="uppercase" color={statusBadgeProps.color}>
-                          {ticket.status}
-                        </Text>
+                      
+                      {/* Status badge + SIN PAGAR al lado */}
+                      <XStack gap="$2" ai="center">
+                        <XStack px="$2" py="$1" br="$2" bw={1} {...statusBadgeProps}>
+                          <Text fontSize="$2" fontWeight="700" textTransform="uppercase" color={statusBadgeProps.color}>
+                            {ticket.status}
+                          </Text>
+                        </XStack>
+                        {hasWinner && totalWinnings > 0 && !totalPaid && !isPaid && ticket.status === 'EVALUATED' && (
+                          <XStack bg="$red4" px="$2" py="$1" br="$2" bw={1} bc="$red8">
+                            <Text color="$red11" fontSize="$2" fontWeight="700">SIN PAGAR</Text>
+                          </XStack>
+                        )}
                       </XStack>
+                      
                       {hasWinner && totalWinnings > 0 && (
                         <>
                           <Text fontSize="$5" fontWeight="700" color="$green10">
@@ -512,12 +522,6 @@ export default function TicketsListScreen({ scope }: Props) {
                                 Pendiente: {formatCurrency(remainingAmount)}
                               </Text>
                             </YStack>
-                          )}
-                          
-                          {!totalPaid && !isPaid && ticket.status === 'EVALUATED' && (
-                            <XStack bg="$red4" px="$2" py="$1" br="$2" bw={1} bc="$red8">
-                              <Text color="$red11" fontSize="$2" fontWeight="700">SIN PAGAR</Text>
-                            </XStack>
                           )}
                         </>
                       )}

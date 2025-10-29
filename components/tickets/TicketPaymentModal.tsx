@@ -138,7 +138,6 @@ const TicketPaymentModal = ({
         method,
         idempotencyKey: uuidv4(),
         isFinal: isFinal && parseFloat(amount) < paymentInfo.remaining,
-        ...(user?.ventanaId && { ventanaId: user.ventanaId }),
       }
 
       await onSubmit(input)
