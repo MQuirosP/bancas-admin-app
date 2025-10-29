@@ -17,9 +17,10 @@ import { getDateParam, type DateTokenBasic, formatDateYYYYMMDD } from '@/lib/dat
 import { object } from 'zod'
 import TicketActionButtons from './TicketActionButtons'
 import TicketPreviewModal from './TicketPreviewModal'
-import TicketPaymentModal from './TicketPaymentModal'
+import { PaymentModal } from './shared'
 import type { CreatePaymentInput } from '@/types/payment.types'
 import { useToast } from '@/hooks/useToast'
+import { calculatePaymentTotals } from '@/lib/tickets'
 
 // Ajusta a tu modelo real si tienes tipos en '@/types/api.types'
 export type Ticket = {
@@ -137,26 +138,11 @@ export default function TicketsListScreen({ scope, filterPendientes }: Props) {
     let rows = data?.data ?? []
     
     // Filtrar por pendientes de pago (ganadores sin pagar completamente)
+    // ✅ Usando utility centralizado
     if (filterPendientes) {
       rows = rows.filter((t) => {
-        const jugadas = t.jugadas || []
-        const hasWinner = jugadas.some((j: any) => j.isWinner === true)
-        
-        if (!hasWinner) return false
-        if (t.status === 'PAID') return false
-        
-        // Calcular totales usando la misma lógica que en el render
-        const hasUnifiedPayout = (t as any).totalPayout !== undefined && (t as any).totalPayout !== null
-        const shouldUseUnified = hasUnifiedPayout && ((t as any).totalPayout > 0 || !hasWinner)
-        
-        const totalWinnings = shouldUseUnified
-          ? (t as any).totalPayout
-          : jugadas.reduce((sum: number, j: any) => sum + (j.isWinner ? (j.payout || j.winAmount || 0) : 0), 0)
-        
-        const totalPaid = shouldUseUnified ? ((t as any).totalPaid || 0) : 0
-        
-        // Mostrar si tiene premio y no está completamente pagado
-        return totalWinnings > 0 && totalPaid < totalWinnings
+        const totals = calculatePaymentTotals(t as any)
+        return totals.hasWinner && !totals.isFullyPaid && totals.totalPayout > 0
       })
     }
     
@@ -195,18 +181,15 @@ export default function TicketsListScreen({ scope, filterPendientes }: Props) {
   }
 
   const handlePaymentSubmit = async (input: CreatePaymentInput) => {
+    setPaymentLoading(true)
     try {
-      setPaymentLoading(true)
       // ✅ v2.0: Usar endpoint unificado
       const { ticketId, ...paymentData } = input
-      const result = await apiClient.post(`/tickets/${ticketId}/pay`, paymentData)
-      success(`Pago de ${formatCurrency(input.amountPaid)} registrado correctamente`)
-      // Refrescar la lista de tiquetes
-      refetch()
-      setPaymentOpen(false)
-      setPaymentTicket(null)
+      await apiClient.post(`/tickets/${ticketId}/pay`, paymentData)
+      // El PaymentModal maneja el toast de éxito y el refetch en onSuccess
     } catch (err: any) {
       error(err.message || 'Error al registrar pago')
+      throw err // Re-throw para que el modal maneje el error
     } finally {
       setPaymentLoading(false)
     }
@@ -597,7 +580,7 @@ export default function TicketsListScreen({ scope, filterPendientes }: Props) {
       }}
     />
 
-    <TicketPaymentModal
+    <PaymentModal
       key="ticket-payment-modal"
       isOpen={paymentOpen}
       ticket={paymentTicket}
@@ -607,6 +590,7 @@ export default function TicketsListScreen({ scope, filterPendientes }: Props) {
       }}
       onSubmit={handlePaymentSubmit}
       isLoading={paymentLoading}
+      onSuccess={() => refetch()}
     />
     </>
   )
