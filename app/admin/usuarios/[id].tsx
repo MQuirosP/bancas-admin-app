@@ -1,8 +1,9 @@
 // app/admin/usuarios/[id].tsx
 import React, { useMemo } from 'react'
-import { YStack, XStack, Text, ScrollView, Spinner } from 'tamagui'
+import { YStack, XStack, Text, ScrollView, Spinner, useTheme } from 'tamagui'
 import { Button } from '@/components/ui'
 import { useLocalSearchParams, useRouter } from 'expo-router'
+import { ArrowLeft } from '@tamagui/lucide-icons'
 import { useUserQuery, useUpdateUser, useSoftDeleteUser, useRestoreUser } from '@/hooks/useUsers'
 import UserForm, { UserFormValues } from '@/components/usuarios/UserForm'
 import { useToast } from '@/hooks/useToast'
@@ -17,6 +18,8 @@ export default function UsuarioDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const router = useRouter()
   const toast = useToast()
+  const theme = useTheme()
+  const iconColor = (theme?.color as any)?.get?.() ?? '#000'
 
   const { data, isLoading, isError } = useUserQuery(id)
   const updateUser = useUpdateUser(id!)
@@ -79,7 +82,18 @@ export default function UsuarioDetailScreen() {
   return (
     <ScrollView flex={1} backgroundColor={'$background'}>
       <YStack padding="$4" gap="$4" maxWidth={1200} alignSelf="center" width="100%">
-        <Text fontSize="$8" fontWeight="bold">Editar Usuario</Text>
+        <XStack ai="center" gap="$2">
+          <Button
+            size="$3"
+            icon={(p: any) => <ArrowLeft {...p} size={24} color={iconColor} />}
+            onPress={() => router.push('/admin/usuarios')}
+            backgroundColor="transparent"
+            borderWidth={0}
+            hoverStyle={{ backgroundColor: 'transparent' }}
+            pressStyle={{ scale: 0.98 }}
+          />
+          <Text fontSize="$8" fontWeight="bold">Editar Usuario</Text>
+        </XStack>
 
         <UserForm
           mode="edit"
