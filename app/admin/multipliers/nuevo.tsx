@@ -1,6 +1,8 @@
 // app/admin/multipliers/nuevo.tsx
 import React from 'react'
-import { YStack, Text, ScrollView } from 'tamagui'
+import { YStack, XStack, Text, ScrollView, useTheme } from 'tamagui'
+import { Button } from '@/components/ui'
+import { ArrowLeft } from '@tamagui/lucide-icons'
 import { useRouter } from 'expo-router'
 import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api.client'
@@ -10,6 +12,8 @@ import { useCreateMultiplier } from '@/hooks/useMultipliersCrud'
 
 export default function NuevoMultiplierScreen() {
   const router = useRouter()
+  const theme = useTheme()
+  const iconColor = (theme?.color as any)?.get?.() ?? '#000'
   const { data: lotData } = useQuery({
     queryKey: ['loterias', 'select'],
     queryFn: () => apiClient.get<{ data: Loteria[] }>('/loterias'),
@@ -20,7 +24,18 @@ export default function NuevoMultiplierScreen() {
   return (
     <ScrollView flex={1} backgroundColor="$background">
       <YStack padding="$4" gap="$4" maxWidth={700} alignSelf="center" width="100%">
-        <Text fontSize="$8" fontWeight="bold">Nuevo Multiplicador</Text>
+        <XStack ai="center" gap="$2">
+          <Button
+            size="$3"
+            icon={(p: any) => <ArrowLeft {...p} size={24} color={iconColor} />}
+            onPress={() => router.push('/admin/multipliers')}
+            backgroundColor="transparent"
+            borderWidth={0}
+            hoverStyle={{ backgroundColor: 'transparent' }}
+            pressStyle={{ scale: 0.98 }}
+          />
+          <Text fontSize="$8" fontWeight="bold">Nuevo Multiplicador</Text>
+        </XStack>
         <MultiplierForm
           mode="create"
           loterias={loterias}
