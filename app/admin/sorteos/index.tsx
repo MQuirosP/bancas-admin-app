@@ -18,6 +18,7 @@ import FilterSwitch from '@/components/ui/FilterSwitch'
 
 type Status = 'SCHEDULED' | 'OPEN' | 'EVALUATED' | 'CLOSED'
 type StatusOrAll = Status | 'ALL' | undefined
+type DateFilter = 'ALL' | 'TODAY' | 'TOMORROW' | 'THIS_WEEK' | 'NEXT_WEEK' | undefined
 
 function StatusSelect({
   value,
@@ -53,6 +54,82 @@ function StatusSelect({
         hoverStyle={{ bg: '$backgroundHover' }}
         focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
         iconAfter={ChevronDown}
+        minWidth={120}
+      >
+        <Select.Value>{labelOf(internal)}</Select.Value>
+      </Select.Trigger>
+
+      <Select.Adapt when="sm">
+        <Sheet modal dismissOnSnapToBottom animation="quick">
+          <Sheet.Frame p="$4">
+            <Select.Adapt.Contents />
+          </Sheet.Frame>
+          <Sheet.Overlay />
+        </Sheet>
+      </Select.Adapt>
+
+      <Select.Content zIndex={1000}>
+        <YStack br="$3" bw={1} bc="$borderColor" backgroundColor="$background">
+          <Select.ScrollUpButton />
+          <Select.Viewport>
+            {items.map((it, idx) => (
+              <Select.Item
+                key={String(it.value)}
+                value={String(it.value)}
+                index={idx}
+                pressStyle={{ bg: '$backgroundHover' }}
+                bw={0}
+                px="$3"
+              >
+                <Select.ItemText>{it.label}</Select.ItemText>
+                <Select.ItemIndicator ml="auto">
+                  <Check size={16} />
+                </Select.ItemIndicator>
+              </Select.Item>
+            ))}
+          </Select.Viewport>
+          <Select.ScrollDownButton />
+        </YStack>
+      </Select.Content>
+    </Select>
+  )
+}
+
+function DateFilterSelect({
+  value,
+  onChange,
+}: {
+  value: DateFilter
+  onChange: (val: DateFilter) => void
+}) {
+  const internal: DateFilter = (value ?? 'ALL') as DateFilter
+
+  const items: { value: DateFilter; label: string }[] = [
+    { value: 'ALL', label: 'Todas las fechas' },
+    { value: 'TODAY', label: 'Hoy' },
+    { value: 'TOMORROW', label: 'Mañana' },
+    { value: 'THIS_WEEK', label: 'Esta semana' },
+    { value: 'NEXT_WEEK', label: 'Próxima semana' },
+  ]
+
+  const labelOf = (v: DateFilter) => items.find(i => i.value === v)?.label ?? 'Todas las fechas'
+
+  return (
+    <Select
+      size="$3"
+      value={String(internal)}
+      onValueChange={(v: string) => onChange(v === 'ALL' ? undefined : (v as DateFilter))}
+    >
+      <Select.Trigger
+        px="$3"
+        br="$3"
+        bw={1}
+        bc="$borderColor"
+        backgroundColor="$background"
+        hoverStyle={{ bg: '$backgroundHover' }}
+        focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
+        iconAfter={ChevronDown}
+        minWidth={150}
       >
         <Select.Value>{labelOf(internal)}</Select.Value>
       </Select.Trigger>
@@ -108,6 +185,7 @@ export default function SorteosListScreen() {
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState<Status | undefined>(undefined)
+  const [dateFilter, setDateFilter] = useState<DateFilter>('ALL')
 
   // 🔁 Filtro local de "Activos":
   // ON  -> muestra solo activos
@@ -151,17 +229,52 @@ export default function SorteosListScreen() {
     return flag === undefined ? inferred : flag === true
   }
 
-  // Filtro por estado (frontend) + activos/inactivos (frontend) + ordenamiento cronológico
+  // Helper para filtrar por fecha de programación
+  const filterByDate = (sorteo: Sorteo, filter: DateFilter): boolean => {
+    if (!filter || filter === 'ALL') return true
+    
+    const scheduled = new Date(sorteo.scheduledAt as any)
+    const now = new Date()
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    const tomorrow = new Date(today)
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    
+    switch (filter) {
+      case 'TODAY':
+        return scheduled >= today && scheduled < tomorrow
+      case 'TOMORROW':
+        const dayAfterTomorrow = new Date(tomorrow)
+        dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 1)
+        return scheduled >= tomorrow && scheduled < dayAfterTomorrow
+      case 'THIS_WEEK':
+        const endOfWeek = new Date(today)
+        endOfWeek.setDate(endOfWeek.getDate() + (7 - today.getDay()))
+        return scheduled >= today && scheduled <= endOfWeek
+      case 'NEXT_WEEK':
+        const startNextWeek = new Date(today)
+        startNextWeek.setDate(startNextWeek.getDate() + (7 - today.getDay() + 1))
+        const endNextWeek = new Date(startNextWeek)
+        endNextWeek.setDate(endNextWeek.getDate() + 6)
+        return scheduled >= startNextWeek && scheduled <= endNextWeek
+      default:
+        return true
+    }
+  }
+
+  // Filtro por estado (frontend) + activos/inactivos (frontend) + fecha + ordenamiento cronológico
   const rows = useMemo(() => {
     const byStatus = status ? baseRows.filter(r => r.status === status) : baseRows
     // Cuando activeOnly === true -> solo activos
     // Cuando activeOnly === false -> solo inactivos
     const byActiveFlag = byStatus.filter(s => activeOnly ? isRowActive(s) : !isRowActive(s))
 
-    let filtered = byActiveFlag
+    // Filtrar por fecha
+    const byDate = byActiveFlag.filter(s => filterByDate(s, dateFilter))
+
+    let filtered = byDate
     if (search.trim()) {
       const q = search.trim().toLowerCase()
-      filtered = byActiveFlag.filter(s =>
+      filtered = byDate.filter(s =>
         (s.name ?? '').toLowerCase().includes(q) ||
         (s.loteria?.name ?? s.loteriaId ?? '').toLowerCase().includes(q)
       )
@@ -174,7 +287,7 @@ export default function SorteosListScreen() {
       const dateB = new Date(b.scheduledAt as any).getTime()
       return dateA - dateB
     })
-  }, [baseRows, status, activeOnly, search])
+  }, [baseRows, status, activeOnly, dateFilter, search])
 
   const meta = data?.meta
 
@@ -183,6 +296,7 @@ export default function SorteosListScreen() {
     setSearchInput('')
     setSearch('')
     setStatus(undefined)
+    setDateFilter('ALL')
     setActiveOnly(true) // vuelve a activos
     setPage(1)
   }
@@ -360,8 +474,10 @@ export default function SorteosListScreen() {
         {/* Filtros */}
         <Toolbar>
           <YStack gap="$3">
+            {/* Fila 1: Búsqueda + Filtros */}
             <XStack gap="$2" ai="center" flexWrap="wrap">
-              <XStack flex={1} position="relative" ai="center">
+              {/* Input búsqueda - ancho fijo para evitar redimensionamiento */}
+              <XStack position="relative" minWidth={300} maxWidth={400} flexBasis={300}>
                 <Input
                   flex={1}
                   placeholder="Buscar por nombre o lotería"
@@ -389,41 +505,47 @@ export default function SorteosListScreen() {
                 )}
               </XStack>
 
-              <Button icon={(p:any)=> <Search {...p} color={iconColor} />} onPress={handleSearch}
-              pressStyle={{ scale: 0.98 }}>
+              <Button 
+                icon={(p:any)=> <Search {...p} color={iconColor} />} 
+                onPress={handleSearch}
+                pressStyle={{ scale: 0.98 }}
+              >
                 Buscar
               </Button>
 
               <Separator vertical />
 
-              <XStack ai="center" gap="$2" mr="$9">
+              {/* Select Estado */}
+              <XStack ai="center" gap="$2">
                 <Text fontSize="$3">Estado:</Text>
                 <StatusSelect value={status} onChange={setStatus} />
               </XStack>
 
-              {/* Empuja el switch a la derecha */}
-              {/* <XStack flex={1} /> */}
+              <Separator vertical />
+
+              {/* Select Fecha */}
+              <XStack ai="center" gap="$2">
+                <Text fontSize="$3">Fecha:</Text>
+                <DateFilterSelect value={dateFilter} onChange={(v) => { setDateFilter(v); setPage(1) }} />
+              </XStack>
 
               <Separator vertical />
 
-              {/* Switch Activos (ON = activos, OFF = inactivos) */}
-              {/* <XStack ai="center" gap="$2" minWidth={220} ml="$4"> */}
-                <FilterSwitch
-                  label={`Activos:`}
-                  checked={activeOnly}
-                  onCheckedChange={(v) => { setActiveOnly(!!v); setPage(1) }}
-                />
-                <Text color="$textSecondary" fontSize="$2">
-                </Text>
-              {/* </XStack> */}
+              {/* Switch Activos */}
+              <FilterSwitch
+                label="Activos:"
+                checked={activeOnly}
+                onCheckedChange={(v) => { setActiveOnly(!!v); setPage(1) }}
+              />
+            </XStack>
 
-              <Separator vertical />
-
+            {/* Fila 2: Botones de acción debajo del input de búsqueda */}
+            <XStack gap="$2" ai="center">
               <Button
                 icon={(p:any)=> <RefreshCw {...p} color={iconColor} />}
                 onPress={() => { setPage(1); refetch() }}
-                backgroundColor={'$green4'}
-                borderColor={'$green8'}
+                backgroundColor="$green4"
+                borderColor="$green8"
                 hoverStyle={{ backgroundColor: '$green5' }}
                 pressStyle={{ scale: 0.98 }}
               >
@@ -431,11 +553,11 @@ export default function SorteosListScreen() {
               </Button>
 
               <Button
-              onPress={clearFilters}
-              backgroundColor={'$gray4'}
-              borderColor={'$gray8'}
-              hoverStyle={{ backgroundColor: '$gray5' }} 
-              pressStyle={{ scale: 0.98 }}
+                onPress={clearFilters}
+                backgroundColor="$gray4"
+                borderColor="$gray8"
+                hoverStyle={{ backgroundColor: '$gray5' }} 
+                pressStyle={{ scale: 0.98 }}
               >
                 Limpiar
               </Button>
