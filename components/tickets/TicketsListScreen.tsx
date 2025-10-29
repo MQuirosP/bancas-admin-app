@@ -40,6 +40,7 @@ export type Ticket = {
 
 type Props = {
   scope: Scope
+  filterPendientes?: boolean
 }
 
 // ✅ Tickets endpoint only supports: today, yesterday, range
@@ -80,7 +81,7 @@ async function fetchTickets(params: any): Promise<{ data: Ticket[]; meta: any }>
   }
 }
 
-export default function TicketsListScreen({ scope }: Props) {
+export default function TicketsListScreen({ scope, filterPendientes }: Props) {
   const router = useRouter()
   const theme = useTheme()
   const { success, error } = useToast()
@@ -134,6 +135,31 @@ export default function TicketsListScreen({ scope }: Props) {
 
   const filteredRows = useMemo(() => {
     let rows = data?.data ?? []
+    
+    // Filtrar por pendientes de pago (ganadores sin pagar completamente)
+    if (filterPendientes) {
+      rows = rows.filter((t) => {
+        const jugadas = t.jugadas || []
+        const hasWinner = jugadas.some((j: any) => j.isWinner === true)
+        
+        if (!hasWinner) return false
+        if (t.status === 'PAID') return false
+        
+        // Calcular totales usando la misma lógica que en el render
+        const hasUnifiedPayout = (t as any).totalPayout !== undefined && (t as any).totalPayout !== null
+        const shouldUseUnified = hasUnifiedPayout && ((t as any).totalPayout > 0 || !hasWinner)
+        
+        const totalWinnings = shouldUseUnified
+          ? (t as any).totalPayout
+          : jugadas.reduce((sum: number, j: any) => sum + (j.isWinner ? (j.payout || j.winAmount || 0) : 0), 0)
+        
+        const totalPaid = shouldUseUnified ? ((t as any).totalPaid || 0) : 0
+        
+        // Mostrar si tiene premio y no está completamente pagado
+        return totalWinnings > 0 && totalPaid < totalWinnings
+      })
+    }
+    
     // ✅ Status filtering is done on backend now
     // ✅ Winners filtering should be done on backend via params
     if (searchInput.trim()) {
@@ -153,7 +179,7 @@ export default function TicketsListScreen({ scope }: Props) {
       })
     }
     return rows
-  }, [data, searchInput])
+  }, [data, searchInput, filterPendientes])
 
   const meta = data?.meta
 

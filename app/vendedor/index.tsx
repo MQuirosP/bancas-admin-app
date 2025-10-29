@@ -82,8 +82,18 @@ export default function VendedorDashboard() {
           </Text>
           
           <XStack gap="$3" flexWrap="wrap">
-            <QuickActionButton icon={Package} label="Ver Todos" color="$cyan10" />
-            <QuickActionButton icon={Clock} label="Pendientes" color="$yellow10" />
+            <QuickActionButton 
+              icon={Package} 
+              label="Ver Todos" 
+              color="$cyan10" 
+              onPress={() => router.push('/vendedor/tickets')}
+            />
+            <QuickActionButton 
+              icon={Clock} 
+              label="Pendientes" 
+              color="$yellow10"
+              onPress={() => router.push('/vendedor/tickets?filter=pendientes')}
+            />
           </XStack>
         </YStack>
       </YStack>
@@ -154,9 +164,10 @@ interface QuickActionButtonProps {
   icon: any;
   label: string;
   color?: string; // Tamagui token ej. '$cyan10'
+  onPress?: () => void;
 }
 
-function QuickActionButton({ icon: Icon, label, color = '$primary' }: QuickActionButtonProps) {
+function QuickActionButton({ icon: Icon, label, color = '$primary', onPress }: QuickActionButtonProps) {
   const bgSoft = String(color).replace('10', '4') as any
   return (
     <Card
@@ -179,6 +190,7 @@ function QuickActionButton({ icon: Icon, label, color = '$primary' }: QuickActio
       }}
       cursor="pointer"
       animation="quick"
+      onPress={onPress}
     >
       <YStack width={56} height={56} br="$3" ai="center" jc="center" backgroundColor={bgSoft}>
         <Icon size={28} color={color} />
