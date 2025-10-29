@@ -63,12 +63,16 @@ export default function TicketDetailScreen({ scope, ticketId, buildBackPath }: P
   const createdAt = ticket.createdAt ? format(new Date(ticket.createdAt), 'dd/MM/yyyy HH:mm', { locale: es }) : 'N/A'
   
   // ✅ v2.0: Usar campos unificados si están disponibles, fallback a cálculo manual
-  const totalWinnings = ticket.totalPayout !== undefined && ticket.totalPayout !== null 
-    ? ticket.totalPayout 
+  // PERO: Si totalPayout es 0 y el ticket es ganador, calcular desde jugadas
+  const hasUnifiedPayout = ticket.totalPayout !== undefined && ticket.totalPayout !== null
+  const shouldUseUnified = hasUnifiedPayout && (ticket.totalPayout > 0 || !hasWinner)
+  
+  const totalWinnings = shouldUseUnified
+    ? ticket.totalPayout
     : jugadas.reduce((sum: number, j: any) => sum + (j.isWinner ? (j.payout || j.winAmount || 0) : 0), 0)
   
-  const totalPaid = ticket.totalPaid || 0
-  const remainingAmount = ticket.remainingAmount || 0
+  const totalPaid = shouldUseUnified ? (ticket.totalPaid || 0) : 0
+  const remainingAmount = shouldUseUnified ? (ticket.remainingAmount || 0) : (totalWinnings - totalPaid)
   const hasPayments = ticket.paymentHistory && ticket.paymentHistory.length > 0
   const isPaid = ticket.status === 'PAID'
 

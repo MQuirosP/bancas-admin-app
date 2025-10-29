@@ -70,7 +70,11 @@ const TicketPaymentModal = ({
     })
 
     // ✅ Priorizar campos unificados del backend (v2.0)
-    if (ticket.totalPayout !== undefined && ticket.totalPayout !== null) {
+    // PERO: Si totalPayout es 0 y el ticket es ganador, usar fallback para calcular
+    const hasUnifiedFields = ticket.totalPayout !== undefined && ticket.totalPayout !== null
+    const shouldUseUnified = hasUnifiedFields && (ticket.totalPayout > 0 || !ticket.isWinner)
+    
+    if (shouldUseUnified) {
       const info = {
         totalPayout: ticket.totalPayout || 0,
         totalPaid: ticket.totalPaid || 0,

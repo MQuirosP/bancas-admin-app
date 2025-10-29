@@ -59,7 +59,11 @@ export default function PaymentFormModal({
     })
 
     // ✅ Priorizar campos unificados del backend (v2.0)
-    if (current.totalPayout !== undefined && current.totalPayout !== null) {
+    // PERO: Si totalPayout es 0 y el ticket es ganador, usar fallback para calcular
+    const hasUnifiedFields = current.totalPayout !== undefined && current.totalPayout !== null
+    const shouldUseUnified = hasUnifiedFields && (current.totalPayout > 0 || !current.isWinner)
+    
+    if (shouldUseUnified) {
       const result = {
         totalPayout: current.totalPayout || 0,
         totalPaid: current.totalPaid || 0,
