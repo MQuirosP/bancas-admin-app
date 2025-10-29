@@ -49,6 +49,7 @@ export default function NuevoUsuarioScreen() {
           mode="create"
           onSubmit={handleSubmit}
           onCancel={() => safeBack('/admin/usuarios')}
+          submitting={createUser.isPending}
           // 👉 pasar ventanas al Select
           ventanas={ventanas}
           loadingVentanas={vFetching || isFetchingNextPage}

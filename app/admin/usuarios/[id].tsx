@@ -88,6 +88,7 @@ export default function UsuarioDetailScreen() {
           onCancel={() => safeBack('/admin/usuarios')}
           onDelete={() => softDelete.mutate({ id })}
           onRestore={() => restore.mutate(id)}
+          submitting={updateUser.isPending}
           ventanas={ventanas}
           loadingVentanas={vFetching || isFetchingNextPage}
           errorVentanas={vError}
