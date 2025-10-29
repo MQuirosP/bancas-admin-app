@@ -3,11 +3,12 @@ import React, { useEffect, useState } from 'react'
 import { useWindowDimensions } from 'react-native'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { YStack, XStack, Text, Spinner } from 'tamagui'
-import { Input, Button } from '@/components/ui'
+import { Button } from '@/components/ui'
 import { Image } from 'expo-image'
 import { User, Lock, ArrowRight } from '@tamagui/lucide-icons'
 import { z } from 'zod'
 import { useAuthStore } from '../../store/auth.store'
+import { LoginInput } from '@/components/auth/LoginInput'
 
 const loginSchema = z.object({
   username: z.string().min(3, 'El usuario debe tener al menos 3 caracteres'),
@@ -32,8 +33,6 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<{ username?: string; password?: string; general?: string }>({})
-  const [usernameFocused, setUsernameFocused] = useState(false)
-  const [passwordFocused, setPasswordFocused] = useState(false)
 
   // Mostrar mensaje que llega por redirect (sesión expirada, etc.)
   useEffect(() => {
@@ -125,100 +124,26 @@ export default function LoginScreen() {
       {/* Form */}
       <YStack width="100%" maxWidth={400} gap="$2">
         {/* Usuario */}
-        <YStack gap="$2">
-          <Text fontSize="$4" fontWeight="600" color="$textPrimary">Usuario</Text>
-          <XStack
-            backgroundColor="$backgroundHover"
-            borderRadius="$4"
-            borderWidth={2}
-            borderColor={
-              errors.username 
-                ? '$red10' 
-                : usernameFocused 
-                ? '$cyan8' 
-                : '$borderColor'
-            }
-            alignItems="center"
-            paddingHorizontal="$4"
-            minHeight={56}
-            animation="quick"
-            shadowColor={usernameFocused ? '$cyan10' : 'transparent'}
-            shadowOffset={{ width: 0, height: 2 }}
-            shadowOpacity={usernameFocused ? 0.2 : 0}
-            shadowRadius={4}
-          >
-            <User size={20} color={usernameFocused ? '$cyan10' : '$textTertiary'} />
-            <Input
-              flex={1}
-              value={username}
-              onChangeText={setUsername}
-              placeholder="Ingresa tu usuario"
-              placeholderTextColor="$textTertiary"
-              backgroundColor="transparent"
-              borderWidth={0}
-              height={48}
-              fontSize="$4"
-              color="$textPrimary"
-              autoCapitalize="none"
-              onFocus={() => setUsernameFocused(true)}
-              onBlur={() => setUsernameFocused(false)}
-              focusStyle={{ 
-                outlineWidth: 0, 
-                outlineStyle: 'none',
-                borderWidth: 0
-              }}
-            />
-          </XStack>
-          {errors.username && <Text fontSize="$3" color="$red10">{errors.username}</Text>}
-        </YStack>
+        <LoginInput
+          label="Usuario"
+          icon={User}
+          value={username}
+          onChangeText={setUsername}
+          placeholder="Ingresa tu usuario"
+          autoCapitalize="none"
+          error={errors.username}
+        />
 
         {/* Contraseña */}
-        <YStack gap="$2">
-          <Text fontSize="$4" fontWeight="600" color="$textPrimary">Contraseña</Text>
-          <XStack
-            backgroundColor="$backgroundHover"
-            borderRadius="$4"
-            borderWidth={2}
-            borderColor={
-              errors.password 
-                ? '$red10' 
-                : passwordFocused 
-                ? '$cyan8' 
-                : '$borderColor'
-            }
-            alignItems="center"
-            paddingHorizontal="$4"
-            minHeight={56}
-            animation="quick"
-            shadowColor={passwordFocused ? '$cyan10' : 'transparent'}
-            shadowOffset={{ width: 0, height: 2 }}
-            shadowOpacity={passwordFocused ? 0.2 : 0}
-            shadowRadius={4}
-          >
-            <Lock size={20} color={passwordFocused ? '$cyan10' : '$textTertiary'} />
-            <Input
-              flex={1}
-              value={password}
-              onChangeText={setPassword}
-              placeholder="Ingresa tu contraseña"
-              placeholderTextColor="$textTertiary"
-              secureTextEntry
-              backgroundColor="transparent"
-              borderWidth={0}
-              height={48}
-              fontSize="$4"
-              color="$textPrimary"
-              onFocus={() => setPasswordFocused(true)}
-              onBlur={() => setPasswordFocused(false)}
-              focusStyle={{ 
-                outlineWidth: 0, 
-                outlineStyle: 'none',
-                borderWidth: 0
-              }}
-            />
-          </XStack>
-          {errors.password && <Text fontSize="$3" color="$red10">{errors.password}</Text>}
-        </YStack>
+        <LoginInput
+          label="Contraseña"
+          icon={Lock}
+          value={password}
+          onChangeText={setPassword}
+          placeholder="Ingresa tu contraseña"
+          secureTextEntry
+          error={errors.password}
+        />
 
         {/* Botón Login */}
         <Button
