@@ -296,13 +296,23 @@ const TicketPaymentModal = ({
                   value={amount}
                   onChangeText={setAmount}
                   inputMode="decimal"
-                  disabled={paymentInfo.remaining <= 0 || loading}
+                  disabled={!paymentInfo.hasWinner || paymentInfo.totalPayout <= 0 || loading}
                 />
                 {/* Validación - altura fija para no redimensionar */}
                 <YStack height={24} jc="center" ov="hidden">
                   {Boolean(amount) && amountNum > paymentInfo.remaining && (
                     <Text fontSize="$2" color="$red11" animation="quick" enterStyle={{ opacity: 0 }} exitStyle={{ opacity: 0 }}>
                       El monto supera el pendiente
+                    </Text>
+                  )}
+                  {!paymentInfo.hasWinner && (
+                    <Text fontSize="$2" color="$gray10" animation="quick" enterStyle={{ opacity: 0 }} exitStyle={{ opacity: 0 }}>
+                      Este ticket no es ganador
+                    </Text>
+                  )}
+                  {paymentInfo.hasWinner && paymentInfo.remaining <= 0 && (
+                    <Text fontSize="$2" color="$green10" animation="quick" enterStyle={{ opacity: 0 }} exitStyle={{ opacity: 0 }}>
+                      Este ticket ya está completamente pagado
                     </Text>
                   )}
                 </YStack>
@@ -426,7 +436,8 @@ const TicketPaymentModal = ({
                 loading ||
                 !amount ||
                 !method ||
-                paymentInfo.remaining <= 0 ||
+                !paymentInfo.hasWinner ||
+                paymentInfo.totalPayout <= 0 ||
                 isNaN(parseFloat(amount)) ||
                 amountNum > paymentInfo.remaining ||
                 amountNum <= 0

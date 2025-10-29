@@ -15,11 +15,15 @@ interface TicketActionButtonsProps {
 }
 
 /**
- * Componente que renderiza dos botones de acción para tiquetes:
- * - Ver: Abre preview del tiquete
- * - Status: Abre módulo de pago
+ * Componente que renderiza botones de acción para tiquetes:
+ * - Ver: Abre preview del tiquete (siempre visible)
+ * - Status: Abre módulo de pago (solo si es ganador y status = EVALUATED o PAID)
  */
 export default function TicketActionButtons({ ticket, onView, onPayment }: TicketActionButtonsProps) {
+  // ✅ Solo mostrar botón de pago si el ticket es ganador
+  const isWinner = ticket.isWinner === true
+  const canPay = isWinner && (ticket.status === 'EVALUATED' || ticket.status === 'PAID')
+  
   return (
     <XStack gap="$2" flexWrap="nowrap">
       <Button
@@ -36,19 +40,21 @@ export default function TicketActionButtons({ ticket, onView, onPayment }: Ticke
         Ver
       </Button>
 
-      <Button
-        size="$2"
-        icon={(p: any) => <CreditCard {...p} size={18} />}
-        onPress={() => onPayment(ticket)}
-        backgroundColor="$green4"
-        borderColor="$green8"
-        borderWidth={1}
-        hoverStyle={{ backgroundColor: '$green5' }}
-        pressStyle={{ backgroundColor: '$green6', scale: 0.98 }}
-        title="Registrar pago del tiquete"
-      >
-        Status
-      </Button>
+      {canPay && (
+        <Button
+          size="$2"
+          icon={(p: any) => <CreditCard {...p} size={18} />}
+          onPress={() => onPayment(ticket)}
+          backgroundColor="$green4"
+          borderColor="$green8"
+          borderWidth={1}
+          hoverStyle={{ backgroundColor: '$green5' }}
+          pressStyle={{ backgroundColor: '$green6', scale: 0.98 }}
+          title="Registrar pago del tiquete"
+        >
+          Status
+        </Button>
+      )}
     </XStack>
   )
 }
