@@ -168,6 +168,7 @@ export default function SorteosListScreen() {
     }
 
     // Ordenar por scheduledAt (más pronto primero)
+    // Backend envía hora LOCAL de Costa Rica (sin 'Z'), ej: "2025-10-29T12:55:00"
     return filtered.sort((a, b) => {
       const dateA = new Date(a.scheduledAt as any).getTime()
       const dateB = new Date(b.scheduledAt as any).getTime()
@@ -482,6 +483,7 @@ export default function SorteosListScreen() {
                       </XStack>
 
                       <XStack ai="center" gap="$2" fw="wrap">
+                        {/* Backend envía hora LOCAL (sin 'Z'), toLocaleString() la muestra correctamente */}
                         <Text fontSize="$3" color="$textSecondary">
                           Programado: {new Date(s.scheduledAt as any).toLocaleString()}
                         </Text>

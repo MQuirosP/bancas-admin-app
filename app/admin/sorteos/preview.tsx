@@ -264,7 +264,8 @@ export default function PreviewSorteosScreen() {
                 const isChecked = selectedIds.has(String(idx))
                 if (!sorteo.scheduledAt) return null
                 
-                // Parsear fecha UTC y convertir automáticamente a hora local
+                // Backend envía hora LOCAL de Costa Rica (sin 'Z')
+                // Ejemplo: "2025-10-29T12:55:00" → JavaScript interpreta como hora local
                 const date = new Date(sorteo.scheduledAt)
                 const formattedDate = format(date, "EEEE, d 'de' MMMM 'de' yyyy", { locale: es })
                 const formattedTime = format(date, 'HH:mm', { locale: es })

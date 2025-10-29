@@ -323,6 +323,7 @@ export default function SorteoDetailScreen() {
 
                 <XStack gap="$2" ai="center" fw="wrap">
                   <Text color="$textSecondary" fontWeight="700" minWidth={110}>Programado:</Text>
+                  {/* Backend envía hora LOCAL de Costa Rica (sin 'Z') */}
                   <Text color="$textPrimary">{new Date(s.scheduledAt as any).toLocaleString()}</Text>
                 </XStack>
 

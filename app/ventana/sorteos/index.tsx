@@ -98,6 +98,7 @@ export default function VentanaSorteosScreen() {
           ) : (
             items.map((s) => {
               const loteriaName = s.loteria?.name || s.loteriaId
+              // Backend envía hora LOCAL de Costa Rica (sin 'Z'), ej: "2025-10-29T12:55:00"
               const scheduled = s.scheduledAt ? new Date(s.scheduledAt) : null
               const scheduledLabel = scheduled ? scheduled.toLocaleString() : '—'
               const statusBadge = (() => {
