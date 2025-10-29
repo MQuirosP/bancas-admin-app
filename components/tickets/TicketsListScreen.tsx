@@ -171,7 +171,9 @@ export default function TicketsListScreen({ scope }: Props) {
   const handlePaymentSubmit = async (input: CreatePaymentInput) => {
     try {
       setPaymentLoading(true)
-      const result = await apiClient.post('/ticket-payments', input)
+      // ✅ v2.0: Usar endpoint unificado
+      const { ticketId, ...paymentData } = input
+      const result = await apiClient.post(`/tickets/${ticketId}/pay`, paymentData)
       success(`Pago de ${formatCurrency(input.amountPaid)} registrado correctamente`)
       // Refrescar la lista de tiquetes
       refetch()
@@ -420,7 +422,15 @@ export default function TicketsListScreen({ scope }: Props) {
               const hasWinner = jugadas.some((j: any) => j.isWinner === true)
               const createdAt = ticket.createdAt ? format(new Date(ticket.createdAt), 'dd/MM/yyyy HH:mm', { locale: es }) : 'N/A'
 
-              const totalWinnings = jugadas.reduce((sum: number, j: any) => sum + (j.isWinner ? (j.winAmount || 0) : 0), 0)
+              // ✅ v2.0: Usar campos unificados si están disponibles, fallback a cálculo manual
+              const totalWinnings = (ticket as any).totalPayout !== undefined && (ticket as any).totalPayout !== null
+                ? (ticket as any).totalPayout 
+                : jugadas.reduce((sum: number, j: any) => sum + (j.isWinner ? (j.payout || j.winAmount || 0) : 0), 0)
+              
+              const totalPaid = (ticket as any).totalPaid || 0
+              const remainingAmount = (ticket as any).remainingAmount || 0
+              const isPaid = ticket.status === 'PAID'
+              const hasPartialPayment = totalPaid > 0 && totalPaid < totalWinnings
 
               const statusBadgeProps = (() => {
                 switch (ticket.status) {
@@ -474,9 +484,38 @@ export default function TicketsListScreen({ scope }: Props) {
                         </Text>
                       </XStack>
                       {hasWinner && totalWinnings > 0 && (
-                        <Text fontSize="$5" fontWeight="700" color="$green10">
-                          Ganado: {formatCurrency(totalWinnings)}
-                        </Text>
+                        <>
+                          <Text fontSize="$5" fontWeight="700" color="$green10">
+                            Premio: {formatCurrency(totalWinnings)}
+                          </Text>
+                          
+                          {/* ✅ v2.0: Información de pagos */}
+                          {isPaid && (
+                            <XStack bg="$green4" px="$2" py="$1" br="$2" bw={1} bc="$green8" gap="$1">
+                              <Text color="$green11" fontSize="$2" fontWeight="700">✓ PAGADO</Text>
+                            </XStack>
+                          )}
+                          
+                          {hasPartialPayment && !isPaid && (
+                            <YStack ai="flex-end" gap="$1">
+                              <XStack bg="$yellow4" px="$2" py="$1" br="$2" bw={1} bc="$yellow8">
+                                <Text color="$yellow11" fontSize="$2" fontWeight="700">PAGO PARCIAL</Text>
+                              </XStack>
+                              <Text fontSize="$3" fontWeight="600" color="$green10">
+                                Pagado: {formatCurrency(totalPaid)}
+                              </Text>
+                              <Text fontSize="$3" fontWeight="600" color="$red10">
+                                Pendiente: {formatCurrency(remainingAmount)}
+                              </Text>
+                            </YStack>
+                          )}
+                          
+                          {!totalPaid && !isPaid && ticket.status === 'EVALUATED' && (
+                            <XStack bg="$red4" px="$2" py="$1" br="$2" bw={1} bc="$red8">
+                              <Text color="$red11" fontSize="$2" fontWeight="700">SIN PAGAR</Text>
+                            </XStack>
+                          )}
+                        </>
                       )}
                     </YStack>
                   </XStack>
