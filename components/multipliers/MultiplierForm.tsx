@@ -241,11 +241,14 @@ export default function MultiplierForm({
             <Text>Cancelar</Text>
           </Button>
           <Button
-          backgroundColor={'$blue4'}
-          borderColor={'$blue8'}
-          hoverStyle={{ backgroundColor: '$blue5'}}
-          disabled={!!submitting} onPress={handleSubmit}>
-            <Text>{mode === 'create' ? 'Crear' : 'Guardar'}</Text>
+            backgroundColor={'$blue4'}
+            borderColor={'$blue8'}
+            hoverStyle={{ backgroundColor: '$blue5'}}
+            disabled={!canSubmit || !!submitting}
+            loading={!!submitting}
+            onPress={handleSubmit}
+          >
+            <Text>Guardar</Text>
           </Button>
         </XStack>
       </YStack>
