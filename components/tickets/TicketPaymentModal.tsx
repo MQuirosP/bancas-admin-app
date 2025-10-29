@@ -29,7 +29,7 @@ interface TicketPaymentModalProps {
 const PAYMENT_METHODS: { label: string; value: PaymentMethod }[] = [
   { label: 'Efectivo', value: 'cash' },
   { label: 'Cheque', value: 'check' },
-  { label: 'Transferencia', value: 'transfer' },
+  { label: 'Transferencia Bancaria', value: 'transfer' },
   { label: 'Sinpe Móvil', value: 'system' },
 ]
 
@@ -58,14 +58,27 @@ const TicketPaymentModal = ({
   const paymentInfo = useMemo(() => {
     if (!ticket) return { totalPayout: 0, totalPaid: 0, remaining: 0, hasWinner: false }
 
+    console.log('[TicketPaymentModal] Calculando paymentInfo para ticket:', {
+      id: ticket.id,
+      ticketNumber: ticket.ticketNumber,
+      isWinner: ticket.isWinner,
+      totalPayout: ticket.totalPayout,
+      totalPaid: ticket.totalPaid,
+      remainingAmount: ticket.remainingAmount,
+      jugadas: ticket.jugadas?.length,
+      payments: ticket.payments?.length,
+    })
+
     // ✅ Priorizar campos unificados del backend (v2.0)
     if (ticket.totalPayout !== undefined && ticket.totalPayout !== null) {
-      return {
+      const info = {
         totalPayout: ticket.totalPayout || 0,
         totalPaid: ticket.totalPaid || 0,
         remaining: ticket.remainingAmount || 0,
         hasWinner: ticket.isWinner || false,
       }
+      console.log('[TicketPaymentModal] Usando campos unificados:', info)
+      return info
     }
 
     // Fallback: calcular manualmente (compatibilidad con backend antiguo)
@@ -82,7 +95,9 @@ const TicketPaymentModal = ({
     const remaining = totalPayout - totalPaid
     const hasWinner = jugadas.some((j: any) => j.isWinner === true)
 
-    return { totalPayout, totalPaid, remaining, hasWinner }
+    const info = { totalPayout, totalPaid, remaining, hasWinner }
+    console.log('[TicketPaymentModal] Calculado manualmente (fallback):', info)
+    return info
   }, [ticket])
 
   // Validar
