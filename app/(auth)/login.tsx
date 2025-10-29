@@ -32,6 +32,8 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<{ username?: string; password?: string; general?: string }>({})
+  const [usernameFocused, setUsernameFocused] = useState(false)
+  const [passwordFocused, setPasswordFocused] = useState(false)
 
   // Mostrar mensaje que llega por redirect (sesión expirada, etc.)
   useEffect(() => {
@@ -85,9 +87,13 @@ export default function LoginScreen() {
         borderRadius="$6"
         overflow="hidden"
         backgroundColor="$background"
-        borderWidth={1}
-        borderColor="$borderColor"
+        borderWidth={3}
+        borderColor="$cyan8"
         marginBottom="$6"
+        shadowColor="$cyan10"
+        shadowOffset={{ width: 0, height: 4 }}
+        shadowOpacity={0.3}
+        shadowRadius={8}
       >
         <Image
           source={require('../../assets/logo.png')}
@@ -124,13 +130,24 @@ export default function LoginScreen() {
           <XStack
             backgroundColor="$backgroundHover"
             borderRadius="$4"
-            borderWidth={1}
-            borderColor={errors.username ? '$red10' : '$borderColor'}
+            borderWidth={2}
+            borderColor={
+              errors.username 
+                ? '$red10' 
+                : usernameFocused 
+                ? '$cyan8' 
+                : '$borderColor'
+            }
             alignItems="center"
             paddingHorizontal="$4"
             minHeight={56}
+            animation="quick"
+            shadowColor={usernameFocused ? '$cyan10' : 'transparent'}
+            shadowOffset={{ width: 0, height: 2 }}
+            shadowOpacity={usernameFocused ? 0.2 : 0}
+            shadowRadius={4}
           >
-            <User size={20} color="$textTertiary" />
+            <User size={20} color={usernameFocused ? '$cyan10' : '$textTertiary'} />
             <Input
               flex={1}
               value={username}
@@ -143,6 +160,13 @@ export default function LoginScreen() {
               fontSize="$4"
               color="$textPrimary"
               autoCapitalize="none"
+              onFocus={() => setUsernameFocused(true)}
+              onBlur={() => setUsernameFocused(false)}
+              focusStyle={{ 
+                outlineWidth: 0, 
+                outlineStyle: 'none',
+                borderWidth: 0
+              }}
             />
           </XStack>
           {errors.username && <Text fontSize="$3" color="$red10">{errors.username}</Text>}
@@ -154,13 +178,24 @@ export default function LoginScreen() {
           <XStack
             backgroundColor="$backgroundHover"
             borderRadius="$4"
-            borderWidth={1}
-            borderColor={errors.password ? '$red10' : '$borderColor'}
+            borderWidth={2}
+            borderColor={
+              errors.password 
+                ? '$red10' 
+                : passwordFocused 
+                ? '$cyan8' 
+                : '$borderColor'
+            }
             alignItems="center"
             paddingHorizontal="$4"
             minHeight={56}
+            animation="quick"
+            shadowColor={passwordFocused ? '$cyan10' : 'transparent'}
+            shadowOffset={{ width: 0, height: 2 }}
+            shadowOpacity={passwordFocused ? 0.2 : 0}
+            shadowRadius={4}
           >
-            <Lock size={20} color="$textTertiary" />
+            <Lock size={20} color={passwordFocused ? '$cyan10' : '$textTertiary'} />
             <Input
               flex={1}
               value={password}
@@ -173,6 +208,13 @@ export default function LoginScreen() {
               height={48}
               fontSize="$4"
               color="$textPrimary"
+              onFocus={() => setPasswordFocused(true)}
+              onBlur={() => setPasswordFocused(false)}
+              focusStyle={{ 
+                outlineWidth: 0, 
+                outlineStyle: 'none',
+                borderWidth: 0
+              }}
             />
           </XStack>
           {errors.password && <Text fontSize="$3" color="$red10">{errors.password}</Text>}
