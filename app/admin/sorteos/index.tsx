@@ -46,7 +46,7 @@ function StatusSelect({
       onValueChange={(v: string) => onChange(v === 'ALL' ? undefined : (v as Status))}
     >
       <Select.Trigger
-        px="$3"
+        px="$2"
         br="$3"
         bw={1}
         bc="$borderColor"
@@ -54,7 +54,8 @@ function StatusSelect({
         hoverStyle={{ bg: '$backgroundHover' }}
         focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
         iconAfter={ChevronDown}
-        minWidth={120}
+        width={110}
+        maxWidth={110}
       >
         <Select.Value>{labelOf(internal)}</Select.Value>
       </Select.Trigger>
@@ -108,8 +109,8 @@ function DateFilterSelect({
     { value: 'ALL', label: 'Todas' },
     { value: 'TODAY', label: 'Hoy' },
     { value: 'TOMORROW', label: 'Mañana' },
-    { value: 'THIS_WEEK', label: 'Esta semana' },
-    { value: 'NEXT_WEEK', label: 'Próx. semana' },
+    { value: 'THIS_WEEK', label: 'Semana' },
+    { value: 'NEXT_WEEK', label: 'Próx.' },
   ]
 
   const labelOf = (v: DateFilter) => items.find(i => i.value === v)?.label ?? 'Todas'
@@ -121,7 +122,7 @@ function DateFilterSelect({
       onValueChange={(v: string) => onChange(v === 'ALL' ? undefined : (v as DateFilter))}
     >
       <Select.Trigger
-        px="$3"
+        px="$2"
         br="$3"
         bw={1}
         bc="$borderColor"
@@ -129,6 +130,8 @@ function DateFilterSelect({
         hoverStyle={{ bg: '$backgroundHover' }}
         focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
         iconAfter={ChevronDown}
+        width={90}
+        maxWidth={90}
       >
         <Select.Value>{labelOf(internal)}</Select.Value>
       </Select.Trigger>
@@ -515,16 +518,16 @@ export default function SorteosListScreen() {
               <Separator vertical />
 
               {/* Estado */}
-              <XStack ai="center" gap="$2" minWidth={180}>
-                <Text fontSize="$3">Estado:</Text>
+              <XStack ai="center" gap="$2">
+                <Text fontSize="$3" flexShrink={0}>Estado:</Text>
                 <StatusSelect value={status} onChange={setStatus} />
               </XStack>
 
               <Separator vertical />
 
               {/* Fecha */}
-              <XStack ai="center" gap="$2" minWidth={220}>
-                <Text fontSize="$3">Fecha:</Text>
+              <XStack ai="center" gap="$2">
+                <Text fontSize="$3" flexShrink={0}>Fecha:</Text>
                 <DateFilterSelect value={dateFilter} onChange={(v) => { setDateFilter(v); setPage(1) }} />
               </XStack>
 
