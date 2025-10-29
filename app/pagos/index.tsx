@@ -2,15 +2,17 @@ import React, { useState } from 'react'
 import { YStack, XStack, Text } from 'tamagui'
 import { useAuth } from '@/hooks/useAuth'
 import { Role } from '@/types/auth.types'
-import type { TicketWithPayments, TicketPayment } from '@/types/payment.types'
+import type { TicketWithPayments, TicketPayment, CreatePaymentInput } from '@/types/payment.types'
 
 import PendingTicketsScreen from '@/components/payments/PendingTicketsScreen'
-import PaymentFormModal from '@/components/payments/PaymentFormModal'
+import { PaymentModal } from '@/components/tickets/shared'
 import PaymentHistoryModal from '@/components/payments/PaymentHistoryModal'
 import PaymentConfirmationModal from '@/components/payments/PaymentConfirmationModal'
+import { useCreatePaymentMutation } from '@/hooks/useTicketPayments'
 
 export default function PagosScreen() {
   const { user } = useAuth()
+  const createPaymentMutation = useCreatePaymentMutation()
   const [selectedTicket, setSelectedTicket] = useState<TicketWithPayments | undefined>()
   const [showPaymentForm, setShowPaymentForm] = useState(false)
   const [showPaymentHistory, setShowPaymentHistory] = useState(false)
@@ -38,7 +40,12 @@ export default function PagosScreen() {
     setShowPaymentForm(true)
   }
 
-  const handlePaymentSuccess = (payment: TicketPayment) => {
+  const handlePaymentSubmit = async (input: CreatePaymentInput) => {
+    const result = await createPaymentMutation.mutateAsync(input)
+    return result
+  }
+
+  const handlePaymentSuccess = (payment: any) => {
     setLastPayment(payment)
     setShowPaymentForm(false)
     setShowConfirmation(true)
@@ -61,11 +68,14 @@ export default function PagosScreen() {
       <PendingTicketsScreen onSelectTicket={handleSelectTicket} />
 
       {/* Modal de formulario de pago */}
-      <PaymentFormModal
+      <PaymentModal
         isOpen={showPaymentForm}
         ticket={selectedTicket}
         onClose={() => setShowPaymentForm(false)}
+        onSubmit={handlePaymentSubmit}
         onSuccess={handlePaymentSuccess}
+        isLoading={createPaymentMutation.isPending}
+        showSuccessToast={false}
       />
 
       {/* Modal de historial de pagos */}
