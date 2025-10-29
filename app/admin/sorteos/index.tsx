@@ -474,9 +474,10 @@ export default function SorteosListScreen() {
         {/* Filtros */}
         <Toolbar>
           <YStack gap="$3" width="100%">
-            {/* Fila 1: SOLO Búsqueda */}
-            <XStack gap="$2" ai="center" width="100%">
-              <XStack position="relative" flex={1} maxWidth={500}>
+            {/* Fila 1: Búsqueda + Filtros */}
+            <XStack gap="$3" ai="center" width="100%">
+              {/* Búsqueda */}
+              <XStack position="relative" width={300}>
                 <Input
                   flex={1}
                   placeholder="Buscar por nombre o lotería"
@@ -511,10 +512,7 @@ export default function SorteosListScreen() {
               >
                 Buscar
               </Button>
-            </XStack>
 
-            {/* Fila 2: SOLO Filtros - SEPARADOS CON ESPACIO */}
-            <XStack gap="$4" ai="center" width="100%">
               {/* Estado */}
               <XStack ai="center" gap="$2" width={200}>
                 <Text fontSize="$3" width={60}>Estado:</Text>
@@ -537,7 +535,7 @@ export default function SorteosListScreen() {
               </XStack>
             </XStack>
 
-            {/* Fila 3: SOLO Botones de acción */}
+            {/* Fila 2: SOLO Botones */}
             <XStack gap="$2" ai="center">
               <Button
                 icon={(p:any)=> <RefreshCw {...p} color={iconColor} />}
