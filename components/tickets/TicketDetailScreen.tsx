@@ -7,8 +7,16 @@ import { ArrowLeft } from '@tamagui/lucide-icons'
 import { apiClient } from '@/lib/api.client'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { formatCurrency } from '@/utils/formatters'
+import { formatCurrency, formatTicketDate } from '@/utils/formatters'
 import type { Scope } from '@/types/scope'
+import { calculatePaymentTotals } from '@/lib/tickets'
+import { 
+  TicketStatusBadge,
+  WinnerBadge,
+  PaymentAmountsGrid,
+  PaymentProgressBar,
+  WinningJugadasList
+} from './shared'
 
 type Props = {
   scope: Scope
@@ -58,34 +66,11 @@ export default function TicketDetailScreen({ scope, ticketId, buildBackPath }: P
   const ventanaName = ticket.ventana?.name || ticket.ventana?.code || 'N/A'
   const loteriaName = ticket.loteria?.name || 'N/A'
   const sorteoName = ticket.sorteo?.name || 'N/A'
-  const jugadas = ticket.jugadas || []
-  const hasWinner = jugadas.some((j: any) => j.isWinner === true)
-  const createdAt = ticket.createdAt ? format(new Date(ticket.createdAt), 'dd/MM/yyyy HH:mm', { locale: es }) : 'N/A'
+  const createdAt = ticket.createdAt ? formatTicketDate(ticket.createdAt) : 'N/A'
   
-  // ✅ v2.0: Usar campos unificados si están disponibles, fallback a cálculo manual
-  // PERO: Si totalPayout es 0 y el ticket es ganador, calcular desde jugadas
-  const hasUnifiedPayout = ticket.totalPayout !== undefined && ticket.totalPayout !== null
-  const shouldUseUnified = hasUnifiedPayout && (ticket.totalPayout > 0 || !hasWinner)
-  
-  const totalWinnings = shouldUseUnified
-    ? ticket.totalPayout
-    : jugadas.reduce((sum: number, j: any) => sum + (j.isWinner ? (j.payout || j.winAmount || 0) : 0), 0)
-  
-  const totalPaid = shouldUseUnified ? (ticket.totalPaid || 0) : 0
-  const remainingAmount = shouldUseUnified ? (ticket.remainingAmount || 0) : (totalWinnings - totalPaid)
+  // ✅ v2.0: Usar utility centralizado para cálculos
+  const totals = calculatePaymentTotals(ticket)
   const hasPayments = ticket.paymentHistory && ticket.paymentHistory.length > 0
-  const isPaid = ticket.status === 'PAID'
-
-  const statusBadgeProps = (() => {
-    switch (ticket.status) {
-      case 'EVALUATED': return { bg: '$yellow4', color: '$yellow11', bc: '$yellow8' }
-      case 'ACTIVE':
-      case 'OPEN': return { bg: '$green4', color: '$green11', bc: '$green8' }
-      case 'PENDING': return { bg: '$blue4', color: '$blue11', bc: '$blue8' }
-      case 'CANCELLED': return { bg: '$red4', color: '$red11', bc: '$red8' }
-      default: return { bg: '$gray4', color: '$gray11', bc: '$gray8' }
-    }
-  })()
 
   const title = scope === 'admin' ? 'Detalle del Ticket (Admin)' : 'Detalle del Ticket (Ventana)'
 
@@ -114,16 +99,8 @@ export default function TicketDetailScreen({ scope, ticketId, buildBackPath }: P
               <YStack flex={1} gap="$2">
                 <XStack ai="center" gap="$2" flexWrap="wrap">
                   <Text fontSize="$7" fontWeight="bold">#{ticket.id}</Text>
-                  {hasWinner && (
-                    <XStack bg="$green4" px="$3" py="$1.5" br="$3" bw={1} bc="$green8">
-                      <Text color="$green11" fontSize="$3" fontWeight="700">GANADOR</Text>
-                    </XStack>
-                  )}
-                  <XStack px="$3" py="$1.5" br="$3" bw={1} {...statusBadgeProps}>
-                    <Text fontSize="$3" fontWeight="700" textTransform="uppercase" color={statusBadgeProps.color}>
-                      {ticket.status}
-                    </Text>
-                  </XStack>
+                  {totals.hasWinner && <WinnerBadge size="md" />}
+                  <TicketStatusBadge status={ticket.status} size="md" />
                 </XStack>
 
                 <Text fontSize="$4" color="$textSecondary"><Text fontWeight="600">Lotería:</Text> {loteriaName}</Text>
@@ -136,11 +113,11 @@ export default function TicketDetailScreen({ scope, ticketId, buildBackPath }: P
               <YStack ai="flex-end" gap="$2">
                 <Text fontSize="$2" color="$textSecondary">Monto total</Text>
                 <Text fontSize="$9" fontWeight="bold" color="$blue11">{formatCurrency(ticket.totalAmount)}</Text>
-                {hasWinner && totalWinnings > 0 && (
+                {totals.hasWinner && totals.totalPayout > 0 && (
                   <>
                     <Separator />
                     <Text fontSize="$2" color="$textSecondary">Monto ganado</Text>
-                    <Text fontSize="$8" fontWeight="bold" color="$green10">{formatCurrency(totalWinnings)}</Text>
+                    <Text fontSize="$8" fontWeight="bold" color="$green10">{formatCurrency(totals.totalPayout)}</Text>
                   </>
                 )}
               </YStack>
@@ -148,54 +125,17 @@ export default function TicketDetailScreen({ scope, ticketId, buildBackPath }: P
           </YStack>
         </Card>
 
-        {/* ✅ v2.0: Información de Pagos (Sistema Unificado) */}
-        {hasWinner && totalWinnings > 0 && (
+        {/* ✅ v2.0: Información de Pagos (Sistema Unificado) - Usando componentes compartidos */}
+        {totals.hasWinner && totals.totalPayout > 0 && (
           <Card padding="$4" bg="$backgroundHover" borderColor="$borderColor" borderWidth={1}>
             <YStack gap="$3">
               <Text fontSize="$6" fontWeight="bold">Información de Pagos</Text>
               
-              {/* Grid de montos */}
-              <XStack gap="$3" flexWrap="wrap" jc="space-between">
-                <Card flex={1} minWidth={140} padding="$3" backgroundColor="$blue2" ai="center" jc="center" borderRadius="$3">
-                  <YStack ai="center" gap="$1">
-                    <Text fontSize="$2" color="$blue11" fontWeight="500">Total Premio</Text>
-                    <Text fontSize="$6" fontWeight="700" color="$blue11">{formatCurrency(totalWinnings)}</Text>
-                  </YStack>
-                </Card>
+              {/* Grid de montos - Componente compartido */}
+              <PaymentAmountsGrid totals={totals} size="lg" showLabels />
 
-                <Card flex={1} minWidth={140} padding="$3" backgroundColor="$green2" ai="center" jc="center" borderRadius="$3">
-                  <YStack ai="center" gap="$1">
-                    <Text fontSize="$2" color="$green11" fontWeight="500">Pagado</Text>
-                    <Text fontSize="$6" fontWeight="700" color="$green11">{formatCurrency(totalPaid)}</Text>
-                  </YStack>
-                </Card>
-
-                <Card flex={1} minWidth={140} padding="$3" backgroundColor={remainingAmount > 0 ? '$red2' : '$gray2'} ai="center" jc="center" borderRadius="$3">
-                  <YStack ai="center" gap="$1">
-                    <Text fontSize="$2" color={remainingAmount > 0 ? '$red11' : '$gray11'} fontWeight="500">Pendiente</Text>
-                    <Text fontSize="$6" fontWeight="700" color={remainingAmount > 0 ? '$red11' : '$gray11'}>{formatCurrency(remainingAmount)}</Text>
-                  </YStack>
-                </Card>
-              </XStack>
-
-              {/* Barra de progreso */}
-              {totalWinnings > 0 && (
-                <YStack gap="$2">
-                  <XStack jc="space-between">
-                    <Text fontSize="$2" color="$textSecondary">Progreso de pago</Text>
-                    <Text fontSize="$2" fontWeight="600" color="$textSecondary">
-                      {Math.round((totalPaid / totalWinnings) * 100)}%
-                    </Text>
-                  </XStack>
-                  <XStack height={8} backgroundColor="$gray4" borderRadius="$2" overflow="hidden">
-                    <XStack 
-                      width={`${Math.min((totalPaid / totalWinnings) * 100, 100)}%`} 
-                      backgroundColor={isPaid ? '$green10' : '$blue10'}
-                      animation="medium"
-                    />
-                  </XStack>
-                </YStack>
-              )}
+              {/* Barra de progreso - Componente compartido */}
+              <PaymentProgressBar totals={totals} showPercentage />
 
               {/* Historial de Pagos */}
               {hasPayments && (
