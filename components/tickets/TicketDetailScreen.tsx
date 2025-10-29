@@ -61,7 +61,16 @@ export default function TicketDetailScreen({ scope, ticketId, buildBackPath }: P
   const jugadas = ticket.jugadas || []
   const hasWinner = jugadas.some((j: any) => j.isWinner === true)
   const createdAt = ticket.createdAt ? format(new Date(ticket.createdAt), 'dd/MM/yyyy HH:mm', { locale: es }) : 'N/A'
-  const totalWinnings = jugadas.reduce((sum: number, j: any) => sum + (j.isWinner ? (j.winAmount || 0) : 0), 0)
+  
+  // ✅ v2.0: Usar campos unificados si están disponibles, fallback a cálculo manual
+  const totalWinnings = ticket.totalPayout !== undefined && ticket.totalPayout !== null 
+    ? ticket.totalPayout 
+    : jugadas.reduce((sum: number, j: any) => sum + (j.isWinner ? (j.payout || j.winAmount || 0) : 0), 0)
+  
+  const totalPaid = ticket.totalPaid || 0
+  const remainingAmount = ticket.remainingAmount || 0
+  const hasPayments = ticket.paymentHistory && ticket.paymentHistory.length > 0
+  const isPaid = ticket.status === 'PAID'
 
   const statusBadgeProps = (() => {
     switch (ticket.status) {
@@ -134,6 +143,119 @@ export default function TicketDetailScreen({ scope, ticketId, buildBackPath }: P
             </XStack>
           </YStack>
         </Card>
+
+        {/* ✅ v2.0: Información de Pagos (Sistema Unificado) */}
+        {hasWinner && totalWinnings > 0 && (
+          <Card padding="$4" bg="$backgroundHover" borderColor="$borderColor" borderWidth={1}>
+            <YStack gap="$3">
+              <Text fontSize="$6" fontWeight="bold">Información de Pagos</Text>
+              
+              {/* Grid de montos */}
+              <XStack gap="$3" flexWrap="wrap" jc="space-between">
+                <Card flex={1} minWidth={140} padding="$3" backgroundColor="$blue2" ai="center" jc="center" borderRadius="$3">
+                  <YStack ai="center" gap="$1">
+                    <Text fontSize="$2" color="$blue11" fontWeight="500">Total Premio</Text>
+                    <Text fontSize="$6" fontWeight="700" color="$blue11">{formatCurrency(totalWinnings)}</Text>
+                  </YStack>
+                </Card>
+
+                <Card flex={1} minWidth={140} padding="$3" backgroundColor="$green2" ai="center" jc="center" borderRadius="$3">
+                  <YStack ai="center" gap="$1">
+                    <Text fontSize="$2" color="$green11" fontWeight="500">Pagado</Text>
+                    <Text fontSize="$6" fontWeight="700" color="$green11">{formatCurrency(totalPaid)}</Text>
+                  </YStack>
+                </Card>
+
+                <Card flex={1} minWidth={140} padding="$3" backgroundColor={remainingAmount > 0 ? '$red2' : '$gray2'} ai="center" jc="center" borderRadius="$3">
+                  <YStack ai="center" gap="$1">
+                    <Text fontSize="$2" color={remainingAmount > 0 ? '$red11' : '$gray11'} fontWeight="500">Pendiente</Text>
+                    <Text fontSize="$6" fontWeight="700" color={remainingAmount > 0 ? '$red11' : '$gray11'}>{formatCurrency(remainingAmount)}</Text>
+                  </YStack>
+                </Card>
+              </XStack>
+
+              {/* Barra de progreso */}
+              {totalWinnings > 0 && (
+                <YStack gap="$2">
+                  <XStack jc="space-between">
+                    <Text fontSize="$2" color="$textSecondary">Progreso de pago</Text>
+                    <Text fontSize="$2" fontWeight="600" color="$textSecondary">
+                      {Math.round((totalPaid / totalWinnings) * 100)}%
+                    </Text>
+                  </XStack>
+                  <XStack height={8} backgroundColor="$gray4" borderRadius="$2" overflow="hidden">
+                    <XStack 
+                      width={`${Math.min((totalPaid / totalWinnings) * 100, 100)}%`} 
+                      backgroundColor={isPaid ? '$green10' : '$blue10'}
+                      animation="medium"
+                    />
+                  </XStack>
+                </YStack>
+              )}
+
+              {/* Historial de Pagos */}
+              {hasPayments && (
+                <YStack gap="$2" mt="$2">
+                  <Text fontSize="$5" fontWeight="600">Historial de Pagos</Text>
+                  <YStack gap="$2">
+                    {ticket.paymentHistory.map((payment: any, idx: number) => (
+                      <Card 
+                        key={payment.id || idx}
+                        padding="$3"
+                        backgroundColor={payment.isReversed ? '$red1' : '$background'}
+                        borderColor={payment.isReversed ? '$red8' : '$borderColor'}
+                        borderWidth={1}
+                      >
+                        <XStack jc="space-between" ai="flex-start" gap="$3" flexWrap="wrap">
+                          <YStack flex={1} gap="$1">
+                            <XStack ai="center" gap="$2" flexWrap="wrap">
+                              <Text fontSize="$5" fontWeight="700" color={payment.isReversed ? '$red11' : '$green11'}>
+                                {formatCurrency(payment.amountPaid)}
+                              </Text>
+                              {payment.isReversed && (
+                                <XStack bg="$red4" px="$2" py="$1" br="$2" bw={1} bc="$red8">
+                                  <Text fontSize="$2" fontWeight="700" color="$red11">REVERTIDO</Text>
+                                </XStack>
+                              )}
+                              {payment.isFinal && !payment.isReversed && (
+                                <XStack bg="$yellow4" px="$2" py="$1" br="$2" bw={1} bc="$yellow8">
+                                  <Text fontSize="$2" fontWeight="700" color="$yellow11">FINAL</Text>
+                                </XStack>
+                              )}
+                            </XStack>
+                            <Text fontSize="$3" color="$textSecondary">
+                              <Text fontWeight="600">Método:</Text> {payment.method || 'N/A'} • <Text fontWeight="600">Pagado por:</Text> {payment.paidByName || 'N/A'}
+                            </Text>
+                            <Text fontSize="$2" color="$textSecondary">
+                              {payment.paidAt ? format(new Date(payment.paidAt), 'dd/MM/yyyy HH:mm', { locale: es }) : 'N/A'}
+                            </Text>
+                            {payment.notes && (
+                              <Text fontSize="$2" color="$textSecondary" fontStyle="italic">"{payment.notes}"</Text>
+                            )}
+                          </YStack>
+                        </XStack>
+                      </Card>
+                    ))}
+                  </YStack>
+                </YStack>
+              )}
+
+              {/* Información adicional */}
+              {ticket.lastPaymentAt && (
+                <YStack gap="$1" mt="$2" padding="$2" backgroundColor="$gray2" borderRadius="$2">
+                  <Text fontSize="$2" color="$textSecondary">
+                    <Text fontWeight="600">Último pago:</Text> {format(new Date(ticket.lastPaymentAt), 'dd/MM/yyyy HH:mm', { locale: es })}
+                  </Text>
+                  {ticket.paymentMethod && (
+                    <Text fontSize="$2" color="$textSecondary">
+                      <Text fontWeight="600">Método:</Text> {ticket.paymentMethod}
+                    </Text>
+                  )}
+                </YStack>
+              )}
+            </YStack>
+          </Card>
+        )}
 
         <YStack gap="$2">
           <Text fontSize="$6" fontWeight="bold">Jugadas ({jugadas.length})</Text>
