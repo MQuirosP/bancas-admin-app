@@ -1,10 +1,11 @@
 // app/admin/restrictions/[id].tsx
 import React from 'react'
 import {
-  ScrollView, YStack, XStack, Text, Button, Card, Separator, Spinner
+  ScrollView, YStack, XStack, Text, Button, Card, Separator, Spinner, useTheme
 } from 'tamagui'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { ArrowLeft } from '@tamagui/lucide-icons'
 import { getRestriction, deleteRestriction, restoreRestriction } from '@/lib/api.restrictions'
 import { useToast } from '@/hooks/useToast'
 import ActiveBadge from '@/components/ui/ActiveBadge'
@@ -42,6 +43,8 @@ function resolveEntityLabel(r: AnyRule, key: 'banca' | 'ventana' | 'user') {
 }
 
 export default function RestrictionDetailScreen() {
+  const theme = useTheme()
+  const iconColor = (theme?.color as any)?.get?.() ?? '#000'
   const params = useLocalSearchParams()
   const rawId = params.id as string | string[] | undefined
   const id = Array.isArray(rawId) ? rawId[0] : rawId
@@ -99,32 +102,31 @@ export default function RestrictionDetailScreen() {
       <YStack padding="$4" gap="$4" maxWidth={800} alignSelf="center" width="100%">
         {/* Header */}
         <XStack jc="space-between" ai="center" gap="$3" flexWrap="wrap">
-          <XStack ai="center" gap="$3">
+          <XStack ai="center" gap="$2">
+            <Button
+              size="$3"
+              icon={(p:any)=> <ArrowLeft {...p} size={24} color={iconColor} />}
+              onPress={safeBack}
+              backgroundColor="transparent"
+              borderWidth={0}
+              hoverStyle={{ backgroundColor: 'transparent' }}
+              pressStyle={{ scale: 0.98 }}
+            />
             <Text fontSize="$8" fontWeight="bold">Detalle de Restricción</Text>
             {!!rule && <ActiveBadge active={!!rule.isActive} />}
           </XStack>
 
           {!!rule && (
             <XStack gap="$2">
-              {/* Solo un botón de navegación */}
-              <XStack jc="flex-end">
-                <Button
-                onPress={safeBack}
-                backgroundColor={'$gray4'}
-                borderColor={'$gray8'}
-                hoverStyle={{ backgroundColor: '$gray5' }}
-                pressStyle={{ backgroundColor: '$gray4', scale: 0.98}}
-                >Volver</Button>
-              </XStack>
-              {/* {rule.isActive && (
-                <Button onPress={() => router.push(`/admin/restrictions/${id}/edit`)}>
-                  Editar
-                </Button>
-              )} */}
               {!rule.isActive ? (
                 <Button
                   onPress={() => restoreMut.mutate()}
                   disabled={restoreMut.isPending}
+                  backgroundColor="$green4"
+                  borderColor="$green8"
+                  borderWidth={1}
+                  hoverStyle={{ backgroundColor: '$green5' }}
+                  pressStyle={{ scale: 0.98 }}
                 >
                   Restaurar
                 </Button>
