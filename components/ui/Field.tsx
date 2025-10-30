@@ -14,7 +14,7 @@ export const FieldLabel: React.FC<{ children: any; hint?: string }> = ({ childre
 )
 
 export const FieldError: React.FC<{ message?: string }> = ({ message }) => (
-  <Text fontSize="$2" color="$error" minHeight={16} lineHeight={16} opacity={message ? 1 : 0}>
+  <Text fontSize="$2" color="$error" height={14} lineHeight={14} opacity={message ? 1 : 0}>
     {message || '\u00A0'}
   </Text>
 )
