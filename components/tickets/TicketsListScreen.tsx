@@ -15,6 +15,7 @@ import type { Scope } from '@/types/scope'
 import { getDateParam, type DateTokenBasic, formatDateYYYYMMDD } from '@/lib/dateFormat'
 import { object } from 'zod'
 import TicketActionButtons from './TicketActionButtons'
+import { useConfirm } from '@/components/ui/Confirm'
 import TicketPreviewModal from './TicketPreviewModal'
 import { PaymentModal } from './shared'
 import type { CreatePaymentInput } from '@/types/payment.types'
@@ -106,6 +107,7 @@ export default function TicketsListScreen({
   const router = useRouter()
   const theme = useTheme()
   const { success, error } = useToast()
+  const { confirm, ConfirmRoot } = useConfirm()
   const iconColor = (theme?.color as any)?.get?.() ?? '#000'
 
   const [page, setPage] = useState(1)
@@ -229,6 +231,24 @@ export default function TicketsListScreen({
       throw err // Re-throw para que el modal maneje el error
     } finally {
       setPaymentLoading(false)
+    }
+  }
+
+  const handleCancelTicket = async (ticket: Ticket) => {
+    const ok = await confirm({
+      title: 'Confirmar cancelación',
+      description: `¿Deseas cancelar el tiquete #${(ticket as any).ticketNumber ?? ticket.id.slice(-8)}?`,
+      okText: 'Cancelar tiquete',
+      cancelText: 'Volver',
+      theme: 'danger',
+    })
+    if (!ok) return
+    try {
+      await apiClient.patch(`/tickets/${ticket.id}/cancel`)
+      success('Tiquete cancelado correctamente')
+      refetch()
+    } catch (err: any) {
+      error(err?.message || 'No se pudo cancelar el tiquete')
     }
   }
 
@@ -625,6 +645,7 @@ export default function TicketsListScreen({
                         ticket={ticket}
                         onView={handlePreviewTicket}
                         onPayment={handlePaymentTicket}
+                        onCancel={handleCancelTicket}
                       />
                     )}
                   </XStack>
@@ -675,6 +696,7 @@ export default function TicketsListScreen({
       isLoading={paymentLoading}
       onSuccess={() => refetch()}
     />
+    <ConfirmRoot />
     </>
   )
 }
