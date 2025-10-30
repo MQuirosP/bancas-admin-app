@@ -13,5 +13,8 @@ export const FieldLabel: React.FC<{ children: any; hint?: string }> = ({ childre
   </YStack>
 )
 
-export const FieldError: React.FC<{ message?: string }> = ({ message }) =>
-  message ? <Text fontSize="$2" color="$error">{message}</Text> : null
+export const FieldError: React.FC<{ message?: string }> = ({ message }) => (
+  <Text fontSize="$2" color="$error" minHeight={20} opacity={message ? 1 : 0}>
+    {message || '\u00A0'}
+  </Text>
+)

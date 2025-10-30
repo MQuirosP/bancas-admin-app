@@ -6,7 +6,7 @@ import { z } from 'zod'
 import type { Usuario } from '@/types/models.types'
 import { useToast } from '@/hooks/useToast'
 import { FieldGroup, FieldLabel, FieldError } from '@/components/ui/Field'
-import { ChevronDown, X as XIcon } from '@tamagui/lucide-icons'
+import { ChevronDown, X as XIcon, Eye, EyeOff } from '@tamagui/lucide-icons'
 import { isDirty as isDirtyUtil } from '@/utils/forms/dirty'
 
 // ---------------- Schemas ----------------
@@ -155,14 +155,117 @@ const UserForm: React.FC<Props> = ({
 
   const [values, setValues] = useState<UserFormUI>(initialUI)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   useEffect(() => {
     setValues(initialUI)
     setErrors({})
   }, [initialUI])
 
-  const setField = <K extends keyof UserFormUI>(key: K, v: UserFormUI[K]) =>
-    setValues((s) => ({ ...s, [key]: v }))
+  // Validación en tiempo real
+  const validateField = (key: keyof UserFormUI, value: any) => {
+    const schema = mode === 'create' ? createSchema : editSchema
+    let fieldValue = value
+
+    // Validación especial para confirmPassword
+    if (key === 'confirmPassword' && mode === 'create') {
+      const currentValues = values
+      if (value && value.trim() !== currentValues.password.trim()) {
+        setErrors((e) => ({ ...e, confirmPassword: 'Las contraseñas no coinciden' }))
+        return
+      }
+      if (value && value.trim().length < 8) {
+        setErrors((e) => ({ ...e, confirmPassword: 'La contraseña debe tener al menos 8 caracteres' }))
+        return
+      }
+      setErrors((e) => {
+        const newErrors = { ...e }
+        delete newErrors.confirmPassword
+        return newErrors
+      })
+      return
+    }
+
+    // Validación para email (opcional)
+    if (key === 'email' && value) {
+      const emailSchema = z.string().email('Correo inválido').optional()
+      try {
+        emailSchema.parse(value.trim() || undefined)
+        setErrors((e) => {
+          const newErrors = { ...e }
+          delete newErrors.email
+          return newErrors
+        })
+      } catch (err: any) {
+        if (err instanceof z.ZodError) {
+          setErrors((e) => ({ ...e, email: err.errors[0]?.message || 'Correo inválido' }))
+        }
+      }
+      return
+    }
+
+    // Validación para otros campos usando el schema
+    try {
+      const parsed = schema.parse({ ...values, [key]: fieldValue })
+      setErrors((e) => {
+        const newErrors = { ...e }
+        delete newErrors[key as string]
+        return newErrors
+      })
+    } catch (err: any) {
+      if (err instanceof z.ZodError) {
+        const fieldError = err.errors.find((e) => e.path[0] === key)
+        if (fieldError) {
+          setErrors((e) => ({ ...e, [key]: fieldError.message }))
+        } else {
+          setErrors((e) => {
+            const newErrors = { ...e }
+            delete newErrors[key as string]
+            return newErrors
+          })
+        }
+      }
+    }
+  }
+
+  const setField = <K extends keyof UserFormUI>(key: K, v: UserFormUI[K]) => {
+    setValues((s) => {
+      const newValues = { ...s, [key]: v }
+      // Si cambia password, también validar confirmPassword
+      if (key === 'password' && mode === 'create' && newValues.confirmPassword) {
+        setTimeout(() => validateField('confirmPassword', newValues.confirmPassword), 100)
+      }
+      return newValues
+    })
+  }
+
+  // Validar campo cuando pierde el foco o cuando el usuario deja de escribir
+  const handleBlur = (key: keyof UserFormUI) => {
+    validateField(key, (values as any)[key])
+  }
+
+  // Validar confirmPassword cuando cambia password
+  useEffect(() => {
+    if (mode === 'create' && values.confirmPassword) {
+      const timeoutId = setTimeout(() => {
+        // Usar función que accede a values actualizados
+        setErrors((e) => {
+          const currentValues = values
+          if (currentValues.confirmPassword && currentValues.confirmPassword.trim() !== currentValues.password.trim()) {
+            return { ...e, confirmPassword: 'Las contraseñas no coinciden' }
+          }
+          if (currentValues.confirmPassword && currentValues.confirmPassword.trim().length < 8) {
+            return { ...e, confirmPassword: 'La contraseña debe tener al menos 8 caracteres' }
+          }
+          const newErrors = { ...e }
+          delete newErrors.confirmPassword
+          return newErrors
+        })
+      }, 100)
+      return () => clearTimeout(timeoutId)
+    }
+  }, [values.password, mode, values.confirmPassword])
 
   // Dirty solo para edición (pero NO deshabilita el botón; se chequea en submit)
   const isDirty = useMemo(() => {
@@ -267,6 +370,7 @@ const UserForm: React.FC<Props> = ({
               <Input
                 value={values.name}
                 onChangeText={(v) => setField('name', v)}
+                onBlur={() => handleBlur('name')}
                 placeholder="Nombre completo"
                 focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
               />
@@ -278,6 +382,7 @@ const UserForm: React.FC<Props> = ({
               <Input
                 value={values.username}
                 onChangeText={(v) => setField('username', v)}
+                onBlur={() => handleBlur('username')}
                 placeholder="Nombre de usuario"
                 autoCapitalize="none"
                 focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
@@ -292,6 +397,7 @@ const UserForm: React.FC<Props> = ({
               <Input
                 value={values.email}
                 onChangeText={(v) => setField('email', v)}
+                onBlur={() => handleBlur('email')}
                 placeholder="correo@ejemplo.com"
                 inputMode="email"
                 autoCapitalize="none"
@@ -429,28 +535,74 @@ const UserForm: React.FC<Props> = ({
               <FieldLabel hint={mode === 'edit' ? 'Deja en blanco para no cambiar' : undefined}>
                 Contraseña
               </FieldLabel>
-              <Input
-                value={values.password}
-                onChangeText={(v) => setField('password', v)}
-                placeholder="******"
-                secureTextEntry
-                autoCapitalize="none"
-                focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
-              />
+              <XStack position="relative" ai="center">
+                <Input
+                  value={values.password}
+                  onChangeText={(v) => setField('password', v)}
+                  onBlur={() => handleBlur('password')}
+                  placeholder="******"
+                  secureTextEntry={!showPassword}
+                  autoCapitalize="none"
+                  flex={1}
+                  pr="$10"
+                  focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
+                />
+                <Button
+                  unstyled
+                  position="absolute"
+                  right="$2"
+                  onPress={() => setShowPassword(!showPassword)}
+                  ai="center"
+                  jc="center"
+                  width={32}
+                  height={32}
+                  hoverStyle={{ opacity: 0.7 }}
+                  pressStyle={{ opacity: 0.5 }}
+                >
+                  {showPassword ? (
+                    <EyeOff size={18} color="$color10" />
+                  ) : (
+                    <Eye size={18} color="$color10" />
+                  )}
+                </Button>
+              </XStack>
               <FieldError message={errors.password} />
             </FieldGroup>
 
             {mode === 'create' && (
               <FieldGroup flex={1} minWidth={260}>
                 <FieldLabel>Confirmar contraseña</FieldLabel>
-                <Input
-                  value={values.confirmPassword}
-                  onChangeText={(v) => setField('confirmPassword', v)}
-                  placeholder="******"
-                  secureTextEntry
-                  autoCapitalize="none"
-                  focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
-                />
+                <XStack position="relative" ai="center">
+                  <Input
+                    value={values.confirmPassword}
+                    onChangeText={(v) => setField('confirmPassword', v)}
+                    onBlur={() => handleBlur('confirmPassword')}
+                    placeholder="******"
+                    secureTextEntry={!showConfirmPassword}
+                    autoCapitalize="none"
+                    flex={1}
+                    pr="$10"
+                    focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
+                  />
+                  <Button
+                    unstyled
+                    position="absolute"
+                    right="$2"
+                    onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                    ai="center"
+                    jc="center"
+                    width={32}
+                    height={32}
+                    hoverStyle={{ opacity: 0.7 }}
+                    pressStyle={{ opacity: 0.5 }}
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff size={18} color="$color10" />
+                    ) : (
+                      <Eye size={18} color="$color10" />
+                    )}
+                  </Button>
+                </XStack>
                 <FieldError message={errors.confirmPassword} />
               </FieldGroup>
             )}
