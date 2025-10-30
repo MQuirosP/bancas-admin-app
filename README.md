@@ -51,13 +51,15 @@ Admin dashboard for lottery “bancas”, built with Expo Router, Tamagui, React
 ## Project Structure
 
 - `app/` — Expo Router routes (grouped by role: `(auth)`, `admin`, `ventana`, `vendedor`)
-- `components/` — UI and screens (layout, tickets, forms, etc.)
-  - `components/ui/` — shared UI built on Tamagui (Button, Card, Input, Select, DatePicker, Modal, Table, Toolbar, Toast, Confirm)
+- `components/` — UI and screens (layout, tickets, forms, dashboard, etc.)
+  - `components/ui/` — shared UI built on Tamagui (Button, Card, Input, Select, DatePicker, Modal, Table, Toolbar, CollapsibleToolbar, Toast, Confirm, Skeleton)
+  - `components/dashboard/` — Dashboard components (KPIs, TimeSeries, FilterBar, Alerts)
+  - `components/tickets/` — Ticket management components (Forms, Lists, Actions)
 - `hooks/` — React hooks (domain/data hooks, UI helpers)
-- `lib/` — API client, queryClient, errors, navigation, validators
+- `lib/` — API client, queryClient, errors, navigation, validators, date formatting
 - `services/` — resource‑oriented API helpers
-- `store/` — Zustand stores (`auth`, `theme`, `ui`)
-- `types/` — shared TypeScript types
+- `store/` — Zustand stores (`auth`, `theme`, `ui`, `dashboardFilters`)
+- `types/` — shared TypeScript types (auth, dashboard, tickets, scope, payments)
 - `utils/` — formatting, validation, object helpers, role utils
 
 ## UI/UX Guidelines
@@ -69,11 +71,17 @@ Admin dashboard for lottery “bancas”, built with Expo Router, Tamagui, React
   - `DatePicker` is cross‑platform (web uses `<input>`; native uses DateTimePicker)
   - `Table` exports `Table, THead, TBody, Tr, Th, Td`
   - `Modal` is a lightweight RN modal wrapper
+  - `CollapsibleToolbar` - toolbar reutilizable con secciones colapsables (search, filters, actions)
+  - `Skeleton` - componentes de carga animados (Skeleton, SkeletonKPI, SkeletonChart, SkeletonText)
 - Layout and theming
   - Root providers live in `app/_layout.tsx` (TamaguiProvider, QueryClientProvider, ToastProvider, SystemThemeSync)
   - `MainLayout` applies `<Theme name={theme}>` around content; theme comes from `store/theme.store.ts`
 - Pagination
-  - Use compact and subtle controls: `size="$2" variant="secondary"` for “Anterior/Siguiente” buttons
+  - Use compact and subtle controls: `size="$2" variant="secondary"` for "Anterior/Siguiente" buttons
+- Responsive Design
+  - Use Tamagui breakpoints (`$sm`, `$md`, `$lg`) for mobile adaptations
+  - Grid layouts adapt to vertical stacks on mobile
+  - Consider horizontal overflow on small screens
 
 ## Data & Query Conventions
 
@@ -127,13 +135,16 @@ Admin dashboard for lottery “bancas”, built with Expo Router, Tamagui, React
   - The API client refreshes tokens on 401; ensure refresh endpoint is reachable
   - Rate limits (429): the client now retries briefly (respecting `Retry-After` if present). Hooks for ventas increase `staleTime` and reduce refetches.
 
-## Recent Changes (highlights)
+## Recent Changes (v1.1.0 - highlights)
 
-- Drawer: simplified admin menu (Dashboard, Panel Administrativo, Configuración + user block), top-down animation, subtle hover transition, 75% opaque background.
-- Dark/Light icons: button icons now take theme color across admin lists (Ventanas, Bancas, Loterías, Usuarios, Sorteos, Restricciones, Multipliers, Tickets).
-- Back button: added icon-only “back to panel” on admin section headers (no background/border, press scale only).
-- Commissions: cleaned CommissionForm UI, removed duplicate builder, added per-field validations with stable row height, live simulator wired to form.
-- Ventas API usage: clamp `top` to <= 50; hooks reduce refetch noise and handle 429 more gracefully.
+- **Skeleton Loading States**: Beautiful animated loading placeholders for dashboard metrics and charts
+- **Collapsible UI**: Dashboard filters and admin toolbars now collapse/expand with smooth 200ms animations
+- **Integrated Search**: Search icon and clear button (X) now integrated inside input fields across all admin modules
+- **RBAC Security Fixed**: Multiple critical security bugs resolved - users now only see their authorized data
+- **Responsive Improvements**: Mobile-optimized layouts with adaptive grids, no horizontal overflow
+- **Vendedor Dashboard Enhanced**: New "Pagado Hoy" metric with trend indicators (↗️/↘️) and comparisons vs yesterday
+- **UX Polish**: Conditional validations with toasts, no more inline legends, smoother form interactions
+- **Code Cleanup**: All debug console.logs removed, production-ready codebase
 
 ## Contributing
 
