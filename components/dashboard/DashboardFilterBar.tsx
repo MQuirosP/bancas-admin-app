@@ -69,7 +69,7 @@ export function DashboardFilterBar({ onExport, exportLoading }: DashboardFilterB
   const { loadFromURL, getURLParams } = useSyncFiltersWithURL()
   
   // Estado para controlar si está expandido o colapsado
-  const [isExpanded, setIsExpanded] = useState(true)
+  const [isExpanded, setIsExpanded] = useState(false)
   
   const {
     date,
