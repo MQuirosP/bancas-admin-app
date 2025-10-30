@@ -2,7 +2,6 @@
 import React, { useMemo, useState } from 'react'
 import { YStack, XStack, Text, ScrollView, Spinner, Separator } from 'tamagui'
 import { Button, Input, Card, CollapsibleToolbar, ActiveBadge } from '@/components/ui'
-import { Badge } from '@/components/ui/Badge'
 import { useRouter } from 'expo-router'
 import { Plus, Search, X, RefreshCw, Trash2, ArrowLeft } from '@tamagui/lucide-icons'
 import { useTheme } from 'tamagui'
@@ -10,7 +9,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient, ApiErrorClass } from '@/lib/api.client'
 import type { Loteria } from '@/types/models.types'
 import { useToast } from '@/hooks/useToast'
-// CollapsibleToolbar/Badge/ActiveBadge desde components/ui
+// CollapsibleToolbar/ActiveBadge desde components/ui
 import { useConfirm } from '@/components/ui/Confirm'
 import FilterSwitch from '@/components/ui/FilterSwitch'
 
@@ -240,7 +239,6 @@ export default function LoteriasListScreen() {
                       <XStack ai="center" gap="$2" flexWrap="wrap">
                         <Text fontSize="$5" fontWeight="600">{lot.name}</Text>
                         <ActiveBadge active={active} />
-                        {!active && <Badge tone="warning">ELIMINADA</Badge>}
                       </XStack>
                     </YStack>
 
