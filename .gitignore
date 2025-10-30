@@ -50,3 +50,4 @@ CODE_REVIEW.md
 # documentation (internal specs, guides, etc)
 docs/
 components/tickets/UNIFICACION_LISTA_TICKETS.md
+RELEASE_NOTES_*.md
