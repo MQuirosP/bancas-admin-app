@@ -5,7 +5,7 @@
 
 import React, { useState } from 'react'
 import { YStack, XStack, Text, Switch } from 'tamagui'
-import { Card } from '@/components/ui'
+import { Card, SkeletonChart } from '@/components/ui'
 import { formatCurrency } from '@/utils/formatters'
 import type { TimeSeriesDataPoint } from '@/types/dashboard.types'
 
@@ -24,15 +24,15 @@ export function DashboardTimeSeries({
 }: DashboardTimeSeriesProps) {
   const [showComparison, setShowComparison] = useState(false)
 
-  if (isLoading || !data || !Array.isArray(data) || data.length === 0) {
+  if (isLoading) {
+    return <SkeletonChart height={300} />
+  }
+
+  if (!data || !Array.isArray(data) || data.length === 0) {
     return (
       <Card padding="$4" gap="$3">
-        <YStack height={300} br="$3" backgroundColor="$backgroundHover" animation="quick" opacity={0.5} ai="center" jc="center">
-          {isLoading ? (
-            <Text color="$textSecondary">Cargando series temporales...</Text>
-          ) : (
-            <Text color="$textSecondary">Sin datos disponibles</Text>
-          )}
+        <YStack height={300} br="$3" backgroundColor="$backgroundHover" ai="center" jc="center">
+          <Text color="$textSecondary">Sin datos disponibles</Text>
         </YStack>
       </Card>
     )

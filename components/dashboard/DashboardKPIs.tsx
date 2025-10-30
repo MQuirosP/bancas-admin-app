@@ -5,7 +5,7 @@
 
 import React from 'react'
 import { YStack, XStack, Text } from 'tamagui'
-import { Card } from '@/components/ui'
+import { Card, SkeletonKPI } from '@/components/ui'
 import { TrendingUp, TrendingDown, DollarSign, Package, Trophy, Percent } from '@tamagui/lucide-icons'
 import { formatCurrency } from '@/utils/formatters'
 import type { DashboardKPIs } from '@/types/dashboard.types'
@@ -21,21 +21,14 @@ interface DashboardKPIsGridProps {
 }
 
 export function DashboardKPIsGrid({ data, isLoading, meta }: DashboardKPIsGridProps) {
-  // Si no hay datos, mostrar loading
+  // Si no hay datos, mostrar loading con skeletons
   if (!data || isLoading) {
     return (
       <XStack gap="$3" flexWrap="wrap">
         {[1, 2, 3, 4, 5, 6].map((i) => (
-          <YStack
-            key={i}
-            flex={1}
-            minWidth={280}
-            height={140}
-            br="$4"
-            backgroundColor="$backgroundHover"
-            animation="quick"
-            opacity={0.5}
-          />
+          <YStack key={i} flex={1} minWidth={280} maxWidth="32%" $sm={{ maxWidth: '100%' }}>
+            <SkeletonKPI />
+          </YStack>
         ))}
       </XStack>
     )
