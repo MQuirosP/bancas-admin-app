@@ -47,8 +47,8 @@ const ventanaSchema = z.object({
     .transform(v => (v?.trim() ? v : undefined)),
   commissionMarginX: z.preprocess(
     toNumberOrUndef,
-    // acepta 0..1 (e.g. 0.15). Si quieres quitar límite superior, quita .max(1)
-    z.number().min(0, 'Debe ser ≥ 0').max(1, 'Máximo 1.00').optional()
+    // UI acepta porcentaje entero 0..100
+    z.number().int('Debe ser entero').min(0, 'Mínimo 0').max(100, 'Máximo 100').optional()
   ),
   isActive: z.boolean().default(true),
 })
@@ -95,7 +95,7 @@ export default function VentanaForm({
     phone: initialValues?.phone ?? '',
     address: initialValues?.address ?? '',
     commissionMarginX:
-      initialValues?.commissionMarginX != null ? String(initialValues.commissionMarginX) : '',
+      initialValues?.commissionMarginX != null ? String(Math.round((initialValues.commissionMarginX as number) * 100)) : '',
     isActive: initialValues?.isActive ?? true,
   }), [initialValues])
 
@@ -151,7 +151,7 @@ export default function VentanaForm({
       phone: data.phone,
       address: data.address,
       commissionMarginX:
-        data.commissionMarginX == null ? null : Number(data.commissionMarginX),
+        data.commissionMarginX == null ? null : Number(data.commissionMarginX) / 100,
       isActive: data.isActive,
     }
 
@@ -283,10 +283,10 @@ export default function VentanaForm({
             </YStack>
 
             <YStack flex={1} minWidth={240} gap="$1">
-              <Text fontWeight="600">Margen Comisión X</Text>
+              <Text fontWeight="600">Margen Comisión X (%)</Text>
               <Input
-                placeholder="Ej. 0.15"
-                keyboardType="decimal-pad"
+                placeholder="Ej. 15"
+                keyboardType="number-pad"
                 value={values.commissionMarginX}
                 onChangeText={(t) => setField('commissionMarginX', t)}
                 editable={!submitting}
