@@ -15,7 +15,6 @@ export type CreateUserDTO = {
   name: string
   username: string
   email?: string | null
-  code?: string | null
   role: 'ADMIN' | 'VENTANA' | 'VENDEDOR'
   ventanaId?: string | null
   password: string
@@ -25,7 +24,6 @@ export type CreateUserDTO = {
 export type UpdateUserDTO = Partial<{
   name: string
   email: string | null
-  code: string | null
   role: 'ADMIN' | 'VENTANA' | 'VENDEDOR'
   ventanaId: string | null
   password: string
@@ -68,7 +66,6 @@ export function toCreateUserDTO(
     name: v.name.trim(),
     username: v.username.trim(),
     email: toNull(v.email),
-    code: toNull(v.code),
     role: v.role as CreateUserDTO['role'],
     ventanaId: toNull((v as any).ventanaId),
     password: v.password,
@@ -82,7 +79,6 @@ export function toUpdateUserDTO(
   return {
     name: v.name,
     email: v.email ?? null,
-    code: v.code ?? null,
     role: v.role as UpdateUserDTO['role'],
     ventanaId: (v as any).ventanaId ?? null,
     password: v.password,
