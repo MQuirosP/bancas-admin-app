@@ -46,8 +46,7 @@ export const Header: React.FC = () => {
       alignItems="center"
       borderBottomWidth={1}
       borderBottomColor="$borderColor"
-      minHeight={64}
-      height={isMobile ? "auto" : 64}
+      height={64}
     >
       {/* Left: Menu button */}
       <XStack alignItems="center" minWidth={isMobile ? 40 : 72}>
@@ -76,16 +75,16 @@ export const Header: React.FC = () => {
         >
           <Image
             source={require('../../assets/logo.png')}
-            style={{ width: 90, height: 90 }}
+            style={{ width: 50, height: 50 }}
             resizeMode="contain"
           />
-          <YStack flex={1} justifyContent="center">
+          <YStack flex={1} justifyContent="center" gap="$0.5">
             <Text 
-              fontSize="$4" 
+              fontSize="$3" 
               fontWeight="600" 
               color="$headerTitle"
               flexWrap="wrap"
-              lineHeight="$4"
+              lineHeight={16}
             >
               {pageTitle}
             </Text>
