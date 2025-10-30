@@ -299,19 +299,29 @@ export default function MultipliersListScreen() {
                   bg="$backgroundHover"
                   borderColor="$borderColor"
                   borderWidth={1}
-                  pressStyle={{ bg: '$backgroundPress', borderColor: '$borderColorHover', scale: 0.98 }}
-                  onPress={() => router.push(`/admin/multipliers/${m.id}` as any)}
+                  // Quitar onPress del contenedor para permitir clicks en botones internos
                 >
                   <XStack jc="space-between" ai="center" gap="$3" fw="wrap">
-                    <YStack gap="$1" minWidth={260}>
-                      <XStack ai="center" gap="$2" fw="wrap">
-                        <Text fontSize="$5" fontWeight="600">{m.name}</Text>
-                        <ActiveBadge active={active} />
-                      </XStack>
-                      <Text color="$textSecondary">
-                        Lotería: {m.loteria?.name ?? m.loteriaId} • Tipo: {m.kind} • X: {m.valueX}
-                      </Text>
-                    </YStack>
+                    {/* Zona clickeable para ir al detalle */}
+                    <Button
+                      unstyled
+                      backgroundColor="transparent"
+                      borderWidth={0}
+                      padding={0}
+                      hoverStyle={{ backgroundColor: 'transparent' }}
+                      pressStyle={{ scale: 0.98 }}
+                      onPress={() => router.push(`/admin/multipliers/${m.id}` as any)}
+                    >
+                      <YStack gap="$1" minWidth={260}>
+                        <XStack ai="center" gap="$2" fw="wrap">
+                          <Text fontSize="$5" fontWeight="600">{m.name}</Text>
+                          <ActiveBadge active={active} />
+                        </XStack>
+                        <Text color="$textSecondary">
+                          Lotería: {m.loteria?.name ?? m.loteriaId} • Tipo: {m.kind} • X: {m.valueX}
+                        </Text>
+                      </YStack>
+                    </Button>
 
                     <XStack gap="$2">
                       {/* Eliminar (rojo) - placeholder de acción */}
@@ -323,6 +333,7 @@ export default function MultipliersListScreen() {
                         hoverStyle={{ backgroundColor: '$red5' }}
                         pressStyle={{ opacity: 0.9, scale: 0.98 }}
                         onPress={(e:any) => {
+                          e?.preventDefault?.()
                           e?.stopPropagation?.()
                           // TODO: askDelete(m)
                         }}
