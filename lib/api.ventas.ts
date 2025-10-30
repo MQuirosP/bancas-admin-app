@@ -52,8 +52,13 @@ export type VentasListResponse<T> = { success?: boolean; data: T[]; meta: any }
 
 export const VentasApi = {
   list: (q: VentasListQuery = {}) => apiClient.get<VentasListResponse<any>>('/ventas', compact(q)),
-  summary: (q: Omit<VentasListQuery, 'page' | 'pageSize'> = {}) =>
-    apiClient.get<{ success?: boolean; data: VentasSummary }>('/ventas/summary', compact(q)),
+  summary: async (q: Omit<VentasListQuery, 'page' | 'pageSize'> = {}) => {
+    const params = compact(q)
+    console.log('📤 [VentasApi.summary] Parámetros enviados:', params)
+    const response = await apiClient.get<{ success?: boolean; data: VentasSummary }>('/ventas/summary', params)
+    console.log('📥 [VentasApi.summary] Respuesta recibida:', response)
+    return response
+  },
   breakdown: (
     q: Omit<VentasListQuery, 'page' | 'pageSize'> & { dimension: 'ventana' | 'vendedor' | 'loteria' | 'sorteo' | 'numero'; top?: number }
   ) => {

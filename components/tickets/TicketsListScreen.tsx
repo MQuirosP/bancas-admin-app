@@ -81,10 +81,13 @@ const DATE_FILTER_LABELS = {
 // Rango personalizado utilizará DatePicker (web/nativo)
 
 async function fetchTickets(params: any): Promise<{ data: Ticket[]; meta: any }> {
+  console.log('📤 [TicketsListScreen] Parámetros enviados:', params)
   const res = await apiClient.get<any>('/tickets', params)
+  console.log('📥 [TicketsListScreen] Respuesta recibida:', res)
   const payload = res ?? {}
   const actualData = payload?.data?.data ?? payload?.data ?? []
   const actualMeta = payload?.data?.meta ?? payload?.meta ?? {}
+  console.log('📋 [TicketsListScreen] Tickets extraídos:', actualData.length, 'tickets')
   return {
     data: Array.isArray(actualData) ? actualData : [],
     meta: {
@@ -166,7 +169,9 @@ export default function TicketsListScreen({
   })
 
   const filteredRows = useMemo(() => {
+    console.log('🔍 [filteredRows] data completo:', data)
     let rows = data?.data ?? []
+    console.log('🔍 [filteredRows] Data inicial:', rows.length, 'tickets')
     
     // Filtrar por pendientes de pago (ganadores sin pagar completamente)
     // ✅ Usando utility centralizado
@@ -175,6 +180,7 @@ export default function TicketsListScreen({
         const totals = calculatePaymentTotals(t as any)
         return totals.hasWinner && !totals.isFullyPaid && totals.totalPayout > 0
       })
+      console.log('🔍 [filteredRows] Después de filtro pendientes:', rows.length, 'tickets')
     }
     
     // ✅ Status filtering is done on backend now
@@ -194,11 +200,16 @@ export default function TicketsListScreen({
           sorteoName.includes(search)
         )
       })
+      console.log('🔍 [filteredRows] Después de búsqueda:', rows.length, 'tickets')
     }
+    console.log('🔍 [filteredRows] Final:', rows.length, 'tickets')
     return rows
   }, [data, searchInput, filterPendientes])
 
   const meta = data?.meta
+
+  // Debug: Estado de renderizado
+  console.log('🎨 [Render] isLoading:', isLoading, 'isError:', isError, 'filteredRows.length:', filteredRows?.length ?? 0)
 
   // Handler para búsqueda
   const handleSearch = () => {
@@ -239,11 +250,15 @@ export default function TicketsListScreen({
         {!hideHeader && (
           <XStack justifyContent="space-between" ai="center" gap="$3" flexWrap="wrap">
             <XStack ai="center" gap="$2">
-              {(scope === 'admin' || scope === 'ventana') && (
+              {(scope === 'admin' || scope === 'ventana' || scope === 'vendedor') && (
                 <Button
                   size="$3"
                   icon={(p:any)=> <ArrowLeft {...p} size={24} color={iconColor} />}
-                  onPress={()=> safeBack(scope === 'admin' ? '/admin' : '/ventana')}
+                  onPress={()=> safeBack(
+                    scope === 'admin' ? '/admin' 
+                    : scope === 'vendedor' ? '/vendedor'
+                    : '/ventana'
+                  )}
                   backgroundColor="transparent"
                   borderWidth={0}
                   hoverStyle={{ backgroundColor: 'transparent' }}
@@ -253,15 +268,21 @@ export default function TicketsListScreen({
               <Text fontSize="$8" fontWeight="bold">
                 {variant === 'pending-payments' 
                   ? 'Tiquetes Ganadores Pendientes'
-                  : scope === 'admin' ? 'Tickets (Admin)' : 'Tickets de la Ventana'
+                  : scope === 'admin' ? 'Tickets (Admin)' 
+                  : scope === 'vendedor' ? 'Mis Tickets'
+                  : 'Tickets de la Ventana'
                 }
               </Text>
               {isFetching && <Spinner size="small" />}
             </XStack>
-            {(scope === 'admin' || scope === 'ventana') && variant !== 'pending-payments' && (
+            {(scope === 'admin' || scope === 'ventana' || scope === 'vendedor') && variant !== 'pending-payments' && (
               <Button
                 size="$3"
-                onPress={() => router.push((scope === 'admin' ? '/admin/tickets/nuevo' : '/ventana/tickets/nuevo') as any)}
+                onPress={() => router.push((
+                  scope === 'admin' ? '/admin/tickets/nuevo' 
+                  : scope === 'vendedor' ? '/vendedor/tickets/nuevo'
+                  : '/ventana/tickets/nuevo'
+                ) as any)}
               >
                 Nuevo Ticket
               </Button>

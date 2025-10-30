@@ -2,7 +2,7 @@
 import React from 'react';
 import { YStack, XStack, Text, ScrollView } from 'tamagui';
 import { Button, Card } from '@/components/ui';
-import { Package, TrendingUp, Plus, Clock } from '@tamagui/lucide-icons';
+import { Package, TrendingUp, TrendingDown, Plus, Clock, DollarSign } from '@tamagui/lucide-icons';
 import { useThemeName } from 'tamagui'
 import { useAuthStore } from '../../store/auth.store';
 import { useRouter } from 'expo-router';
@@ -15,7 +15,43 @@ export default function VendedorDashboard() {
   const user = useAuthStore((state) => state.user);
   const router = useRouter();
   const themeName = useThemeName()
-  const { data: summary } = useVentasSummary({ scope: 'mine', date: 'today' })
+  const { data: summary, isLoading, error } = useVentasSummary({ scope: 'mine', date: 'today' })
+  const { data: yesterday } = useVentasSummary({ scope: 'mine', date: 'yesterday' })
+
+  // Calcular cambios porcentuales
+  const calculateChange = (today: number, yesterday: number) => {
+    if (yesterday === 0) {
+      return today > 0 ? 100 : 0
+    }
+    return ((today - yesterday) / yesterday) * 100
+  }
+
+  const ticketsChange = calculateChange(summary?.ticketsCount ?? 0, yesterday?.ticketsCount ?? 0)
+  const ventasChange = calculateChange(summary?.ventasTotal ?? 0, yesterday?.ventasTotal ?? 0)
+
+  // Debug: Verificar datos del vendedor
+  React.useEffect(() => {
+    if (user) {
+      console.log('👤 Usuario vendedor:', {
+        id: user.id,
+        name: user.name,
+        role: user.role,
+      })
+    }
+  }, [user])
+
+  // Debug: Verificar respuesta del summary
+  React.useEffect(() => {
+    if (summary) {
+      console.log('📊 Resumen de ventas del vendedor (hoy):', summary)
+    }
+    if (yesterday) {
+      console.log('📊 Resumen de ventas del vendedor (ayer):', yesterday)
+    }
+    if (error) {
+      console.error('❌ Error al cargar resumen:', error)
+    }
+  }, [summary, yesterday, error])
 
   return (
     <ScrollView flex={1} backgroundColor="$background">
@@ -56,23 +92,53 @@ export default function VendedorDashboard() {
 
         {/* Stats Cards - grid 2 columnas responsivo */}
         <YStack gap="$3">
-          {(
-            [
-              { icon: Package, title: 'Mis Tickets Hoy', value: String(summary?.ticketsCount ?? 0), change: '', color: '$yellow10' },
-              { icon: TrendingUp, title: 'Total Vendido Hoy', value: formatCurrency(summary?.ventasTotal ?? 0), change: '', color: '$purple10' },
-              { icon: Clock, title: 'Último Ticket', value: summary?.lastTicketAt ? formatDistanceToNowStrict(parseISO(summary.lastTicketAt), { locale: es }) : '—', change: '', color: '$indigo10' },
-            ] as const
-          ).reduce((rows: any[][], card, index) => {
-            if (index % 2 === 0) rows.push([card]); else rows[rows.length - 1].push(card); return rows;
-          }, []).map((row, rowIndex) => (
-            <XStack key={rowIndex} gap="$3" flexWrap="wrap">
-              {row.map((c, i) => (
-                <YStack key={i} flex={1} minWidth={280} maxWidth="48%" $sm={{ maxWidth: '100%' }}>
-                  <StatCard icon={c.icon} title={c.title} value={c.value} change={c.change} positive color={c.color as any} />
-                </YStack>
-              ))}
-            </XStack>
-          ))}
+          {/* Fila 1: Tickets y Ventas */}
+          <XStack gap="$3" flexWrap="wrap">
+            <YStack flex={1} minWidth={280} maxWidth="48%" $sm={{ maxWidth: '100%' }}>
+              <StatCard 
+                icon={Package} 
+                title="Mis Tickets Hoy" 
+                value={String(summary?.ticketsCount ?? 0)} 
+                change={Math.abs(ticketsChange).toFixed(1) + '%'}
+                positive={ticketsChange >= 0}
+                color="$yellow10" 
+              />
+            </YStack>
+            <YStack flex={1} minWidth={280} maxWidth="48%" $sm={{ maxWidth: '100%' }}>
+              <StatCard 
+                icon={TrendingUp} 
+                title="Total Vendido Hoy" 
+                value={formatCurrency(summary?.ventasTotal ?? 0)} 
+                change={Math.abs(ventasChange).toFixed(1) + '%'}
+                positive={ventasChange >= 0}
+                color="$purple10" 
+              />
+            </YStack>
+          </XStack>
+
+          {/* Fila 2: Pagado y Último Ticket */}
+          <XStack gap="$3" flexWrap="wrap">
+            <YStack flex={1} minWidth={280} maxWidth="48%" $sm={{ maxWidth: '100%' }}>
+              <StatCard 
+                icon={DollarSign} 
+                title="Pagado Hoy" 
+                value={formatCurrency(summary?.totalPaid ?? 0)} 
+                change="" 
+                positive 
+                color="$green10" 
+              />
+            </YStack>
+            <YStack flex={1} minWidth={280} maxWidth="48%" $sm={{ maxWidth: '100%' }}>
+              <StatCard 
+                icon={Clock} 
+                title="Último Ticket" 
+                value={summary?.lastTicketAt ? formatDistanceToNowStrict(parseISO(summary.lastTicketAt), { locale: es }) : '—'} 
+                change="" 
+                positive 
+                color="$indigo10" 
+              />
+            </YStack>
+          </XStack>
         </YStack>
 
         {/* Quick Actions */}
@@ -112,6 +178,10 @@ interface StatCardProps {
 }
 
 function StatCard({ icon: Icon, title, value, change, positive, color }: StatCardProps) {
+  const TrendIcon = positive ? TrendingUp : TrendingDown
+  const trendColor = positive ? '$green10' : '$red10'
+  const showChange = change && change !== '0.0%'
+  
   return (
     <Card
       padding="$4"
@@ -141,11 +211,17 @@ function StatCard({ icon: Icon, title, value, change, positive, color }: StatCar
         >
           <Icon size={28} color={color} />
         </YStack>
-        <YStack alignItems="flex-end" gap="$1">
-          <Text fontSize="$2" color={positive ? '$success' : '$textTertiary'} fontWeight="600">
-            {change}
-          </Text>
-        </YStack>
+        {showChange && (
+          <YStack alignItems="flex-end" gap="$1">
+            <XStack ai="center" gap="$1" backgroundColor={positive ? '$green4' : '$red4'} paddingHorizontal="$2" paddingVertical="$1" borderRadius="$2">
+              <TrendIcon size={14} color={trendColor} />
+              <Text fontSize="$2" color={trendColor} fontWeight="700">
+                {change}
+              </Text>
+            </XStack>
+            <Text fontSize="$1" color="$textTertiary">vs ayer</Text>
+          </YStack>
+        )}
       </XStack>
       <YStack gap="$1" mt="$2">
         <Text fontSize="$3" color="$textSecondary">
