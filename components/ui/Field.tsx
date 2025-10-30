@@ -2,7 +2,7 @@
 import { YStack, Text, styled } from 'tamagui'
 
 export const FieldGroup = styled(YStack, {
-  gap: '$2',
+  gap: '$1',
   mb: '$2',
 })
 
