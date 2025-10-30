@@ -2,6 +2,7 @@
 import React, { useMemo, useState } from 'react';
 import { YStack, XStack, Text, ScrollView, Spinner } from 'tamagui';
 import { Button, Input, Card, CollapsibleToolbar, ActiveBadge } from '@/components/ui';
+import FilterSwitch from '@/components/ui/FilterSwitch'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { Plus, Search, X, RefreshCw, Trash2, ArrowLeft } from '@tamagui/lucide-icons';
@@ -50,6 +51,7 @@ export default function BancasListScreen() {
   const [searchInput, setSearchInput] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(1);
+  const [activeOnly, setActiveOnly] = useState(true);
 
   const { data, isLoading, isError, error, isFetching, refetch } = useQuery({
     queryKey: ['bancas', page, searchTerm],
@@ -63,6 +65,11 @@ export default function BancasListScreen() {
   });
 
   const rows = useMemo(() => (Array.isArray(data?.data) ? data!.data : []), [data]);
+  const filteredRows = useMemo(() => {
+    const isActive = (b: any) => (b?.isActive ?? true) === true
+    const isInactive = (b: any) => (b?.isActive ?? true) === false
+    return (rows || []).filter(activeOnly ? isActive : isInactive)
+  }, [rows, activeOnly])
   const pagination = data?.pagination!;
 
   const handleSearchClick = () => {
@@ -192,6 +199,15 @@ export default function BancasListScreen() {
               </XStack>
             </XStack>
           }
+          filtersContent={
+            <XStack gap="$4" ai="center" flexWrap="wrap">
+              <FilterSwitch
+                label="Activas:"
+                checked={activeOnly}
+                onCheckedChange={(v) => setActiveOnly(!!v)}
+              />
+            </XStack>
+          }
           actionsContent={
             <XStack gap="$2" ai="center" flexWrap="wrap">
               <Button
@@ -203,6 +219,22 @@ export default function BancasListScreen() {
                 pressStyle={{ backgroundColor: '$green6', scale: 0.98 }}
               >
                 <Text>Refrescar</Text>
+              </Button>
+
+              <Button
+                onPress={() => {
+                  setSearchInput('')
+                  setSearchTerm('')
+                  setActiveOnly(true)
+                  setPage(1)
+                }}
+                backgroundColor={'$gray4'}
+                borderColor={'$gray8'}
+                borderWidth={1}
+                hoverStyle={{ backgroundColor: '$gray5' }}
+                pressStyle={{ scale: 0.98 }}
+              >
+                <Text>Limpiar</Text>
               </Button>
             </XStack>
           }
@@ -220,13 +252,13 @@ export default function BancasListScreen() {
             <Text color="$red11" fontWeight="700">Error</Text>
             <Text color="$color">{(error as Error)?.message ?? 'No se pudo cargar la lista.'}</Text>
           </Card>
-        ) : rows.length === 0 ? (
+        ) : filteredRows.length === 0 ? (
           <Card padding="$4" backgroundColor="$backgroundHover" borderColor="$borderColor" borderWidth={1}>
             <Text color="$textSecondary">No hay bancas para mostrar.</Text>
           </Card>
         ) : (
           <YStack gap="$2">
-            {rows.map((banca) => {
+            {filteredRows.map((banca) => {
               // const deleted = ((banca as any)?.isDeleted === true);
               const active = !!(banca as any)?.isActive;
 
