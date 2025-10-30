@@ -2,7 +2,7 @@
 import { YStack, Text, styled } from 'tamagui'
 
 export const FieldGroup = styled(YStack, {
-  gap: '$1',
+  gap: '$2',
   mb: '$2',
 })
 
@@ -13,8 +13,5 @@ export const FieldLabel: React.FC<{ children: any; hint?: string }> = ({ childre
   </YStack>
 )
 
-export const FieldError: React.FC<{ message?: string }> = ({ message }) => (
-  <Text fontSize="$2" color="$error" height={14} lineHeight={14} opacity={message ? 1 : 0}>
-    {message || '\u00A0'}
-  </Text>
-)
+export const FieldError: React.FC<{ message?: string }> = ({ message }) =>
+  message ? <Text fontSize="$2" color="$error">{message}</Text> : null
