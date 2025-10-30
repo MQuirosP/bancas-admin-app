@@ -77,15 +77,24 @@ export const Header: React.FC = () => {
           style={{ width: isMobile ? 70 : 120, height: isMobile ? 70 : 120 }}
           resizeMode="contain"
         />
-        <Text 
-          fontSize={isMobile ? "$4" : "$6"} 
-          fontWeight="600" 
-          color="$headerTitle"
-          flexWrap="wrap"
-          flex={1}
-        >
-          {pageTitle}
-        </Text>
+        {isMobile ? (
+          <YStack justifyContent="center">
+            <Text fontSize="$4" fontWeight="600" color="$headerTitle">
+              Administración de
+            </Text>
+            <Text fontSize="$4" fontWeight="600" color="$headerTitle">
+              {pageTitle.replace('Administración de ', '')}
+            </Text>
+          </YStack>
+        ) : (
+          <Text 
+            fontSize="$6" 
+            fontWeight="600" 
+            color="$headerTitle"
+          >
+            {pageTitle}
+          </Text>
+        )}
       </XStack>
 
       {/* Right: Theme toggle + Logout */}
