@@ -297,7 +297,7 @@ const UserForm: React.FC<Props> = ({
             </FieldGroup>
           </XStack>
 
-          <XStack gap="$2" flexWrap="wrap">
+          <XStack gap="$2" flexWrap="wrap" ai="center">
             <FieldGroup flex={1} minWidth={260}>
               <FieldLabel>Correo (opcional)</FieldLabel>
               <Input
@@ -311,20 +311,26 @@ const UserForm: React.FC<Props> = ({
               <FieldError message={errors.email} />
             </FieldGroup>
 
-            <FieldGroup flex={1} minWidth={260}>
-              <FieldLabel>Código (opcional)</FieldLabel>
-              <Input
-                value={values.code}
-                onChangeText={(v) => setField('code', v)}
-                placeholder="Código interno"
-                focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
-              />
-              <FieldError message={errors.code} />
-            </FieldGroup>
+            <XStack gap="$3" ai="center">
+              <Switch
+                size="$2"
+                checked={!!values.isActive}
+                onCheckedChange={(val) => setField('isActive', !!val)}
+                bw={1}
+                bc="$borderColor"
+                bg={values.isActive ? '$color10' : '$background'}
+                hoverStyle={{ bg: values.isActive ? '$color10' : '$backgroundHover' }}
+                focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: 'var(--color10)' }}
+                aria-label="Activo"
+              >
+                <Switch.Thumb animation="quick" bg="$color12" />
+              </Switch>
+              <Text fontSize="$4">Activo</Text>
+            </XStack>
           </XStack>
 
-          <XStack gap="$3" ai="center" flexWrap="wrap">
-            <YStack>
+          <XStack gap="$3" ai="flex-start" flexWrap="wrap">
+            <YStack minWidth={160} flexShrink={0}>
               <FieldLabel>Rol</FieldLabel>
               <Select
                 value={values.role}
@@ -334,7 +340,7 @@ const UserForm: React.FC<Props> = ({
                   if (val === 'ADMIN') setField('ventanaId', '')
                 }}
               >
-                <Select.Trigger bw={1} bc="$borderColor" px="$3" iconAfter={ChevronDown}>
+                <Select.Trigger bw={1} bc="$borderColor" px="$3" iconAfter={ChevronDown} width={160} flexShrink={0}>
                   <Select.Value placeholder="Selecciona rol" />
                 </Select.Trigger>
 
@@ -366,7 +372,7 @@ const UserForm: React.FC<Props> = ({
             </YStack>
 
             {values.role !== 'ADMIN' && (
-              <YStack minWidth={240}>
+              <YStack minWidth={240} flexShrink={0}>
                 <FieldLabel>Listero</FieldLabel>
                 <Select
                   value={values.ventanaId || ''}
@@ -378,6 +384,8 @@ const UserForm: React.FC<Props> = ({
                     backgroundColor="$background"
                     px="$3"
                     iconAfter={ChevronDown}
+                    width={240}
+                    flexShrink={0}
                     disabled={!!loadingVentanas || !!errorVentanas}
                   >
                     <Select.Value
@@ -425,23 +433,6 @@ const UserForm: React.FC<Props> = ({
                 <FieldError message={errors.ventanaId} />
               </YStack>
             )}
-
-            <XStack gap="$3" ai="center">
-              <Switch
-                size="$2"
-                checked={!!values.isActive}
-                onCheckedChange={(val) => setField('isActive', !!val)}
-                bw={1}
-                bc="$borderColor"
-                bg={values.isActive ? '$color10' : '$background'}
-                hoverStyle={{ bg: values.isActive ? '$color10' : '$backgroundHover' }}
-                focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: 'var(--color10)' }}
-                aria-label="Activo"
-              >
-                <Switch.Thumb animation="quick" bg="$color12" />
-              </Switch>
-              <Text fontSize="$4">Activo</Text>
-            </XStack>
           </XStack>
 
           <XStack gap="$2" flexWrap="wrap">
