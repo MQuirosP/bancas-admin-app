@@ -9,12 +9,16 @@ import { apiClient } from '@/lib/api.client'
 import type { Loteria } from '@/types/models.types'
 import type { LoteriaMultiplier } from '@/types/api.types'
 import { MultipliersApi } from '@/lib/api.multipliers'
+import { useToast } from '@/hooks/useToast'
+import { useQueryClient } from '@tanstack/react-query'
 import FilterSwitch from '@/components/ui/FilterSwitch'
 
 export default function MultipliersListScreen() {
   const theme = useTheme()
   const iconColor = (theme?.color as any)?.get?.() ?? '#000'
   const router = useRouter()
+  const { success, error } = useToast()
+  const queryClient = useQueryClient()
 
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
@@ -65,6 +69,23 @@ export default function MultipliersListScreen() {
     setKind(undefined)
     setLoteriaId(undefined)
     setActiveOnly(true) // vuelve a activas
+  }
+
+  const handleToggle = async (m: any) => {
+    const targetActive = !activeOnly ? true : false // si estoy viendo inactivos => restaurar (true), si activos => eliminar (false)
+    const label = targetActive ? 'restaurar' : 'eliminar'
+    const ok = await confirm(`¿Deseas ${label} "${m.name}"?`)
+    if (!ok) return
+    try {
+      await MultipliersApi.toggleActive(m.id, targetActive)
+      success(`Multiplicador ${label}do.`)
+      // refrescar lista
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['multipliers'] }),
+      ])
+    } catch (err: any) {
+      error(err?.message || `No se pudo ${label}.`)
+    }
   }
 
   return (
@@ -325,7 +346,7 @@ export default function MultipliersListScreen() {
 
                     <XStack gap="$2">
                       {/* Eliminar (rojo) - placeholder de acción */}
-                      <Button
+                  <Button
                         // size="$2"
                         icon={(p:any)=> <Trash2 {...p} color={iconColor} />}
                         backgroundColor={'$red4'}
@@ -335,10 +356,10 @@ export default function MultipliersListScreen() {
                         onPress={(e:any) => {
                           e?.preventDefault?.()
                           e?.stopPropagation?.()
-                          // TODO: askDelete(m)
+                          handleToggle(m)
                         }}
                       >
-                        <Text>Eliminar</Text>
+                        <Text>{activeOnly ? 'Eliminar' : 'Restaurar'}</Text>
                       </Button>
                     </XStack>
                   </XStack>
@@ -351,4 +372,10 @@ export default function MultipliersListScreen() {
     </ScrollView>
   )
 }
+
+async function confirm(message: string) {
+  // placeholder simple; si hay dialog UI utilízalo
+  return window.confirm ? window.confirm(message) : true
+}
+
 
