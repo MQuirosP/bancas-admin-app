@@ -236,19 +236,19 @@ export default function TicketsListScreen({
 
   const handleCancelTicket = async (ticket: Ticket) => {
     const ok = await confirm({
-      title: 'Confirmar cancelación',
-      description: `¿Deseas cancelar el tiquete #${(ticket as any).ticketNumber ?? ticket.id.slice(-8)}?`,
-      okText: 'Cancelar tiquete',
+      title: 'Confirmar anulación',
+      description: `¿Deseas anular el tiquete #${(ticket as any).ticketNumber ?? ticket.id.slice(-8)}?`,
+      okText: 'Anular tiquete',
       cancelText: 'Volver',
       theme: 'danger',
     })
     if (!ok) return
     try {
       await apiClient.patch(`/tickets/${ticket.id}/cancel`)
-      success('Tiquete cancelado correctamente')
+      success('Tiquete anulado correctamente')
       refetch()
     } catch (err: any) {
-      error(err?.message || 'No se pudo cancelar el tiquete')
+      error(err?.message || 'No se pudo anular el tiquete')
     }
   }
 

@@ -68,9 +68,9 @@ export default function TicketActionButtons({ ticket, onView, onPayment, onCance
           borderWidth={1}
           hoverStyle={{ backgroundColor: '$red5' }}
           pressStyle={{ backgroundColor: '$red6', scale: 0.98 }}
-          title="Cancelar tiquete"
+          title="Anular tiquete"
         >
-          Cancelar
+          Anular
         </Button>
       )}
     </XStack>
