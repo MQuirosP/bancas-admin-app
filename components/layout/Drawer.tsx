@@ -166,6 +166,13 @@ export default function Drawer({ isOpen, onClose }: DrawerProps) {
           route: '/ventana/tickets/nuevo',
         },
         {
+          id: 'vendedores',
+          label: 'Vendedores',
+          icon: Users,
+          roles: ['VENTANA'],
+          route: '/ventana/vendedores',
+        },
+        {
           id: 'ventas',
           label: 'Ventas',
           icon: DollarSign,
@@ -380,18 +387,6 @@ export default function Drawer({ isOpen, onClose }: DrawerProps) {
                 <Button variant="ghost" justifyContent="flex-start" paddingHorizontal="$4" paddingVertical="$3" borderRadius="$3" bw={1} bc="transparent" animation="quick" style={{ transition: 'all 160ms ease' }} pressStyle={{ backgroundColor: '$backgroundPress' }} hoverStyle={{ backgroundColor: '$backgroundPress', borderColor: hoverBorder, shadowColor: hoverBorder as any, shadowOpacity: 0.35, shadowRadius: 8 }} onPress={() => handleNavigate('/admin/configuracion')}>
                   <XStack gap="$3" alignItems="center" width="100%"><Settings size={20} color={iconColor} /><Text fontSize="$4" fontWeight="500" color="$textPrimary">Configuración</Text></XStack>
                 </Button>
-
-                {/* Usuario */}
-                <YStack height={1} backgroundColor="$borderColor" marginVertical="$2" />
-                <XStack gap="$3" alignItems="center" paddingHorizontal="$4" paddingVertical="$3">
-                  <YStack width={40} height={40} backgroundColor="$primary" borderRadius="$4" alignItems="center" justifyContent="center">
-                    <Text fontSize="$5" fontWeight="600" color="white">{user?.name?.charAt(0).toUpperCase() || 'U'}</Text>
-                  </YStack>
-                  <YStack>
-                    <Text fontSize="$4" fontWeight="600" color="$textPrimary" numberOfLines={1}>{user?.name || 'Usuario'}</Text>
-                    <Text fontSize="$2" color="$textTertiary">{user?.role || 'ROL'}</Text>
-                  </YStack>
-                </XStack>
               </>
             ) : (
               menuItems.map((item) => {
@@ -406,6 +401,18 @@ export default function Drawer({ isOpen, onClose }: DrawerProps) {
                 )
               })
             )}
+
+            {/* Usuario - Mostrar para todos los roles */}
+            <YStack height={1} backgroundColor="$borderColor" marginVertical="$2" />
+            <XStack gap="$3" alignItems="center" paddingHorizontal="$4" paddingVertical="$3">
+              <YStack width={40} height={40} backgroundColor="$primary" borderRadius="$4" alignItems="center" justifyContent="center">
+                <Text fontSize="$5" fontWeight="600" color="white">{user?.name?.charAt(0).toUpperCase() || 'U'}</Text>
+              </YStack>
+              <YStack flex={1}>
+                <Text fontSize="$4" fontWeight="600" color="$textPrimary" numberOfLines={1}>{user?.name || 'Usuario'}</Text>
+                <Text fontSize="$2" color="$textTertiary">{user?.role === 'VENTANA' ? 'LISTERO' : user?.role || 'ROL'}</Text>
+              </YStack>
+            </XStack>
           </YStack>
 
           
