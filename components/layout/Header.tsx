@@ -49,7 +49,7 @@ export const Header: React.FC = () => {
       height={64}
     >
       {/* Left: Menu button */}
-      <XStack alignItems="center" minWidth={isMobile ? 40 : 72}>
+      <XStack alignItems="center" minWidth={isMobile ? 40 : 72} marginLeft={isMobile ? "$-2" : "$0"}>
         <Button
           variant="ghost"
           size={isMobile ? "$4" : "$5"}
@@ -65,55 +65,31 @@ export const Header: React.FC = () => {
       </XStack>
 
       {/* Center: Logo + Title */}
-      {isMobile ? (
-        <XStack 
-          flex={1} 
-          alignItems="center" 
-          justifyContent="flex-start"
-          gap="$2"
-          flexShrink={1}
+      <XStack 
+        flex={1} 
+        alignItems="center" 
+        justifyContent={isMobile ? "flex-start" : "center"} 
+        gap="$3"
+        paddingRight={isMobile ? "$2" : "$0"}
+      >
+        <Image
+          source={require('../../assets/logo.png')}
+          style={{ width: 120, height: 120 }}
+          resizeMode="contain"
+        />
+        <Text 
+          fontSize={isMobile ? "$5" : "$6"} 
+          fontWeight="600" 
+          color="$headerTitle"
+          numberOfLines={1}
+          ellipsizeMode="tail"
         >
-          <Image
-            source={require('../../assets/logo.png')}
-            style={{ width: 50, height: 50 }}
-            resizeMode="contain"
-          />
-          <YStack flex={1} justifyContent="center" gap="$0.5">
-            <Text 
-              fontSize="$3" 
-              fontWeight="600" 
-              color="$headerTitle"
-              flexWrap="wrap"
-              lineHeight={16}
-            >
-              {pageTitle}
-            </Text>
-          </YStack>
-        </XStack>
-      ) : (
-        <XStack 
-          flex={1} 
-          alignItems="center" 
-          justifyContent="center" 
-          gap="$3"
-        >
-          <Image
-            source={require('../../assets/logo.png')}
-            style={{ width: 120, height: 120 }}
-            resizeMode="contain"
-          />
-          <Text 
-            fontSize="$6" 
-            fontWeight="600" 
-            color="$headerTitle"
-          >
-            {pageTitle}
-          </Text>
-        </XStack>
-      )}
+          {pageTitle}
+        </Text>
+      </XStack>
 
       {/* Right: Theme toggle + Logout */}
-      <XStack alignItems="center" gap={isMobile ? "$1" : "$2"} minWidth={isMobile ? 80 : 72} justifyContent="flex-end" flexShrink={0}>
+      <XStack alignItems="center" gap={isMobile ? "$1" : "$2"} minWidth={72} justifyContent="flex-end">
         {/* Theme Toggle */}
         <Button
           variant="ghost"
