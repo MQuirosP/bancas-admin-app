@@ -200,7 +200,15 @@ export default function VendedoresScreen() {
             <YStack gap="$2">
               {vendedores.map((v, i) => (
                 <Card key={v.id || i} padding="$4" hoverStyle={{ backgroundColor: '$backgroundHover' }}>
-                  <XStack jc="space-around" ai="center" gap="$2" py="$2">
+                  {/* Desktop: Fila horizontal */}
+                  <XStack 
+                    display="flex" 
+                    $sm={{ display: 'none' }} 
+                    jc="space-around" 
+                    ai="center" 
+                    gap="$2" 
+                    py="$2"
+                  >
                     {/* Nombre */}
                     <XStack ai="center" gap="$1.5" minWidth={120}>
                       <TrendingUp size={14} color="$primary" />
@@ -237,6 +245,48 @@ export default function VendedoresScreen() {
                       <Text fontSize="$4" fontWeight="bold" color="$green10">{formatCurrency(v.total ?? 0)}</Text>
                     </YStack>
                   </XStack>
+
+                  {/* Mobile: Layout vertical compacto */}
+                  <YStack 
+                    display="none" 
+                    $sm={{ display: 'flex' }} 
+                    gap="$3"
+                  >
+                    {/* Nombre del vendedor */}
+                    <XStack ai="center" gap="$2">
+                      <TrendingUp size={16} color="$primary" />
+                      <Text fontSize="$4" fontWeight="700">{v.name || v.id || '—'}</Text>
+                    </XStack>
+
+                    {/* Grid 2x2 para métricas principales */}
+                    <XStack gap="$2" flexWrap="wrap">
+                      <YStack flex={1} minWidth="45%" ai="center" gap="$1" padding="$2" backgroundColor="$backgroundHover" borderRadius="$3">
+                        <Text fontSize="$5" fontWeight="bold" color="$primary">{v.tickets ?? 0}</Text>
+                        <Text fontSize="$2" color="$textSecondary" ta="center">Tiquetes</Text>
+                      </YStack>
+                      
+                      <YStack flex={1} minWidth="45%" ai="center" gap="$1" padding="$2" backgroundColor="$backgroundHover" borderRadius="$3">
+                        <Text fontSize="$5" fontWeight="bold" color="$orange10">{v.winnerTickets ?? 0}</Text>
+                        <Text fontSize="$2" color="$textSecondary" ta="center">Ganadores</Text>
+                      </YStack>
+                      
+                      <YStack flex={1} minWidth="45%" ai="center" gap="$1" padding="$2" backgroundColor="$backgroundHover" borderRadius="$3">
+                        <Text fontSize="$5" fontWeight="bold" color="$blue10">{v.paidTickets ?? 0}</Text>
+                        <Text fontSize="$2" color="$textSecondary" ta="center">Pagados</Text>
+                      </YStack>
+                      
+                      <YStack flex={1} minWidth="45%" ai="center" gap="$1" padding="$2" backgroundColor="$backgroundHover" borderRadius="$3">
+                        <Text fontSize="$5" fontWeight="bold" color="$yellow10">{v.pendingPayment ?? 0}</Text>
+                        <Text fontSize="$2" color="$textSecondary" ta="center">Pendientes</Text>
+                      </YStack>
+                    </XStack>
+
+                    {/* Total vendido destacado */}
+                    <YStack ai="center" gap="$1" padding="$3" backgroundColor="$green2" borderRadius="$3" borderWidth={1} borderColor="$green8">
+                      <Text fontSize="$2" color="$textSecondary">Total Vendido</Text>
+                      <Text fontSize="$6" fontWeight="bold" color="$green10">{formatCurrency(v.total ?? 0)}</Text>
+                    </YStack>
+                  </YStack>
                 </Card>
               ))}
             </YStack>
