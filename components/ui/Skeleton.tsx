@@ -2,13 +2,11 @@ import React from 'react'
 import { YStack, styled } from 'tamagui'
 
 const SkeletonBase = styled(YStack, {
-  '$theme-light': {
-    backgroundColor: '$gray4',
-  },
+  backgroundColor: '$gray4',
+  borderRadius: '$3',
   '$theme-dark': {
     backgroundColor: '$gray6',
   },
-  borderRadius: '$3',
 } as const)
 
 interface SkeletonProps {
@@ -53,7 +51,6 @@ export function Skeleton({
       marginTop={marginTop}
       marginLeft={marginLeft}
       marginRight={marginRight}
-      animated={animated}
       opacity={animated ? opacity : 1}
       animation={animated ? 'lazy' : undefined}
     />
