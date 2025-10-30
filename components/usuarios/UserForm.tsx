@@ -297,8 +297,8 @@ const UserForm: React.FC<Props> = ({
             </FieldGroup>
           </XStack>
 
-          <XStack gap="$2" flexWrap="wrap" ai="center">
-            <FieldGroup minWidth={200} maxWidth={320}>
+          <XStack gap="$4" flexWrap="wrap" ai="center">
+            <FieldGroup flex={1} minWidth={260}>
               <FieldLabel>Correo (opcional)</FieldLabel>
               <Input
                 value={values.email}
@@ -311,7 +311,7 @@ const UserForm: React.FC<Props> = ({
               <FieldError message={errors.email} />
             </FieldGroup>
 
-            <XStack gap="$3" ai="center">
+            <XStack gap="$3" ai="center" jc="center" alignSelf="center">
               <Switch
                 size="$2"
                 checked={!!values.isActive}
