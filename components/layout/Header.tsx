@@ -69,20 +69,20 @@ export const Header: React.FC = () => {
         flex={1} 
         alignItems="center" 
         justifyContent={isMobile ? "flex-start" : "center"} 
-        gap="$3"
+        gap={isMobile ? "$2" : "$3"}
         paddingRight={isMobile ? "$2" : "$0"}
       >
         <Image
           source={require('../../assets/logo.png')}
-          style={{ width: 120, height: 120 }}
+          style={{ width: isMobile ? 70 : 120, height: isMobile ? 70 : 120 }}
           resizeMode="contain"
         />
         <Text 
-          fontSize={isMobile ? "$5" : "$6"} 
+          fontSize={isMobile ? "$4" : "$6"} 
           fontWeight="600" 
           color="$headerTitle"
-          numberOfLines={1}
-          ellipsizeMode="tail"
+          flexWrap="wrap"
+          flex={1}
         >
           {pageTitle}
         </Text>
