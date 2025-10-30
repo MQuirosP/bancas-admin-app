@@ -205,7 +205,6 @@ const UserForm: React.FC<Props> = ({
         name: values.name,
         username: values.username,
         email: values.email?.trim().toLowerCase() || undefined,
-        code: values.code?.trim() || undefined,
         role: values.role,
         ventanaId: values.role !== 'ADMIN' ? values.ventanaId?.trim() || undefined : undefined,
         isActive: values.isActive,
