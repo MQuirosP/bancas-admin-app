@@ -1,13 +1,12 @@
 // components/usuarios/UserForm.tsx
 import React, { useEffect, useMemo, useState } from 'react'
-import { Pressable } from 'react-native'
 import { YStack, XStack, Text, Switch, Spinner, Sheet, Adapt } from 'tamagui'
 import { Button, Input, Card, Select } from '@/components/ui'
 import { z } from 'zod'
 import type { Usuario } from '@/types/models.types'
 import { useToast } from '@/hooks/useToast'
 import { FieldGroup, FieldLabel, FieldError } from '@/components/ui/Field'
-import { ChevronDown, X as XIcon, Eye, EyeOff } from '@tamagui/lucide-icons'
+import { ChevronDown, X as XIcon } from '@tamagui/lucide-icons'
 import { isDirty as isDirtyUtil } from '@/utils/forms/dirty'
 
 // ---------------- Schemas ----------------
@@ -432,56 +431,28 @@ const UserForm: React.FC<Props> = ({
               <FieldLabel hint={mode === 'edit' ? 'Deja en blanco para no cambiar' : undefined}>
                 Contraseña
               </FieldLabel>
-              <XStack position="relative" ai="center">
-                <Input
-                  value={values.password}
-                  onChangeText={(v) => setField('password', v)}
-                  placeholder="******"
-                  secureTextEntry={!showPassword}
-                  autoCapitalize="none"
-                  flex={1}
-                  pr="$8"
-                  focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
-                />
-                <Pressable
-                  style={{ position: 'absolute', right: 12, top: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' }}
-                  onPress={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? (
-                    <EyeOff size={18} color="#000" />
-                  ) : (
-                    <Eye size={18} color="#000" />
-                  )}
-                </Pressable>
-              </XStack>
+              <Input
+                value={values.password}
+                onChangeText={(v) => setField('password', v)}
+                placeholder="******"
+                secureTextEntry={!showPassword}
+                autoCapitalize="none"
+                focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
+              />
               <FieldError message={errors.password} />
             </FieldGroup>
 
             {mode === 'create' && (
               <FieldGroup flex={1} minWidth={260}>
                 <FieldLabel>Confirmar contraseña</FieldLabel>
-                <XStack position="relative" ai="center">
-                  <Input
-                    value={values.confirmPassword}
-                    onChangeText={(v) => setField('confirmPassword', v)}
-                    placeholder="******"
-                    secureTextEntry={!showConfirmPassword}
-                    autoCapitalize="none"
-                    flex={1}
-                    pr="$8"
-                    focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
-                  />
-                  <Pressable
-                    style={{ position: 'absolute', right: 12, top: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' }}
-                    onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                  >
-                    {showConfirmPassword ? (
-                      <EyeOff size={18} color="#000" />
-                    ) : (
-                      <Eye size={18} color="#000" />
-                    )}
-                  </Pressable>
-                </XStack>
+                <Input
+                  value={values.confirmPassword}
+                  onChangeText={(v) => setField('confirmPassword', v)}
+                  placeholder="******"
+                  secureTextEntry={!showConfirmPassword}
+                  autoCapitalize="none"
+                  focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
+                />
                 <FieldError message={errors.confirmPassword} />
               </FieldGroup>
             )}
