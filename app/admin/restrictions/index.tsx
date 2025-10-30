@@ -1,7 +1,7 @@
 // app/admin/restrictions/index.tsx
 import React, { useMemo, useState } from 'react'
 import { ScrollView, YStack, XStack, Text, Spinner, useTheme } from 'tamagui'
-import { Button, Card, Input, Select } from '@/components/ui'
+import { Button, Card, Input, Select, CollapsibleToolbar } from '@/components/ui'
 import { useRouter } from 'expo-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Check, ChevronDown, Plus, Trash2, RotateCcw, ArrowLeft } from '@tamagui/lucide-icons'
@@ -121,86 +121,95 @@ export default function RestrictionsListScreen() {
           </Button>
         </XStack>
 
-        {/* Toolbar (perfectamente alineada) */}
-        <Card padding="$3" borderColor="$borderColor" borderWidth={1}>
-          <XStack gap="$3" flexWrap="wrap" ai="flex-end">
-            {/* Tipo */}
-            <YStack gap="$1" minWidth={220}>
-              <Text fontSize="$3">Tipo</Text>
-              <Select value={scope} onValueChange={(v) => setScope(v as any)}>
-                <Select.Trigger
-                  iconAfter={ChevronDown}
-                  width={220}
-                  height={36}
-                  br="$4"
-                  bw={1}
-                  bc="$borderColor"
-                  backgroundColor="$background"
-                >
-                  <Select.Value />
-                </Select.Trigger>
-                <Select.Content zIndex={200000}>
-                  <Select.Viewport>
-                    <Select.Group>
-                      <Select.Item value="all" index={0}>
-                        <Select.ItemText>Todas</Select.ItemText>
-                        <Select.ItemIndicator ml="auto">
-                          <Check size={16} />
-                        </Select.ItemIndicator>
-                      </Select.Item>
-                      <Select.Item value="amount" index={1}>
-                        <Select.ItemText>Montos</Select.ItemText>
-                        <Select.ItemIndicator ml="auto">
-                          <Check size={16} />
-                        </Select.ItemIndicator>
-                      </Select.Item>
-                      <Select.Item value="cutoff" index={2}>
-                        <Select.ItemText>Corte de venta</Select.ItemText>
-                        <Select.ItemIndicator ml="auto">
-                          <Check size={16} />
-                        </Select.ItemIndicator>
-                      </Select.Item>
-                    </Select.Group>
-                  </Select.Viewport>
-                </Select.Content>
-              </Select>
-            </YStack>
-
-            {/* Número */}
-            <YStack gap="$1" minWidth={220}>
-              <Text fontSize="$3">Número</Text>
-              <Input
-                width={220}
-                height={36}
-                placeholder="0..999"
-                value={searchNumber}
-                onChangeText={setSearchNumber}
-                maxLength={3}
-                keyboardType="number-pad"
-              />
-            </YStack>
-
-            {/* Aplicar */}
-            <YStack gap="$1">
-              <Text fontSize="$3" opacity={0}>
-                Aplicar
+        {/* Toolbar colapsable - filtros siempre colapsados por defecto */}
+        <CollapsibleToolbar
+          searchContent={
+            <XStack ai="center" gap="$2">
+              <Text fontSize="$4" fontWeight="600" color="$textPrimary">
+                Filtros de Restricciones
               </Text>
-              <Button
-                height={36}
-                px="$4"
-                backgroundColor="$gray4"
-                borderColor="$gray8"
-                borderWidth={1}
-                hoverStyle={{ backgroundColor: '$gray5' }}
-                onPress={() => setPage(1)}
-              >
-                Aplicar
-              </Button>
-            </YStack>
+              {isFetching && <Spinner size="small" />}
+            </XStack>
+          }
+          filtersContent={
+            <XStack gap="$4" flexWrap="wrap" ai="flex-end">
+              {/* Tipo */}
+              <YStack gap="$1" minWidth={200} maxWidth={240} flex={1}>
+                <Text fontSize="$3" fontWeight="600">Tipo</Text>
+                <Select value={scope} onValueChange={(v) => setScope(v as any)}>
+                  <Select.Trigger
+                    iconAfter={ChevronDown}
+                    width="100%"
+                    height={40}
+                    br="$4"
+                    bw={1}
+                    bc="$borderColor"
+                    backgroundColor="$background"
+                  >
+                    <Select.Value />
+                  </Select.Trigger>
+                  <Select.Content zIndex={200000}>
+                    <Select.Viewport>
+                      <Select.Group>
+                        <Select.Item value="all" index={0}>
+                          <Select.ItemText>Todas</Select.ItemText>
+                          <Select.ItemIndicator ml="auto">
+                            <Check size={16} />
+                          </Select.ItemIndicator>
+                        </Select.Item>
+                        <Select.Item value="amount" index={1}>
+                          <Select.ItemText>Montos</Select.ItemText>
+                          <Select.ItemIndicator ml="auto">
+                            <Check size={16} />
+                          </Select.ItemIndicator>
+                        </Select.Item>
+                        <Select.Item value="cutoff" index={2}>
+                          <Select.ItemText>Corte de venta</Select.ItemText>
+                          <Select.ItemIndicator ml="auto">
+                            <Check size={16} />
+                          </Select.ItemIndicator>
+                        </Select.Item>
+                      </Select.Group>
+                    </Select.Viewport>
+                  </Select.Content>
+                </Select>
+              </YStack>
 
-            {isFetching && <Spinner size="small" />}
-          </XStack>
-        </Card>
+              {/* Número */}
+              <YStack gap="$1" minWidth={160} maxWidth={200} flex={1}>
+                <Text fontSize="$3" fontWeight="600">Número</Text>
+                <Input
+                  width="100%"
+                  height={40}
+                  placeholder="0..999"
+                  value={searchNumber}
+                  onChangeText={setSearchNumber}
+                  maxLength={3}
+                  keyboardType="number-pad"
+                />
+              </YStack>
+
+              {/* Aplicar */}
+              <YStack gap="$1" flexShrink={0}>
+                <Text fontSize="$3" opacity={0}>
+                  Aplicar
+                </Text>
+                <Button
+                  height={40}
+                  px="$5"
+                  backgroundColor="$gray4"
+                  borderColor="$gray8"
+                  borderWidth={1}
+                  hoverStyle={{ backgroundColor: '$gray5' }}
+                  pressStyle={{ scale: 0.98 }}
+                  onPress={() => setPage(1)}
+                >
+                  Aplicar
+                </Button>
+              </YStack>
+            </XStack>
+          }
+        />
 
         {/* Lista */}
         <YStack gap="$3">

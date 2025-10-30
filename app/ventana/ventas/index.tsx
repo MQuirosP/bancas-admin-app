@@ -23,12 +23,17 @@ export default function MisVentasScreen() {
 
   const { data, isLoading, isFetching, refetch } = useQuery({
     queryKey: ['ventas', params],
-    queryFn: () => apiClient.get('/ventas/summary', params),
+    queryFn: async () => {
+      const result = await apiClient.get('/ventas/summary', params)
+      console.log('📊 RESPUESTA ACTUALIZADA de /ventas/summary:', result)
+      return result
+    },
     staleTime: 60_000,
-    refetchOnMount: 'always', // ✅ Refrescar cada vez que se entra en la pantalla
+    refetchOnMount: 'always',
   })
 
   const payload = (data as any)?.data ?? data ?? {}
+  
   const totals = {
     tickets: payload?.ticketsCount ?? 0,
     amount: payload?.ventasTotal ?? 0,
@@ -36,7 +41,15 @@ export default function MisVentasScreen() {
     neto: payload?.neto ?? 0,
     commission: payload?.commissionTotal ?? 0,
     netoDespuesComision: payload?.netoDespuesComision ?? 0,
+    // ✅ Nuevos campos de pagos
+    totalPaid: payload?.totalPaid ?? 0,
+    remainingAmount: payload?.remainingAmount ?? 0,
+    paidTicketsCount: payload?.paidTicketsCount ?? 0,
+    unpaidTicketsCount: payload?.unpaidTicketsCount ?? 0,
   }
+
+  console.log('💰 Totales extraídos:', totals)
+  console.log('🏆 Premios - Total:', totals.payout, 'Pagado:', totals.totalPaid, 'Pendiente:', totals.remainingAmount)
 
   return (
     <ScrollView flex={1} backgroundColor={'$background'}>
@@ -100,43 +113,163 @@ export default function MisVentasScreen() {
         <Card padding="$4" bg="$backgroundHover" borderColor="$borderColor" borderWidth={1}>
           <Text fontSize="$5" fontWeight="600" marginBottom="$3">Resumen de Ventas</Text>
           <YStack gap="$3">
-            {/* Fila 1: Tickets y Ventas Totales */}
-            <XStack justifyContent="space-around" flexWrap="wrap" gap="$4">
-              <YStack ai="center" flex={1} minWidth={140}>
-                <Text fontSize="$7" fontWeight="bold" color="$primary">{totals.tickets}</Text>
-                <Text fontSize="$2" color="$textSecondary">Tickets Vendidos</Text>
-              </YStack>
-              <YStack ai="center" flex={1} minWidth={140}>
-                <Text fontSize="$7" fontWeight="bold" color="$green10">{formatCurrency(totals.amount)}</Text>
-                <Text fontSize="$2" color="$textSecondary">Total Vendido</Text>
-              </YStack>
+            {/* Fila 1: Ventas y Tickets */}
+            <XStack justifyContent="center" flexWrap="wrap" gap="$3">
+              <Card 
+                padding="$3" 
+                flex={1} 
+                minWidth={140} 
+                maxWidth={200}
+                backgroundColor="$background"
+                borderColor="$borderColor"
+                borderWidth={1}
+              >
+                <YStack ai="center" gap="$1">
+                  <Text fontSize="$7" fontWeight="bold" color="$green10">{formatCurrency(totals.amount)}</Text>
+                  <Text fontSize="$2" color="$textSecondary" textAlign="center">Ventas Totales</Text>
+                </YStack>
+              </Card>
+              <Card 
+                padding="$3" 
+                flex={1} 
+                minWidth={140} 
+                maxWidth={200}
+                backgroundColor="$background"
+                borderColor="$borderColor"
+                borderWidth={1}
+              >
+                <YStack ai="center" gap="$1">
+                  <Text fontSize="$7" fontWeight="bold" color="$primary">{totals.tickets}</Text>
+                  <Text fontSize="$2" color="$textSecondary" textAlign="center">Tickets</Text>
+                </YStack>
+              </Card>
             </XStack>
 
-            {/* Fila 2: Premios y Comisiones */}
-            <XStack justifyContent="space-around" flexWrap="wrap" gap="$4">
-              <YStack ai="center" flex={1} minWidth={140}>
-                <Text fontSize="$6" fontWeight="bold" color="$orange10">{formatCurrency(totals.payout)}</Text>
-                <Text fontSize="$2" color="$textSecondary">Total en Premios</Text>
-              </YStack>
-              <YStack ai="center" flex={1} minWidth={140}>
-                <Text fontSize="$6" fontWeight="bold" color="$blue10">{formatCurrency(totals.commission)}</Text>
-                <Text fontSize="$2" color="$textSecondary">Comisiones</Text>
-              </YStack>
-            </XStack>
-
-            {/* Fila 3: Neto (Ganancia/Pérdida) */}
-            <XStack justifyContent="center" flexWrap="wrap" gap="$4">
-              <YStack ai="center" flex={1}>
-                <Text
-                  fontSize="$7"
-                  fontWeight="bold"
+            {/* Neto Destacado - Centro */}
+            <Card 
+              padding="$4" 
+              alignSelf="center"
+              minWidth={280}
+              maxWidth={400}
+              width="90%"
+              backgroundColor="$background"
+              borderColor={totals.neto >= 0 ? '$green10' : '$red10'}
+              borderWidth={2}
+            >
+              <YStack ai="center" gap="$2">
+                <Text 
+                  fontSize="$10" 
+                  fontWeight="bold" 
                   color={totals.neto >= 0 ? '$green10' : '$red10'}
                 >
                   {totals.neto >= 0 ? '+' : ''}{formatCurrency(totals.neto)}
                 </Text>
-                <Text fontSize="$2" color="$textSecondary">Neto (Ganancia/Pérdida)</Text>
+                <Text fontSize="$3" color="$textSecondary" textAlign="center">Neto (Ganancia/Pérdida)</Text>
               </YStack>
+            </Card>
+
+            {/* Fila 3: Premios Totales y Comisiones */}
+            <XStack justifyContent="center" flexWrap="wrap" gap="$3">
+              <Card 
+                padding="$3" 
+                flex={1} 
+                minWidth={140} 
+                maxWidth={200}
+                backgroundColor="$background"
+                borderColor="$borderColor"
+                borderWidth={1}
+              >
+                <YStack ai="center" gap="$1">
+                  <Text fontSize="$6" fontWeight="bold" color="$orange10">{formatCurrency(totals.payout)}</Text>
+                  <Text fontSize="$2" color="$textSecondary" textAlign="center">Premios Totales</Text>
+                </YStack>
+              </Card>
+              <Card 
+                padding="$3" 
+                flex={1} 
+                minWidth={140} 
+                maxWidth={200}
+                backgroundColor="$background"
+                borderColor="$borderColor"
+                borderWidth={1}
+              >
+                <YStack ai="center" gap="$1">
+                  <Text fontSize="$6" fontWeight="bold" color="$blue10">{formatCurrency(totals.commission)}</Text>
+                  <Text fontSize="$2" color="$textSecondary" textAlign="center">Comisiones</Text>
+                </YStack>
+              </Card>
             </XStack>
+
+            {/* Fila 4: Información de Pagos - Solo si hay premios */}
+            {totals.payout > 0 && (
+              <>
+                <XStack justifyContent="center" flexWrap="wrap" gap="$3">
+                  <Card 
+                    padding="$3" 
+                    flex={1} 
+                    minWidth={140} 
+                    maxWidth={200}
+                    backgroundColor="$background"
+                    borderColor="$green8"
+                    borderWidth={1}
+                  >
+                    <YStack ai="center" gap="$1">
+                      <Text fontSize="$6" fontWeight="bold" color="$green10">{formatCurrency(totals.totalPaid)}</Text>
+                      <Text fontSize="$2" color="$textSecondary" textAlign="center">Pagado</Text>
+                    </YStack>
+                  </Card>
+                  <Card 
+                    padding="$3" 
+                    flex={1} 
+                    minWidth={140} 
+                    maxWidth={200}
+                    backgroundColor="$background"
+                    borderColor={totals.remainingAmount > 0 ? '$yellow8' : '$borderColor'}
+                    borderWidth={1}
+                  >
+                    <YStack ai="center" gap="$1">
+                      <Text fontSize="$6" fontWeight="bold" color={totals.remainingAmount > 0 ? '$yellow10' : '$textSecondary'}>
+                        {formatCurrency(totals.remainingAmount)}
+                      </Text>
+                      <Text fontSize="$2" color="$textSecondary" textAlign="center">Pendiente</Text>
+                    </YStack>
+                  </Card>
+                </XStack>
+
+                <XStack justifyContent="center" flexWrap="wrap" gap="$3">
+                  <Card 
+                    padding="$3" 
+                    flex={1} 
+                    minWidth={140} 
+                    maxWidth={200}
+                    backgroundColor="$background"
+                    borderColor="$borderColor"
+                    borderWidth={1}
+                  >
+                    <YStack ai="center" gap="$1">
+                      <Text fontSize="$5" fontWeight="bold" color="$green10">{totals.paidTicketsCount}</Text>
+                      <Text fontSize="$2" color="$textSecondary" textAlign="center">Tickets Pagados</Text>
+                    </YStack>
+                  </Card>
+                  <Card 
+                    padding="$3" 
+                    flex={1} 
+                    minWidth={140} 
+                    maxWidth={200}
+                    backgroundColor="$background"
+                    borderColor="$borderColor"
+                    borderWidth={1}
+                  >
+                    <YStack ai="center" gap="$1">
+                      <Text fontSize="$5" fontWeight="bold" color={totals.unpaidTicketsCount > 0 ? '$yellow10' : '$textSecondary'}>
+                        {totals.unpaidTicketsCount}
+                      </Text>
+                      <Text fontSize="$2" color="$textSecondary" textAlign="center">Tickets Pendientes</Text>
+                    </YStack>
+                  </Card>
+                </XStack>
+              </>
+            )}
           </YStack>
         </Card>
       </YStack>

@@ -1,7 +1,7 @@
 // app/admin/bancas/index.tsx
 import React, { useMemo, useState } from 'react';
 import { YStack, XStack, Text, ScrollView, Spinner } from 'tamagui';
-import { Button, Input, Card, Toolbar, ActiveBadge } from '@/components/ui';
+import { Button, Input, Card, CollapsibleToolbar, ActiveBadge } from '@/components/ui';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { Plus, Search, X, RefreshCw, Trash2, ArrowLeft } from '@tamagui/lucide-icons';
@@ -142,70 +142,71 @@ export default function BancasListScreen() {
         </XStack>
 
         {/* Toolbar */}
-<Toolbar>
-  <YStack gap="$3">
-    <XStack gap="$3" ai="center" flexWrap="wrap">
-      {/* Buscador: ocupa todo el ancho disponible, no se desborda */}
-      <XStack flex={1} minWidth={220} position="relative" ai="center">
-        <Input
-          flex={1}
-          placeholder="Buscar bancas..."
-          value={searchInput}
-          onChangeText={setSearchInput}
-          size="$4"
-          inputMode="search"
-          enterKeyHint="search"
-          clearButtonMode="while-editing"
-          onSubmitEditing={handleSearchClick}
-          returnKeyType="search"
-          aria-label="Buscar bancas"
-          pr="$8" // espacio para el botón de limpiar
-          backgroundColor="$backgroundHover"
-          borderColor="$borderColor"
-          color="$color"
-          placeholderTextColor="$placeholderColor"
-          focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
+        <CollapsibleToolbar
+          searchContent={
+            <XStack gap="$2" ai="center" flex={1}>
+              <XStack flex={1} position="relative" ai="center">
+                <Button
+                  size="$2"
+                  circular
+                  icon={(p:any)=> <Search {...p} size={18} color="$textSecondary" />}
+                  position="absolute"
+                  left="$2"
+                  zIndex={1}
+                  onPress={handleSearchClick}
+                  aria-label="Buscar"
+                  backgroundColor="transparent"
+                  borderWidth={0}
+                  hoverStyle={{ bg: '$backgroundHover' }}
+                />
+                
+                <Input
+                  flex={1}
+                  placeholder="Buscar bancas..."
+                  value={searchInput}
+                  onChangeText={setSearchInput}
+                  inputMode="search"
+                  enterKeyHint="search"
+                  pl="$10"
+                  pr="$10"
+                  onSubmitEditing={handleSearchClick}
+                  returnKeyType="search"
+                  aria-label="Buscar bancas"
+                  focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
+                />
+                
+                {searchInput.length > 0 && (
+                  <Button
+                    size="$2"
+                    circular
+                    icon={(p:any)=> <X {...p} size={16} color={iconColor} />}
+                    position="absolute"
+                    right="$2"
+                    onPress={() => setSearchInput('')}
+                    aria-label="Limpiar búsqueda"
+                    hoverStyle={{ bg: '$backgroundHover' }}
+                    backgroundColor="transparent"
+                    borderWidth={0}
+                  />
+                )}
+              </XStack>
+            </XStack>
+          }
+          actionsContent={
+            <XStack gap="$2" ai="center" flexWrap="wrap">
+              <Button
+                icon={(p:any)=> <RefreshCw {...p} color={iconColor} />}
+                onPress={() => { setPage(1); refetch() }}
+                backgroundColor="$green4"
+                borderColor="$green8"
+                hoverStyle={{ backgroundColor: '$green5' }}
+                pressStyle={{ backgroundColor: '$green6', scale: 0.98 }}
+              >
+                <Text>Refrescar</Text>
+              </Button>
+            </XStack>
+          }
         />
-        {searchInput.length > 0 && (
-          <Button
-            size="$2"
-            circular
-            icon={(p:any)=> <X {...p} color={iconColor} />}
-            position="absolute"
-            right="$2"
-            onPress={() => setSearchInput('')}
-            aria-label="Limpiar búsqueda"
-            variant="outlined"
-            zIndex={1}
-          />
-        )}
-      </XStack>
-
-      {/* Botonera: no se encoge ni se monta; salta a la siguiente línea si no cabe */}
-      <XStack gap="$2" ml="auto" flexShrink={0} flexWrap="wrap">
-        <Button
-          icon={(p:any)=> <Search {...p} color={iconColor} />}
-          onPress={handleSearchClick}
-          flexShrink={0}
-        >
-          <Text>Buscar</Text>
-        </Button>
-
-        <Button
-          icon={(p:any)=> <RefreshCw {...p} color={iconColor} />}
-          onPress={() => { setPage(1); refetch() }}
-          backgroundColor="$green4"
-          borderColor="$green8"
-          hoverStyle={{ backgroundColor: '$green5' }}
-          pressStyle={{ backgroundColor: '$green6', scale: 0.98 }}
-          flexShrink={0}
-        >
-          <Text>Refrescar</Text>
-        </Button>
-      </XStack>
-    </XStack>
-  </YStack>
-</Toolbar>
 
 
         {/* Contenido */}

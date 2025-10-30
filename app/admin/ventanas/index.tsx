@@ -1,7 +1,7 @@
 // app/admin/ventanas/index.tsx
 import React, { useMemo, useState } from 'react'
 import { YStack, XStack, Text, ScrollView, Spinner, Separator } from 'tamagui'
-import { Button, Input, Card, Toolbar, ActiveBadge } from '@/components/ui'
+import { Button, Input, Card, CollapsibleToolbar, ActiveBadge } from '@/components/ui'
 import { useRouter } from 'expo-router'
 import { Plus, Search, X, RefreshCw, Trash2, RotateCcw, ArrowLeft } from '@tamagui/lucide-icons'
 import { useTheme } from 'tamagui'
@@ -106,10 +106,24 @@ export default function VentanasListScreen() {
         </XStack>
 
         {/* Filtros */}
-        <Toolbar>
-          <YStack gap="$3">
-            <XStack gap="$2" ai="center" flexWrap="wrap">
+        <CollapsibleToolbar
+          searchContent={
+            <XStack gap="$2" ai="center" flex={1}>
               <XStack flex={1} position="relative" ai="center">
+                <Button
+                  size="$2"
+                  circular
+                  icon={(p:any)=> <Search {...p} size={18} color="$textSecondary" />}
+                  position="absolute"
+                  left="$2"
+                  zIndex={1}
+                  onPress={handleSearch}
+                  aria-label="Buscar"
+                  backgroundColor="transparent"
+                  borderWidth={0}
+                  hoverStyle={{ bg: '$backgroundHover' }}
+                />
+                
                 <Input
                   flex={1}
                   placeholder="Buscar por nombre, código o correo"
@@ -117,52 +131,46 @@ export default function VentanasListScreen() {
                   onChangeText={setSearchInput}
                   inputMode="search"
                   enterKeyHint="search"
-                  pr="$8"
+                  pl="$10"
+                  pr="$10"
                   onSubmitEditing={handleSearch}
                   returnKeyType="search"
                   aria-label="Buscar ventanas"
                   focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
                 />
+                
                 {searchInput.length > 0 && (
                   <Button
                     size="$2"
                     circular
-                    icon={(p:any)=> <X {...p} color={iconColor} />}
+                    icon={(p:any)=> <X {...p} size={16} color={iconColor} />}
                     position="absolute"
                     right="$2"
                     onPress={() => setSearchInput('')}
                     aria-label="Limpiar búsqueda"
                     hoverStyle={{ bg: '$backgroundHover' }}
+                    backgroundColor="transparent"
+                    borderWidth={0}
                   />
                 )}
               </XStack>
-
-              <Button 
-              icon={(p:any)=> <Search {...p} color={iconColor} />} 
-              onPress={handleSearch}  
-              pressStyle={{ scale: 0.98 }}>
-                Buscar
-              </Button>
-
-              <Separator vertical />
-
-              {/* ON => true (activas), OFF => false (inactivas) */}
+            </XStack>
+          }
+          filtersContent={
+            <XStack gap="$3" ai="center" flexWrap="wrap">
               <FilterSwitch
                 label="Activas:"
                 checked={isActive}
-                onCheckedChange={(v) => {
-                  // 👇 Solo cambiamos el filtro en memoria
-                  setIsActive(!!v)
-                  // Si quisieras refetch explícito al togglear:
-                  // refetch()
-                }}
+                onCheckedChange={(v) => setIsActive(!!v)}
               />
-
-              <Separator vertical />
-
+            </XStack>
+          }
+          actionsContent={
+            <XStack gap="$2" ai="center" flexWrap="wrap">
               <Button
                 icon={(p:any)=> <RefreshCw {...p} color={iconColor} />}
-                onPress={() => { setPage(1); refetch() }} backgroundColor={'$green4'}
+                onPress={() => { setPage(1); refetch() }}
+                backgroundColor={'$green4'}
                 borderColor={'$green8'}
                 hoverStyle={{ backgroundColor: '$green5' }}
                 pressStyle={{ scale: 0.98 }}
@@ -171,17 +179,17 @@ export default function VentanasListScreen() {
               </Button>
 
               <Button 
-              onPress={clearFilters} 
-              backgroundColor={'$gray4'}
-              borderColor={'$gray8'}
-              hoverStyle={{ backgroundColor: '$gray5' }} 
-              pressStyle={{ scale: 0.98 }}
+                onPress={clearFilters} 
+                backgroundColor={'$gray4'}
+                borderColor={'$gray8'}
+                hoverStyle={{ backgroundColor: '$gray5' }} 
+                pressStyle={{ scale: 0.98 }}
               >
                 Limpiar
               </Button>
             </XStack>
-          </YStack>
-        </Toolbar>
+          }
+        />
 
         {/* Lista */}
         {isLoading ? (

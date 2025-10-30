@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo, useState } from 'react'
 import { YStack, XStack, Text, Card } from 'tamagui'
 import { Button, Input } from '@/components/ui'
+import { useToast } from '@/hooks/useToast'
 
 export type QuickGroup = {
   numbers: string[]
@@ -12,11 +13,20 @@ export type QuickBetEditorProps = {
   onCommit: (group: QuickGroup) => void
   minAmount?: number
   maxAmount?: number
+  reventadoEnabled?: boolean
+  sorteoSelected?: boolean
 }
 
 const sanitizeNumber2 = (val: string) => val.replace(/\D/g, '').slice(0, 2)
 
-export default function QuickBetEditor({ onCommit, minAmount = 1, maxAmount = 10_000_000 }: QuickBetEditorProps) {
+export default function QuickBetEditor({ 
+  onCommit, 
+  minAmount = 1, 
+  maxAmount = 10_000_000,
+  reventadoEnabled = true,
+  sorteoSelected = false
+}: QuickBetEditorProps) {
+  const { info } = useToast()
   const [amountNumero, setAmountNumero] = useState('')
   const [amountReventado, setAmountReventado] = useState('')
   const [numInput, setNumInput] = useState('')
@@ -77,6 +87,13 @@ export default function QuickBetEditor({ onCommit, minAmount = 1, maxAmount = 10
               ta="center"
               height={56}
               fontSize="$6"
+              editable={sorteoSelected}
+              opacity={sorteoSelected ? 1 : 0.5}
+              onFocus={() => {
+                if (!sorteoSelected) {
+                  info('Primero selecciona un sorteo')
+                }
+              }}
             />
           </YStack>
           <YStack width={140} gap="$1">
@@ -89,8 +106,17 @@ export default function QuickBetEditor({ onCommit, minAmount = 1, maxAmount = 10
               ta="center"
               height={56}
               fontSize="$6"
-              editable={!!amountNumero}
-              opacity={amountNumero ? 1 : 0.5}
+              editable={!!amountNumero && reventadoEnabled && sorteoSelected}
+              opacity={(amountNumero && reventadoEnabled && sorteoSelected) ? 1 : 0.5}
+              onFocus={() => {
+                if (!sorteoSelected) {
+                  info('Primero selecciona un sorteo')
+                } else if (!amountNumero) {
+                  info('Primero ingresa la apuesta del número')
+                } else if (!reventadoEnabled) {
+                  info('El reventado no está habilitado para este sorteo')
+                }
+              }}
             />
           </YStack>
         </XStack>
@@ -116,10 +142,17 @@ export default function QuickBetEditor({ onCommit, minAmount = 1, maxAmount = 10
               height={56}
               fontSize="$6"
               ta="center"
-              editable={!!amountNumero}
-              opacity={amountNumero ? 1 : 0.5}
+              editable={!!amountNumero && sorteoSelected}
+              opacity={(amountNumero && sorteoSelected) ? 1 : 0.5}
               onKeyPress={(e: any) => {
                 if (e?.nativeEvent?.key === 'Enter' && numInput.length === 2) addNumber()
+              }}
+              onFocus={() => {
+                if (!sorteoSelected) {
+                  info('Primero selecciona un sorteo')
+                } else if (!amountNumero) {
+                  info('Primero ingresa el monto de la apuesta')
+                }
               }}
             />
           </YStack>

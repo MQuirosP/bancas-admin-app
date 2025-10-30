@@ -1,7 +1,7 @@
 // app/admin/multipliers/index.tsx
 import React, { useMemo, useState } from 'react'
 import { YStack, XStack, Text, ScrollView, Spinner, Separator, Select, Sheet, useTheme } from 'tamagui'
-import { Button, Card, Input, Toolbar, ActiveBadge } from '@/components/ui'
+import { Button, Card, Input, CollapsibleToolbar, ActiveBadge } from '@/components/ui'
 import { useRouter } from 'expo-router'
 import { Plus, Search, X, RefreshCw, Check, ChevronDown, Trash2, ArrowLeft } from '@tamagui/lucide-icons'
 import { useQuery } from '@tanstack/react-query'
@@ -98,11 +98,24 @@ export default function MultipliersListScreen() {
         </XStack>
 
         {/* Filtros */}
-        <Toolbar>
-          <YStack gap="$3">
-            {/* Fila 1: Búsqueda + Selects + Switch */}
-            <XStack gap="$2" ai="center" fw="wrap">
+        <CollapsibleToolbar
+          searchContent={
+            <XStack gap="$2" ai="center" flex={1}>
               <XStack flex={1} position="relative" ai="center">
+                <Button
+                  size="$2"
+                  circular
+                  icon={(p:any)=> <Search {...p} size={18} color="$textSecondary" />}
+                  position="absolute"
+                  left="$2"
+                  zIndex={1}
+                  onPress={handleSearch}
+                  aria-label="Buscar"
+                  backgroundColor="transparent"
+                  borderWidth={0}
+                  hoverStyle={{ bg: '$backgroundHover' }}
+                />
+                
                 <Input
                   flex={1}
                   placeholder="Buscar por nombre"
@@ -110,134 +123,132 @@ export default function MultipliersListScreen() {
                   onChangeText={setSearchInput}
                   inputMode='search'
                   enterKeyHint='search'
-                  pr="$8"
+                  pl="$10"
+                  pr="$10"
                   onSubmitEditing={handleSearch}
                   returnKeyType="search"
                   aria-label='Buscar multiplicador'
                   focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
                 />
+                
                 {searchInput.length > 0 && (
                   <Button
                     size="$2"
                     circular
-                    icon={(p:any)=> <X {...p} color={iconColor} />}
+                    icon={(p:any)=> <X {...p} size={16} color={iconColor} />}
                     position="absolute"
                     right="$2"
                     onPress={() => setSearchInput('')}
                     aria-label="Limpiar búsqueda"
                     hoverStyle={{ bg: '$backgroundHover' }}
+                    backgroundColor="transparent"
+                    borderWidth={0}
                   />
                 )}
               </XStack>
+            </XStack>
+          }
+          filtersContent={
+            <XStack gap="$4" ai="center" flexWrap="wrap">
+              <XStack minWidth={200} flexShrink={0}>
+                <Select value={loteriaId ?? ''} onValueChange={(v) => setLoteriaId(v || undefined)}>
+                  <Select.Trigger
+                    width="100%"
+                    iconAfter={ChevronDown}
+                    br="$3"
+                    bw={1}
+                    bc="$borderColor"
+                    backgroundColor="$background"
+                    hoverStyle={{ bg: '$backgroundHover' }}
+                  >
+                    <Select.Value placeholder="Lotería (todas)" />
+                  </Select.Trigger>
 
-              <Button
-                icon={(p:any)=> <Search {...p} color={iconColor} />}
-                onPress={handleSearch}
-                hoverStyle={{ scale: 1.02 }}
-                pressStyle={{ scale: 0.98 }}
-              >
-                Buscar
-              </Button>
+                  <Select.Adapt when="sm">
+                    <Sheet modal dismissOnSnapToBottom animation="quick">
+                      <Sheet.Frame p="$4">
+                        <Select.Adapt.Contents />
+                      </Sheet.Frame>
+                      <Sheet.Overlay />
+                    </Sheet>
+                  </Select.Adapt>
 
-              <Separator vertical />
-
-              {/* Lotería (más angosto) */}
-              <Select value={loteriaId ?? ''} onValueChange={(v) => setLoteriaId(v || undefined)}>
-                <Select.Trigger
-                  width={200}
-                  iconAfter={ChevronDown}
-                  br="$3"
-                  bw={1}
-                  bc="$borderColor"
-                  backgroundColor="$background"
-                  hoverStyle={{ bg: '$backgroundHover' }}
-                >
-                  <Select.Value placeholder="Lotería (todas)" />
-                </Select.Trigger>
-
-                <Select.Adapt when="sm">
-                  <Sheet modal dismissOnSnapToBottom animation="quick">
-                    <Sheet.Frame p="$4">
-                      <Select.Adapt.Contents />
-                    </Sheet.Frame>
-                    <Sheet.Overlay />
-                  </Sheet>
-                </Select.Adapt>
-
-                <Select.Content zIndex={1000}>
-                  <Select.ScrollUpButton />
-                  <Select.Viewport>
-                    <Select.Item value="" index={0}>
-                      <Select.ItemText>Todas</Select.ItemText>
-                      <Select.ItemIndicator ml="auto"><Check size={16} /></Select.ItemIndicator>
-                    </Select.Item>
-                    {loterias.map((l, idx) => (
-                      <Select.Item key={l.id} value={l.id} index={idx + 1}>
-                        <Select.ItemText>{l.name}</Select.ItemText>
+                  <Select.Content zIndex={1000}>
+                    <Select.ScrollUpButton />
+                    <Select.Viewport>
+                      <Select.Item value="" index={0}>
+                        <Select.ItemText>Todas</Select.ItemText>
                         <Select.ItemIndicator ml="auto"><Check size={16} /></Select.ItemIndicator>
                       </Select.Item>
-                    ))}
-                  </Select.Viewport>
-                  <Select.ScrollDownButton />
-                </Select.Content>
-              </Select>
-
-              {/* Tipo */}
-              <Select value={kind ?? ''} onValueChange={(v) => setKind((v || undefined) as any)}>
-                <Select.Trigger
-                  width={160}
-                  iconAfter={ChevronDown}
-                  br="$3"
-                  bw={1}
-                  bc="$borderColor"
-                  backgroundColor="$background"
-                  hoverStyle={{ bg: '$backgroundHover' }}
-                >
-                  <Select.Value placeholder="Tipo (todos)" />
-                </Select.Trigger>
-
-                <Select.Adapt when="sm">
-                  <Sheet modal dismissOnSnapToBottom animation="quick">
-                    <Sheet.Frame p="$4">
-                      <Select.Adapt.Contents />
-                    </Sheet.Frame>
-                    <Sheet.Overlay />
-                  </Sheet>
-                </Select.Adapt>
-
-                <Select.Content zIndex={1000}>
-                  <Select.ScrollUpButton />
-                  <Select.Viewport>
-                    <Select.Item value="" index={0}>
-                      <Select.ItemText>Todos</Select.ItemText>
-                      <Select.ItemIndicator ml="auto"><Check size={16} /></Select.ItemIndicator>
-                    </Select.Item>
-                    <Select.Item value="NUMERO" index={1}>
-                      <Select.ItemText>NÚMERO</Select.ItemText>
-                      <Select.ItemIndicator ml="auto"><Check size={16} /></Select.ItemIndicator>
-                    </Select.Item>
-                    <Select.Item value="REVENTADO" index={2}>
-                      <Select.ItemText>REVENTADO</Select.ItemText>
-                      <Select.ItemIndicator ml="auto"><Check size={16} /></Select.ItemIndicator>
-                    </Select.Item>
-                  </Select.Viewport>
-                  <Select.ScrollDownButton />
-                </Select.Content>
-              </Select>
-
-              {/* Switch Activos a la derecha del Tipo */}
-              <Separator vertical />
-              <XStack ai="center" gap="$2">
-                <FilterSwitch
-                  label="Activos:"
-                  checked={activeOnly}
-                  onCheckedChange={(v) => setActiveOnly(!!v)}
-                />
+                      {loterias.map((l, idx) => (
+                        <Select.Item key={l.id} value={l.id} index={idx + 1}>
+                          <Select.ItemText>{l.name}</Select.ItemText>
+                          <Select.ItemIndicator ml="auto"><Check size={16} /></Select.ItemIndicator>
+                        </Select.Item>
+                      ))}
+                    </Select.Viewport>
+                    <Select.ScrollDownButton />
+                  </Select.Content>
+                </Select>
               </XStack>
-            </XStack>
 
-            {/* Fila 2: Refrescar y Limpiar debajo */}
-            <XStack gap="$2" ai="center" fw="wrap">
+              <XStack width={1} height={24} backgroundColor="$borderColor" marginHorizontal="$2" flexShrink={0} />
+
+              <XStack minWidth={160} flexShrink={0}>
+                <Select value={kind ?? ''} onValueChange={(v) => setKind((v || undefined) as any)}>
+                  <Select.Trigger
+                    width="100%"
+                    iconAfter={ChevronDown}
+                    br="$3"
+                    bw={1}
+                    bc="$borderColor"
+                    backgroundColor="$background"
+                    hoverStyle={{ bg: '$backgroundHover' }}
+                  >
+                    <Select.Value placeholder="Tipo (todos)" />
+                  </Select.Trigger>
+
+                  <Select.Adapt when="sm">
+                    <Sheet modal dismissOnSnapToBottom animation="quick">
+                      <Sheet.Frame p="$4">
+                        <Select.Adapt.Contents />
+                      </Sheet.Frame>
+                      <Sheet.Overlay />
+                    </Sheet>
+                  </Select.Adapt>
+
+                  <Select.Content zIndex={1000}>
+                    <Select.ScrollUpButton />
+                    <Select.Viewport>
+                      <Select.Item value="" index={0}>
+                        <Select.ItemText>Todos</Select.ItemText>
+                        <Select.ItemIndicator ml="auto"><Check size={16} /></Select.ItemIndicator>
+                      </Select.Item>
+                      <Select.Item value="NUMERO" index={1}>
+                        <Select.ItemText>NÚMERO</Select.ItemText>
+                        <Select.ItemIndicator ml="auto"><Check size={16} /></Select.ItemIndicator>
+                      </Select.Item>
+                      <Select.Item value="REVENTADO" index={2}>
+                        <Select.ItemText>REVENTADO</Select.ItemText>
+                        <Select.ItemIndicator ml="auto"><Check size={16} /></Select.ItemIndicator>
+                      </Select.Item>
+                    </Select.Viewport>
+                    <Select.ScrollDownButton />
+                  </Select.Content>
+                </Select>
+              </XStack>
+
+              <XStack width={1} height={24} backgroundColor="$borderColor" marginHorizontal="$2" flexShrink={0} />
+
+              <FilterSwitch
+                label="Activos:"
+                checked={activeOnly}
+                onCheckedChange={(v) => setActiveOnly(!!v)}
+              />
+            </XStack>
+          }
+          actionsContent={
+            <XStack gap="$2" ai="center" flexWrap="wrap">
               <Button
                 icon={(p:any)=> <RefreshCw {...p} color={iconColor} />}
                 onPress={() => refetch()}
@@ -260,8 +271,8 @@ export default function MultipliersListScreen() {
                 <Text>Limpiar</Text>
               </Button>
             </XStack>
-          </YStack>
-        </Toolbar>
+          }
+        />
 
         {/* Lista */}
         {isLoading ? (

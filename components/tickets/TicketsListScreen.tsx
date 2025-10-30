@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react'
 import { YStack, XStack, Text, ScrollView, Spinner, Separator } from 'tamagui'
-import { Button, Input, Card, Select, DatePicker } from '@/components/ui'
+import { Button, Input, Card, Select, DatePicker, CollapsibleToolbar } from '@/components/ui'
 import { useQuery } from '@tanstack/react-query'
 import { Search, X, RefreshCw, ChevronDown, Check, ArrowLeft } from '@tamagui/lucide-icons'
 import { safeBack } from '@/lib/navigation'
@@ -11,7 +11,6 @@ import { es } from 'date-fns/locale'
 import { apiClient } from '@/lib/api.client'
 import { formatCurrency } from '@/utils/formatters'
 import FilterSwitch from '@/components/ui/FilterSwitch'
-import { Toolbar } from '@/components/ui/Toolbar'
 import type { Scope } from '@/types/scope'
 import { getDateParam, type DateTokenBasic, formatDateYYYYMMDD } from '@/lib/dateFormat'
 import { object } from 'zod'
@@ -154,11 +153,16 @@ export default function TicketsListScreen({
     return params
   }, [page, pageSize, dateFilter, dateFrom, dateTo, statusFilter, scope, variant])
 
-  const { data, isLoading, isFetching, isError, refetch } = useQuery({
+  const { data, isLoading, isFetching, isError, error: queryError, refetch } = useQuery({
     queryKey: ['tickets', 'list', scope, backendParams],
     queryFn: () => fetchTickets(backendParams),
     placeholderData: { data: [], meta: { page: 1, pageSize: 20, total: 0, totalPages: 1 } },
     staleTime: 30_000,
+    onError: (err: any) => {
+      if (err?.code === 'RBAC_003') {
+        error('Tu cuenta necesita configuración. Contacta al administrador.')
+      }
+    },
   })
 
   const filteredRows = useMemo(() => {
@@ -195,6 +199,12 @@ export default function TicketsListScreen({
   }, [data, searchInput, filterPendientes])
 
   const meta = data?.meta
+
+  // Handler para búsqueda
+  const handleSearch = () => {
+    setPage(1)
+    refetch()
+  }
 
   // Handlers para modals
   const handlePreviewTicket = (ticket: Ticket) => {
@@ -259,153 +269,162 @@ export default function TicketsListScreen({
           </XStack>
         )}
 
-        <Toolbar>
-          <YStack gap="$3">
-            {/* Fila 1: búsqueda + filtros (ocultar filtros avanzados en modo pending-payments) */}
-            <XStack gap="$3" ai="center" flexWrap="wrap">
-              {/* Buscar */}
-              <XStack position="relative" ai="center" flex={1} minWidth={260} maxWidth="100%">
+        <CollapsibleToolbar
+          searchContent={
+            <XStack gap="$2" ai="center" flex={1}>
+              <XStack flex={1} position="relative" ai="center">
+                <Button
+                  size="$2"
+                  circular
+                  icon={(p:any)=> <Search {...p} size={18} color="$textSecondary" />}
+                  position="absolute"
+                  left="$2"
+                  zIndex={1}
+                  onPress={handleSearch}
+                  aria-label="Buscar"
+                  backgroundColor="transparent"
+                  borderWidth={0}
+                  hoverStyle={{ bg: '$backgroundHover' }}
+                />
+                
                 <Input
                   flex={1}
-                  minWidth={240}
                   placeholder={variant === 'pending-payments' ? "Buscar por # ticket..." : "Buscar por ID, vendedor, ventana, lotería..."}
                   value={searchInput}
                   onChangeText={setSearchInput}
+                  onSubmitEditing={handleSearch}
                   inputMode="search"
                   enterKeyHint="search"
-                  pr="$8"
                   returnKeyType="search"
+                  pl="$9"
+                  pr={searchInput ? "$9" : "$3"}
                   aria-label="Buscar tickets"
-                  focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
                 />
+                
                 {searchInput.length > 0 && (
                   <Button
                     size="$2"
                     circular
-                    icon={X}
+                    icon={(p:any)=> <X {...p} size={18} />}
                     position="absolute"
-                    right="$2"
+                    right="$1"
+                    zIndex={1}
                     onPress={() => setSearchInput('')}
                     aria-label="Limpiar búsqueda"
+                    backgroundColor="transparent"
+                    borderWidth={0}
                     hoverStyle={{ bg: '$backgroundHover' }}
                   />
                 )}
               </XStack>
-
-              <Button size="$3" icon={Search} onPress={() => setPage(1)}>
-                Buscar
-              </Button>
-
-              {/* Filtros avanzados solo en modo general */}
-              {variant !== 'pending-payments' && (
-                <>
-                  <Separator vertical />
-
-                  {/* Fecha + Solo ganadores (no se sobreponen, se envuelven si no hay espacio) */}
-                  <XStack ai="center" gap="$3" flexWrap="wrap">
-                    {/* Bloque Fecha */}
-                    <XStack ai="center" gap="$2" flexShrink={0}>
-                      <Text fontSize="$3" fontWeight="600">Fecha:</Text>
-                      <Select
-                        size="$3"
-                        value={dateFilter}
-                        onValueChange={(v: any) => setDateFilter(v)}
-                      >
-                        <Select.Trigger
-                          width={160}
-                          flexShrink={0}
-                          br="$3"
-                          bw={1}
-                          bc="$borderColor"
-                          backgroundColor="$background"
-                          px="$3"
-                          hoverStyle={{ bg: '$backgroundHover' }}
-                          focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
-                          iconAfter={ChevronDown}
-                        >
-                          <Select.Value>{DATE_FILTER_LABELS[dateFilter]}</Select.Value>
-                        </Select.Trigger>
-
-                        <Select.Content zIndex={1000}>
-                          <YStack br="$3" bw={1} bc="$borderColor" backgroundColor="$background">
-                            <Select.Viewport>
-                              {[
-                                { value: 'today', label: 'Hoy' },
-                                { value: 'yesterday', label: 'Ayer' },
-                                { value: 'range', label: 'Rango personalizado' },
-                              ].map((it, idx) => (
-                                <Select.Item key={it.value} value={it.value} index={idx} pressStyle={{ bg: '$backgroundHover' }} bw={0} px="$3">
-                                  <Select.ItemText>{it.label}</Select.ItemText>
-                                  <Select.ItemIndicator ml="auto"><Check size={16} /></Select.ItemIndicator>
-                                </Select.Item>
-                              ))}
-                            </Select.Viewport>
-                          </YStack>
-                        </Select.Content>
-                      </Select>
-                    </XStack>
-
-                    {/* Bloque Status */}
-                    <XStack ai="center" gap="$2" flexShrink={0}>
-                      <Text fontSize="$3" fontWeight="600">Estado:</Text>
-                      <Select
-                        size="$3"
-                        value={statusFilter}
-                        onValueChange={(v: any) => setStatusFilter(v)}
-                      >
-                        <Select.Trigger
-                          width={180}
-                          flexShrink={0}
-                          br="$3"
-                          bw={1}
-                          bc="$borderColor"
-                          backgroundColor="$background"
-                          px="$3"
-                          hoverStyle={{ bg: '$backgroundHover' }}
-                          focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
-                          iconAfter={ChevronDown}
-                        >
-                          <Select.Value>{STATUS_LABEL_MAP[statusFilter as keyof typeof STATUS_LABEL_MAP] || 'Todos'}</Select.Value>
-                        </Select.Trigger>
-
-                        <Select.Content zIndex={1000}>
-                          <YStack br="$3" bw={1} bc="$borderColor" backgroundColor="$background">
-                            <Select.Viewport>
-                              {TICKET_STATUSES.map((it, idx) => (
-                                <Select.Item key={it.value} value={it.value} index={idx} pressStyle={{ bg: '$backgroundHover' }} bw={0} px="$3">
-                                  <Select.ItemText>{it.label}</Select.ItemText>
-                                  <Select.ItemIndicator ml="auto"><Check size={16} /></Select.ItemIndicator>
-                                </Select.Item>
-                              ))}
-                            </Select.Viewport>
-                          </YStack>
-                        </Select.Content>
-                      </Select>
-                    </XStack>
-                  </XStack>
-                </>
-              )}
-
             </XStack>
+          }
+          filtersContent={
+            variant !== 'pending-payments' ? (
+              <YStack gap="$3">
+                {/* Filtros de fecha y estado */}
+                <XStack gap="$4" ai="center" flexWrap="wrap">
+                  <XStack ai="center" gap="$2" minWidth={200} flexShrink={0}>
+                    <Text fontSize="$3" fontWeight="600" flexShrink={0}>Fecha:</Text>
+                    <Select
+                      size="$3"
+                      value={dateFilter}
+                      onValueChange={(v: any) => setDateFilter(v)}
+                    >
+                      <Select.Trigger
+                        width={180}
+                        flexShrink={0}
+                        br="$3"
+                        bw={1}
+                        bc="$borderColor"
+                        backgroundColor="$background"
+                        px="$3"
+                        hoverStyle={{ bg: '$backgroundHover' }}
+                        focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
+                        iconAfter={ChevronDown}
+                      >
+                        <Select.Value>{DATE_FILTER_LABELS[dateFilter]}</Select.Value>
+                      </Select.Trigger>
 
-            {/* Fila 2: rango personalizado (solo modo general) */}
-            {variant !== 'pending-payments' && dateFilter === 'range' && (
-              <XStack gap="$3" ai="flex-start" flexWrap="wrap">
-                <DatePicker
-                  value={dateFrom}
-                  onChange={(d) => setDateFrom(d)}
-                  placeholder="Desde"
-                />
-                <DatePicker
-                  value={dateTo}
-                  onChange={(d) => setDateTo(d)}
-                  placeholder="Hasta"
-                />
-              </XStack>
-            )}
+                      <Select.Content zIndex={1000}>
+                        <YStack br="$3" bw={1} bc="$borderColor" backgroundColor="$background">
+                          <Select.Viewport>
+                            {[
+                              { value: 'today', label: 'Hoy' },
+                              { value: 'yesterday', label: 'Ayer' },
+                              { value: 'range', label: 'Rango personalizado' },
+                            ].map((it, idx) => (
+                              <Select.Item key={it.value} value={it.value} index={idx} pressStyle={{ bg: '$backgroundHover' }} bw={0} px="$3">
+                                <Select.ItemText>{it.label}</Select.ItemText>
+                                <Select.ItemIndicator ml="auto"><Check size={16} /></Select.ItemIndicator>
+                              </Select.Item>
+                            ))}
+                          </Select.Viewport>
+                        </YStack>
+                      </Select.Content>
+                    </Select>
+                  </XStack>
 
-            {/* Fila 3: acciones (solo modo general) */}
-            {variant !== 'pending-payments' && (
+                  <XStack width={1} height={24} backgroundColor="$borderColor" marginHorizontal="$2" />
+
+                  <XStack ai="center" gap="$2" minWidth={220} flexShrink={0}>
+                    <Text fontSize="$3" fontWeight="600" flexShrink={0}>Estado:</Text>
+                    <Select
+                      size="$3"
+                      value={statusFilter}
+                      onValueChange={(v: any) => setStatusFilter(v)}
+                    >
+                      <Select.Trigger
+                        width={200}
+                        flexShrink={0}
+                        br="$3"
+                        bw={1}
+                        bc="$borderColor"
+                        backgroundColor="$background"
+                        px="$3"
+                        hoverStyle={{ bg: '$backgroundHover' }}
+                        focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
+                        iconAfter={ChevronDown}
+                      >
+                        <Select.Value>{STATUS_LABEL_MAP[statusFilter as keyof typeof STATUS_LABEL_MAP] || 'Todos'}</Select.Value>
+                      </Select.Trigger>
+
+                      <Select.Content zIndex={1000}>
+                        <YStack br="$3" bw={1} bc="$borderColor" backgroundColor="$background">
+                          <Select.Viewport>
+                            {TICKET_STATUSES.map((it, idx) => (
+                              <Select.Item key={it.value} value={it.value} index={idx} pressStyle={{ bg: '$backgroundHover' }} bw={0} px="$3">
+                                <Select.ItemText>{it.label}</Select.ItemText>
+                                <Select.ItemIndicator ml="auto"><Check size={16} /></Select.ItemIndicator>
+                              </Select.Item>
+                            ))}
+                          </Select.Viewport>
+                        </YStack>
+                      </Select.Content>
+                    </Select>
+                  </XStack>
+                </XStack>
+
+                {/* Rango personalizado */}
+                {dateFilter === 'range' && (
+                  <XStack gap="$3" ai="flex-start" flexWrap="wrap">
+                    <DatePicker
+                      value={dateFrom}
+                      onChange={(d) => setDateFrom(d)}
+                      placeholder="Desde"
+                    />
+                    <DatePicker
+                      value={dateTo}
+                      onChange={(d) => setDateTo(d)}
+                      placeholder="Hasta"
+                    />
+                  </XStack>
+                )}
+              </YStack>
+            ) : undefined
+          }
+          actionsContent={
+            variant !== 'pending-payments' ? (
               <XStack gap="$3" ai="center" flexWrap="wrap">
                 <Button
                   size="$3"
@@ -439,16 +458,21 @@ export default function TicketsListScreen({
                   Limpiar
                 </Button>
               </XStack>
-            )}
-          </YStack>
-        </Toolbar>
+            ) : undefined
+          }
+        />
 
 
         {isLoading ? (
           <Card padding="$4" elevate><Text>Cargando tickets…</Text></Card>
         ) : isError ? (
-          <Card padding="$4" elevate bg="$backgroundHover" borderColor="$error" borderWidth={1}>
-            <Text color="$error">No fue posible cargar tickets.</Text>
+          <Card padding="$6" bg="$red2" borderColor="$red8" borderWidth={2} ai="center" jc="center" gap="$3">
+            <Text fontSize="$6" fontWeight="bold" color="$red11">⚠️ Error de Configuración</Text>
+            <Text color="$red11" fontSize="$4" ta="center">
+              {(queryError as any)?.code === 'RBAC_003' 
+                ? 'Tu cuenta necesita configuración. Por favor contacta al administrador del sistema para que configure tu cuenta correctamente.'
+                : 'No fue posible cargar los tickets. Por favor intenta de nuevo o contacta al administrador.'}
+            </Text>
           </Card>
         ) : (filteredRows?.length ?? 0) === 0 ? (
           <Card padding="$6" ai="center" jc="center" elevate borderColor="$borderColor" borderWidth={1}>

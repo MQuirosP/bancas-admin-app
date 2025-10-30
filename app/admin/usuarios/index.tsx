@@ -1,7 +1,7 @@
 // app/admin/usuarios/index.tsx
 import React, { useMemo, useState } from 'react'
 import { YStack, XStack, Text, ScrollView, Spinner, Separator, Sheet } from 'tamagui'
-import { Button, Input, Card, Select, Toolbar } from '@/components/ui'
+import { Button, Input, Card, Select, CollapsibleToolbar } from '@/components/ui'
 import { useRouter } from 'expo-router'
 import { Plus, Search, X, Trash2, RefreshCw, ChevronDown, Check, ArrowLeft } from '@tamagui/lucide-icons'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -218,10 +218,24 @@ export default function UsuariosListScreen() {
         </XStack>
 
         {/* Filtros */}
-        <Toolbar>
-          <YStack gap="$3">
-            <XStack gap="$3" ai="center" flexWrap="wrap">
-              <XStack flex={1} position="relative" ai="center" minWidth={260}>
+        <CollapsibleToolbar
+          searchContent={
+            <XStack gap="$2" ai="center" flex={1}>
+              <XStack flex={1} position="relative" ai="center">
+                <Button
+                  size="$2"
+                  circular
+                  icon={(p:any)=> <Search {...p} size={18} color="$textSecondary" />}
+                  position="absolute"
+                  left="$2"
+                  zIndex={1}
+                  onPress={handleSearch}
+                  aria-label="Buscar"
+                  backgroundColor="transparent"
+                  borderWidth={0}
+                  hoverStyle={{ bg: '$backgroundHover' }}
+                />
+                
                 <Input
                   flex={1}
                   placeholder="Buscar por nombre, usuario o correo"
@@ -229,53 +243,52 @@ export default function UsuariosListScreen() {
                   onChangeText={setSearchInput}
                   inputMode="search"
                   enterKeyHint="search"
-                  pr="$8"
+                  pl="$10"
+                  pr="$10"
                   onSubmitEditing={handleSearch}
                   returnKeyType="search"
                   aria-label="Buscar usuarios"
                   focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
                 />
+                
                 {searchInput.length > 0 && (
                   <Button
                     size="$2"
                     circular
-                    icon={(p:any)=> <X {...p} color={(require('tamagui').useTheme().color as any).get?.() ?? '#000'} />}
+                    icon={(p:any)=> <X {...p} size={16} color={(require('tamagui').useTheme().color as any).get?.() ?? '#000'} />}
                     position="absolute"
-                    // right="$1"
+                    right="$2"
                     onPress={() => setSearchInput('')}
                     aria-label="Limpiar búsqueda"
                     hoverStyle={{ bg: '$backgroundHover' }}
+                    backgroundColor="transparent"
+                    borderWidth={0}
                   />
                 )}
               </XStack>
-
-              <Button icon={(p:any)=> <Search {...p} color={(require('tamagui').useTheme().color as any).get?.() ?? '#000'} />} onPress={handleSearch} hoverStyle={{ scale: 1.02 }} pressStyle={{ scale: 0.98 }}>
-                <Text>Buscar</Text>
-              </Button>
-
-              <Separator vertical />
-
-              <XStack ai="center" gap="$2" minWidth={180}>
-                <Text fontSize="$3">Rol:</Text>
+            </XStack>
+          }
+          filtersContent={
+            <XStack gap="$4" ai="center" flexWrap="wrap">
+              <XStack ai="center" gap="$2" minWidth={180} flexShrink={0}>
+                <Text fontSize="$3" flexShrink={0}>Rol:</Text>
                 <RoleSelect value={role} onChange={setRole} />
               </XStack>
 
-              <Separator vertical />
+              <XStack width={1} height={24} backgroundColor="$borderColor" marginHorizontal="$2" flexShrink={0} />
 
-              {/* Etiqueta + switch en bloque para que no se sobreponga */}
-              {/* <XStack ai="center" gap="$2" minWidth={200} marginLeft={'$3'}> */}
-                <FilterSwitch
-                  label="Activos:"
-                  checked={isActive === true}
-                  onCheckedChange={(v) => {
-                    setIsActive(v)
-                    setPage(1)
-                  }}
-                />
-              {/* </XStack> */}
-
-              <Separator vertical />
-
+              <FilterSwitch
+                label="Activos:"
+                checked={isActive === true}
+                onCheckedChange={(v) => {
+                  setIsActive(v)
+                  setPage(1)
+                }}
+              />
+            </XStack>
+          }
+          actionsContent={
+            <XStack gap="$2" ai="center" flexWrap="wrap">
               <Button
                 icon={(p:any)=> <RefreshCw {...p} color={(require('tamagui').useTheme().color as any).get?.() ?? '#000'} />}
                 onPress={() => { setPage(1); refetch() }}
@@ -288,8 +301,8 @@ export default function UsuariosListScreen() {
               </Button>
 
               <Button 
-              onPress={clearFilters} 
-              backgroundColor={'$gray4'}
+                onPress={clearFilters} 
+                backgroundColor={'$gray4'}
                 borderColor={'$gray8'}
                 hoverStyle={{ backgroundColor: '$gray5' }}
                 pressStyle={{ scale: 0.98 }}
@@ -297,8 +310,8 @@ export default function UsuariosListScreen() {
                 <Text>Limpiar</Text>
               </Button>
             </XStack>
-          </YStack>
-        </Toolbar>
+          }
+        />
 
         {/* Cargar más ventanas para etiquetas */}
         {hasNextPage && (

@@ -122,6 +122,35 @@ export default function TicketForm({ sorteos, restrictions, user, restrictionsLo
   }, 0)
   const cutoffMsg = (errors['cutoff'] || cutoffError) || null
 
+  // Obtener el sorteo seleccionado y verificar si el reventado está habilitado
+  const selectedSorteo = useMemo(() => sorteos.find((s) => s.id === sorteoId), [sorteos, sorteoId])
+  const isReventadoEnabled = useMemo(() => {
+    if (!selectedSorteo?.loteria) return false
+    
+    let rulesJson = (selectedSorteo.loteria as any)?.rulesJson
+    
+    // Si rulesJson es un string, parsearlo
+    if (typeof rulesJson === 'string') {
+      try {
+        rulesJson = JSON.parse(rulesJson)
+      } catch (e) {
+        console.error('Error parsing rulesJson:', e)
+        return false
+      }
+    }
+    
+    // Verificar si el reventado está habilitado
+    const enabled = rulesJson?.reventadoConfig?.enabled === true
+    console.log('🔍 Reventado check:', { 
+      loteriaId: selectedSorteo.loteria.id,
+      loteriaName: selectedSorteo.loteria.name,
+      rulesJson, 
+      enabled 
+    })
+    
+    return enabled
+  }, [selectedSorteo])
+
   // Ingreso rápido: agrega una serie de números como jugadas
   const addQuickGroup = (group: { numbers: string[]; amountNumero: number; amountReventado?: number }) => {
     const serie = group.numbers
@@ -316,7 +345,7 @@ export default function TicketForm({ sorteos, restrictions, user, restrictionsLo
       <Card padding="$4" backgroundColor="$background" borderColor="$borderColor" borderWidth={1}>
         <XStack gap="$3" flexWrap="wrap" $sm={{ gap: '$2', flexDirection: 'column' }}>
           {/* Sorteo */}
-          <YStack flex={1} minWidth={240} $sm={{ flex: 1 }} gap="$2">
+          <YStack flex={1} minWidth={280} maxWidth={vendorMode !== 'none' ? '48%' : '100%'} $sm={{ flex: 1, maxWidth: '100%' }} gap="$2">
             <Text fontSize="$4" fontWeight="500">Sorteo *</Text>
             {restrictionsLoading ? (
               <Spinner />
@@ -346,7 +375,7 @@ export default function TicketForm({ sorteos, restrictions, user, restrictionsLo
 
           {/* Vendedor */}
           {vendorMode !== 'none' && (
-            <YStack flex={1} minWidth={240} $sm={{ flex: 1 }} gap="$2">
+            <YStack flex={1} minWidth={280} maxWidth="48%" $sm={{ flex: 1, maxWidth: '100%' }} gap="$2">
               <Text fontSize="$4" fontWeight="500">Vendedor *</Text>
               {loadingVendedores ? (
                 <Spinner />
@@ -384,7 +413,11 @@ export default function TicketForm({ sorteos, restrictions, user, restrictionsLo
       </Card>
 
       {/* Ingreso rápido */}
-      <QuickBetEditor onCommit={addQuickGroup} />
+      <QuickBetEditor 
+        onCommit={addQuickGroup} 
+        reventadoEnabled={isReventadoEnabled}
+        sorteoSelected={!!sorteoId}
+      />
 
       {/* Error de jugadas si no hay ninguna */}
       {errors['jugadas'] && (

@@ -1,7 +1,7 @@
 // app/admin/sorteos/index.tsx
 import React, { useMemo, useState } from 'react'
 import { YStack, XStack, Text, Spinner, Separator, Sheet, ScrollView } from 'tamagui'
-import { Button, Card, Input, Select, Toolbar, ActiveBadge } from '@/components/ui'
+import { Button, Card, Input, Select, CollapsibleToolbar, ActiveBadge } from '@/components/ui'
 import { useRouter } from 'expo-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Search, X, RefreshCw, ChevronDown, Check, Trash2, RotateCcw, Calendar, ArrowLeft } from '@tamagui/lucide-icons'
@@ -352,113 +352,22 @@ export default function SorteosListScreen() {
     <ScrollView flex={1} backgroundColor="$background" contentContainerStyle={{ flexGrow: 1 }}>
       <YStack flex={1} padding="$4" gap="$4" maxWidth={1200} alignSelf="center" width="100%">
         {/* Header */}
-        <XStack justifyContent="space-between" ai="center" gap="$3" flexWrap="wrap">
-          <XStack ai="center" gap="$2">
-            <Button
-              size="$3"
-              icon={(p:any)=> <ArrowLeft {...p} size={24} color={iconColor} />}
-              onPress={()=> router.push('/admin')}
-              backgroundColor="transparent"
-              borderWidth={0}
-              hoverStyle={{ backgroundColor: 'transparent' }}
-              pressStyle={{ scale: 0.98 }}
-            />
-            <Text fontSize="$8" fontWeight="bold">Sorteos</Text>
-            {isFetching && <Spinner size="small" />}
-          </XStack>
-          {admin && (
-            <XStack gap="$2" ai="center">
-              {/* Selector de lotería + botón Preview */}
-              <XStack ai="center" gap="$2">
-                <Select
-                  size="$3"
-                  value={selectedLoteriaForPreview?.id ?? 'none'}
-                  onValueChange={(v: string) => {
-                    if (v === 'none') {
-                      setSelectedLoteriaForPreview(null)
-                    } else {
-                      const lot = (loteriasData ?? []).find((l: any) => l.id === v)
-                      if (lot) {
-                        setSelectedLoteriaForPreview({ id: lot.id, name: lot.name })
-                      }
-                    }
-                  }}
-                >
-                  <Select.Trigger
-                    px="$3"
-                    br="$3"
-                    bw={1}
-                    bc="$borderColor"
-                    backgroundColor="$background"
-                    hoverStyle={{ bg: '$backgroundHover' }}
-                    iconAfter={ChevronDown}
-                    width={200}
-                  >
-                    <Select.Value>
-                      {selectedLoteriaForPreview?.name ?? 'Seleccionar lotería'}
-                    </Select.Value>
-                  </Select.Trigger>
-
-                  <Select.Adapt when="sm">
-                    <Sheet modal dismissOnSnapToBottom animation="quick">
-                      <Sheet.Frame p="$4">
-                        <Select.Adapt.Contents />
-                      </Sheet.Frame>
-                      <Sheet.Overlay />
-                    </Sheet>
-                  </Select.Adapt>
-
-                  <Select.Content zIndex={1000}>
-                    <YStack br="$3" bw={1} bc="$borderColor" backgroundColor="$background">
-                      <Select.ScrollUpButton />
-                      <Select.Viewport>
-                        <Select.Item value="none" index={0} pressStyle={{ bg: '$backgroundHover' }} bw={0} px="$3">
-                          <Select.ItemText>Seleccionar lotería</Select.ItemText>
-                        </Select.Item>
-                        {(loteriasData ?? []).map((lot: any, idx: number) => (
-                          <Select.Item
-                            key={lot.id}
-                            value={lot.id}
-                            index={idx + 1}
-                            pressStyle={{ bg: '$backgroundHover' }}
-                            bw={0}
-                            px="$3"
-                          >
-                            <Select.ItemText>{lot.name}</Select.ItemText>
-                            <Select.ItemIndicator ml="auto">
-                              <Check size={16} />
-                            </Select.ItemIndicator>
-                          </Select.Item>
-                        ))}
-                      </Select.Viewport>
-                      <Select.ScrollDownButton />
-                    </YStack>
-                  </Select.Content>
-                </Select>
-
-                <Button
-                  size="$3"
-                  icon={(p:any)=> <Calendar {...p} color={iconColor} />}
-                  onPress={() => {
-                    if (!selectedLoteriaForPreview) {
-                      toast.error('Selecciona una lotería primero')
-                      return
-                    }
-                    router.push(
-                      `/admin/sorteos/preview?loteriaId=${selectedLoteriaForPreview.id}&loteriaName=${encodeURIComponent(selectedLoteriaForPreview.name)}` as any
-                    )
-                  }}
-                  bg="$blue4"
-                  borderColor="$blue8"
-                  borderWidth={1}
-                  disabled={!selectedLoteriaForPreview}
-                  hoverStyle={{ bg: '$blue5' }}
-                  pressStyle={{ bg: '$blue6' }}
-                >
-                  Preview
-                </Button>
-              </XStack>
-
+        <YStack gap="$3">
+          <XStack justifyContent="space-between" ai="center" gap="$3" flexWrap="wrap">
+            <XStack ai="center" gap="$2">
+              <Button
+                size="$3"
+                icon={(p:any)=> <ArrowLeft {...p} size={24} color={iconColor} />}
+                onPress={()=> router.push('/admin')}
+                backgroundColor="transparent"
+                borderWidth={0}
+                hoverStyle={{ backgroundColor: 'transparent' }}
+                pressStyle={{ scale: 0.98 }}
+              />
+              <Text fontSize="$8" fontWeight="bold">Sorteos</Text>
+              {isFetching && <Spinner size="small" />}
+            </XStack>
+            {admin && (
               <Button
                 size="$3"
                 icon={(p:any)=> <Plus {...p} color={iconColor} />}
@@ -469,17 +378,124 @@ export default function SorteosListScreen() {
               >
                 Agregar
               </Button>
+            )}
+          </XStack>
+
+          {/* Selector de lotería + Preview (fila separada para mejor responsividad) */}
+          {admin && (
+            <XStack gap="$2" ai="center" flexWrap="wrap">
+              <Select
+                size="$3"
+                value={selectedLoteriaForPreview?.id ?? 'none'}
+                onValueChange={(v: string) => {
+                  if (v === 'none') {
+                    setSelectedLoteriaForPreview(null)
+                  } else {
+                    const lot = (loteriasData ?? []).find((l: any) => l.id === v)
+                    if (lot) {
+                      setSelectedLoteriaForPreview({ id: lot.id, name: lot.name })
+                    }
+                  }
+                }}
+              >
+                <Select.Trigger
+                  px="$3"
+                  br="$3"
+                  bw={1}
+                  bc="$borderColor"
+                  backgroundColor="$background"
+                  hoverStyle={{ bg: '$backgroundHover' }}
+                  iconAfter={ChevronDown}
+                  minWidth={200}
+                  maxWidth={300}
+                  flex={1}
+                >
+                  <Select.Value>
+                    {selectedLoteriaForPreview?.name ?? 'Seleccionar lotería'}
+                  </Select.Value>
+                </Select.Trigger>
+
+                <Select.Adapt when="sm">
+                  <Sheet modal dismissOnSnapToBottom animation="quick">
+                    <Sheet.Frame p="$4">
+                      <Select.Adapt.Contents />
+                    </Sheet.Frame>
+                    <Sheet.Overlay />
+                  </Sheet>
+                </Select.Adapt>
+
+                <Select.Content zIndex={1000}>
+                  <YStack br="$3" bw={1} bc="$borderColor" backgroundColor="$background">
+                    <Select.ScrollUpButton />
+                    <Select.Viewport>
+                      <Select.Item value="none" index={0} pressStyle={{ bg: '$backgroundHover' }} bw={0} px="$3">
+                        <Select.ItemText>Seleccionar lotería</Select.ItemText>
+                      </Select.Item>
+                      {(loteriasData ?? []).map((lot: any, idx: number) => (
+                        <Select.Item
+                          key={lot.id}
+                          value={lot.id}
+                          index={idx + 1}
+                          pressStyle={{ bg: '$backgroundHover' }}
+                          bw={0}
+                          px="$3"
+                        >
+                          <Select.ItemText>{lot.name}</Select.ItemText>
+                          <Select.ItemIndicator ml="auto">
+                            <Check size={16} />
+                          </Select.ItemIndicator>
+                        </Select.Item>
+                      ))}
+                    </Select.Viewport>
+                    <Select.ScrollDownButton />
+                  </YStack>
+                </Select.Content>
+              </Select>
+
+              <Button
+                size="$3"
+                icon={(p:any)=> <Calendar {...p} color={iconColor} />}
+                onPress={() => {
+                  if (!selectedLoteriaForPreview) {
+                    toast.error('Selecciona una lotería primero')
+                    return
+                  }
+                  router.push(
+                    `/admin/sorteos/preview?loteriaId=${selectedLoteriaForPreview.id}&loteriaName=${encodeURIComponent(selectedLoteriaForPreview.name)}` as any
+                  )
+                }}
+                bg="$blue4"
+                borderColor="$blue8"
+                borderWidth={1}
+                disabled={!selectedLoteriaForPreview}
+                hoverStyle={{ bg: '$blue5' }}
+                pressStyle={{ bg: '$blue6' }}
+              >
+                Preview
+              </Button>
             </XStack>
           )}
-        </XStack>
+        </YStack>
 
         {/* Filtros */}
-        <Toolbar>
-          <YStack gap="$3">
-            {/* Fila 1: Búsqueda + Filtros */}
-            <XStack gap="$3" ai="center" flexWrap="wrap">
-              {/* Búsqueda */}
-              <XStack flex={1} position="relative" ai="center" minWidth={260}>
+        <CollapsibleToolbar
+          searchContent={
+            <XStack gap="$2" ai="center" flex={1}>
+              <XStack flex={1} position="relative" ai="center">
+                <Button
+                  size="$2"
+                  circular
+                  icon={(p:any)=> <Search {...p} size={18} color="$textSecondary" />}
+                  position="absolute"
+                  left="$2"
+                  zIndex={1}
+                  onPress={handleSearch}
+                  aria-label="Buscar"
+                  backgroundColor="transparent"
+                  borderWidth={0}
+                  hoverStyle={{ bg: '$backgroundHover' }}
+                />
+                
                 <Input
                   flex={1}
                   placeholder="Buscar por nombre o lotería"
@@ -487,62 +503,56 @@ export default function SorteosListScreen() {
                   onChangeText={setSearchInput}
                   inputMode="search"
                   enterKeyHint="search"
-                  pr="$8"
+                  pl="$10"
+                  pr="$10"
                   onSubmitEditing={handleSearch}
                   returnKeyType="search"
                   aria-label="Buscar sorteos"
                   focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
                 />
+                
                 {searchInput.length > 0 && (
                   <Button
                     size="$2"
                     circular
-                    icon={(p:any)=> <X {...p} color={iconColor} />}
+                    icon={(p:any)=> <X {...p} size={16} color={iconColor} />}
                     position="absolute"
                     right="$2"
                     onPress={() => setSearchInput('')}
                     aria-label="Limpiar búsqueda"
                     hoverStyle={{ bg: '$backgroundHover' }}
+                    backgroundColor="transparent"
+                    borderWidth={0}
                   />
                 )}
               </XStack>
-
-              <Button 
-                icon={(p:any)=> <Search {...p} color={iconColor} />} 
-                onPress={handleSearch}
-                pressStyle={{ scale: 0.98 }}
-              >
-                Buscar
-              </Button>
-
-              <Separator vertical />
-
-              {/* Estado */}
-              <XStack ai="center" gap="$2">
+            </XStack>
+          }
+          filtersContent={
+            <XStack gap="$4" ai="center" flexWrap="wrap">
+              <XStack ai="center" gap="$2" minWidth={160} flexShrink={0}>
                 <Text fontSize="$3" flexShrink={0}>Estado:</Text>
                 <StatusSelect value={status} onChange={setStatus} />
               </XStack>
 
-              <Separator vertical />
+              <XStack width={1} height={24} backgroundColor="$borderColor" marginHorizontal="$2" flexShrink={0} />
 
-              {/* Fecha */}
-              <XStack ai="center" gap="$2">
+              <XStack ai="center" gap="$2" minWidth={140} flexShrink={0}>
                 <Text fontSize="$3" flexShrink={0}>Fecha:</Text>
                 <DateFilterSelect value={dateFilter} onChange={(v) => { setDateFilter(v); setPage(1) }} />
               </XStack>
 
-              <Separator vertical />
+              <XStack width={1} height={24} backgroundColor="$borderColor" marginHorizontal="$2" flexShrink={0} />
 
-              {/* Activos */}
               <FilterSwitch
                 label="Activos:"
                 checked={activeOnly}
                 onCheckedChange={(v) => { setActiveOnly(!!v); setPage(1) }}
               />
             </XStack>
-
-            {/* Fila 2: Botones */}
-            <XStack gap="$2" ai="center">
+          }
+          actionsContent={
+            <XStack gap="$2" ai="center" flexWrap="wrap">
               <Button
                 icon={(p:any)=> <RefreshCw {...p} color={iconColor} />}
                 onPress={() => { setPage(1); refetch() }}
@@ -564,8 +574,8 @@ export default function SorteosListScreen() {
                 Limpiar
               </Button>
             </XStack>
-          </YStack>
-        </Toolbar>
+          }
+        />
 
         {/* Lista */}
         {isLoading ? (

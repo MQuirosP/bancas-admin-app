@@ -88,31 +88,34 @@ export default function DashboardScreen() {
   }
 
   return (
-    <YStack flex={1} backgroundColor="$background">
-      {/* Filtros Sticky */}
-      <DashboardFilterBar
-        onExport={handleExport}
-        exportLoading={exportLoading}
-      />
+    <ScrollView flex={1} backgroundColor="$background" contentContainerStyle={{ flexGrow: 1 }}>
+      <YStack gap="$4" maxWidth={1200} alignSelf="center" width="100%" animation="200ms">
+        {/* Filtros Colapsables */}
+        <DashboardFilterBar
+          onExport={handleExport}
+          exportLoading={exportLoading}
+        />
 
-      {/* Contenido Principal */}
-      <ScrollView flex={1}>
+        {/* Contenido Principal */}
         <YStack
           padding="$4"
           gap="$4"
-          maxWidth={1600}
-          alignSelf="center"
-          width="100%"
+          animation="200ms"
         >
           {/* Header */}
-          <YStack gap="$2">
+          <XStack jc="space-between" ai="center" gap="$3" flexWrap="wrap">
             <Text fontSize="$9" fontWeight="700" color="$textPrimary">
-              Dashboard Admin
+              Dashboard Administrativo
             </Text>
-            <Text fontSize="$4" color="$textSecondary">
-              Vista completa de métricas y estadísticas del sistema
+            <Text fontSize="$5" fontWeight="600" color="$textSecondary">
+              {new Date().toLocaleDateString('es-DO', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+              })}
             </Text>
-          </YStack>
+          </XStack>
 
           {/* Error State */}
           {dashboardError && (
@@ -241,14 +244,14 @@ export default function DashboardScreen() {
             </YStack>
           </YStack>
         </YStack>
-      </ScrollView>
 
-      {/* Export Dialog */}
-      <ExportDialog
-        isOpen={exportDialogOpen}
-        onClose={() => setExportDialogOpen(false)}
-      />
-    </YStack>
+        {/* Export Dialog */}
+        <ExportDialog
+          isOpen={exportDialogOpen}
+          onClose={() => setExportDialogOpen(false)}
+        />
+      </YStack>
+    </ScrollView>
   )
 }
 

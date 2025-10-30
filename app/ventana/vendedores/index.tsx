@@ -9,22 +9,30 @@ import { ArrowLeft, RefreshCw, TrendingUp, Check, ChevronDown } from '@tamagui/l
 import { useTheme } from 'tamagui'
 import { safeBack } from '../../../lib/navigation'
 import { DEFAULT_TOP } from '../../../lib/constants'
+import { useToast } from '../../../hooks/useToast'
 
 export default function VendedoresScreen() {
   const theme = useTheme()
   const iconColor = (theme?.color as any)?.get?.() ?? '#000'
   const [dateToken, setDateToken] = useState<DateToken>('today')
+  const { error: showError } = useToast()
 
   const params = useMemo(() => {
     const dateParams = getDateParam(dateToken)
     return { ...dateParams, scope: 'mine', dimension: 'vendedor', top: DEFAULT_TOP }
   }, [dateToken])
 
-  const { data, isLoading, isFetching, refetch } = useQuery({
+  const { data, isLoading, isFetching, refetch, error } = useQuery({
     queryKey: ['vendedores', params],
     queryFn: () => apiClient.get('/ventas/breakdown', params),
     staleTime: 60_000,
-    refetchOnMount: 'always', // ✅ Refrescar cada vez que se entra en la pantalla
+    refetchOnMount: 'always',
+    onError: (err: any) => {
+      // ✅ Manejo del error RBAC_003: Usuario VENTANA sin ventanaId asignado
+      if (err?.code === 'RBAC_003') {
+        showError('Tu cuenta necesita configuración. Contacta al administrador.')
+      }
+    },
   })
 
   // Extraer vendedores del breakdown
@@ -173,8 +181,20 @@ export default function VendedoresScreen() {
           </XStack>
         </Card>
 
+        {/* Error de configuración */}
+        {error && (
+          <Card padding="$6" bg="$red2" borderColor="$red8" borderWidth={2} ai="center" jc="center" gap="$3">
+            <Text fontSize="$6" fontWeight="bold" color="$red11">⚠️ Error de Configuración</Text>
+            <Text color="$red11" fontSize="$4" ta="center">
+              {(error as any)?.code === 'RBAC_003' 
+                ? 'Tu cuenta de ventana no tiene asignada una ventana válida. Por favor contacta al administrador del sistema para que configure tu cuenta correctamente.'
+                : 'No se pudieron cargar los vendedores. Por favor intenta de nuevo o contacta al administrador.'}
+            </Text>
+          </Card>
+        )}
+
         {/* Listado de Vendedores - Desempeño Individual */}
-        {vendedores?.length ? (
+        {!error && vendedores?.length ? (
           <>
             <Text fontSize="$5" fontWeight="600" mt="$2">Desempeño Individual</Text>
             <YStack gap="$2">
@@ -221,11 +241,11 @@ export default function VendedoresScreen() {
               ))}
             </YStack>
           </>
-        ) : (
+        ) : !error ? (
           <Card padding="$4" bg="$backgroundHover" borderColor="$borderColor" borderWidth={1} ai="center" jc="center" minHeight={200}>
             <Text color="$textSecondary" fontSize="$4">Sin datos disponibles</Text>
           </Card>
-        )}
+        ) : null}
       </YStack>
     </ScrollView>
   )

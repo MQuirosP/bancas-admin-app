@@ -8,6 +8,7 @@ import { useAuthStore } from '../../../store/auth.store'
 import { Sorteo, SorteoStatus, CreateTicketRequest, RestrictionRule } from '../../../types/models.types'
 import { useToast } from '../../../hooks/useToast'
 import TicketForm from '@/components/tickets/TicketForm'
+import { LoteriasApi } from '@/lib/api.loterias'
 
 type ListResp<T> = T[] | { data: T[]; meta?: any }
 function toArray<T>(payload: ListResp<T> | undefined | null): T[] {
@@ -30,6 +31,13 @@ export default function NuevoTicketScreen() {
     }
   }
 
+  // Cargar loterías con rulesJson
+  const { data: loteriasResp, isLoading: loadingLoterias } = useQuery({
+    queryKey: ['loterias', 'all'],
+    queryFn: () => LoteriasApi.list({ pageSize: 100 }),
+    staleTime: 60_000,
+  })
+
   // Sorteos abiertos
   const { data: sorteosResp, isLoading: loadingSorteos } = useQuery<ListResp<Sorteo>>({
     queryKey: ['sorteos', 'open'],
@@ -37,7 +45,23 @@ export default function NuevoTicketScreen() {
     staleTime: 60_000,
     placeholderData: { data: [] },
   })
-  const sorteos = useMemo(() => toArray<Sorteo>(sorteosResp), [sorteosResp])
+  
+  // Combinar sorteos con datos completos de loterías (incluyendo rulesJson)
+  const sorteos = useMemo(() => {
+    const rawSorteos = toArray<Sorteo>(sorteosResp)
+    const loterias = loteriasResp?.data || []
+    
+    return rawSorteos.map(sorteo => {
+      const loteria = loterias.find(lot => lot.id === sorteo.loteriaId)
+      if (loteria) {
+        return {
+          ...sorteo,
+          loteria: loteria // Reemplazar con la lotería completa que tiene rulesJson
+        }
+      }
+      return sorteo
+    })
+  }, [sorteosResp, loteriasResp])
 
   // Restricciones
   const { data: restrictionsResp, isLoading: loadingRestrictions } = useQuery<ListResp<RestrictionRule>>({
@@ -77,7 +101,7 @@ export default function NuevoTicketScreen() {
           sorteos={sorteos}
           restrictions={restrictions}
           user={user}
-          restrictionsLoading={loadingSorteos || loadingRestrictions}
+          restrictionsLoading={loadingSorteos || loadingRestrictions || loadingLoterias}
           loading={createTicketMutation.isPending}
           onCancel={safeBack}
           onSubmit={(payload) => createTicketMutation.mutate(payload)}

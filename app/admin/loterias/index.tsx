@@ -1,7 +1,7 @@
 // app/admin/loterias/index.tsx
 import React, { useMemo, useState } from 'react'
 import { YStack, XStack, Text, ScrollView, Spinner, Separator } from 'tamagui'
-import { Button, Input, Card, Toolbar, ActiveBadge } from '@/components/ui'
+import { Button, Input, Card, CollapsibleToolbar, ActiveBadge } from '@/components/ui'
 import { Badge } from '@/components/ui/Badge'
 import { useRouter } from 'expo-router'
 import { Plus, Search, X, RefreshCw, Trash2, ArrowLeft } from '@tamagui/lucide-icons'
@@ -10,7 +10,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient, ApiErrorClass } from '@/lib/api.client'
 import type { Loteria } from '@/types/models.types'
 import { useToast } from '@/hooks/useToast'
-// Toolbar/Badge/ActiveBadge desde components/ui
+// CollapsibleToolbar/Badge/ActiveBadge desde components/ui
 import { useConfirm } from '@/components/ui/Confirm'
 import FilterSwitch from '@/components/ui/FilterSwitch'
 
@@ -121,11 +121,26 @@ export default function LoteriasListScreen() {
           </Button>
         </XStack>
 
-        <Toolbar>
-          <YStack gap="$3">
-            <XStack gap="$2" ai="center" flexWrap="wrap">
-              {/* Buscar */}
+        <CollapsibleToolbar
+          searchContent={
+            <XStack gap="$2" ai="center" flex={1}>
+              {/* Input con lupa y X integrados */}
               <XStack flex={1} position="relative" ai="center">
+                {/* Lupa clickeable para disparar búsqueda (mobile-friendly) */}
+                <Button
+                  size="$2"
+                  circular
+                  icon={(p:any)=> <Search {...p} size={18} color="$textSecondary" />}
+                  position="absolute"
+                  left="$2"
+                  zIndex={1}
+                  onPress={handleSearch}
+                  aria-label="Buscar"
+                  backgroundColor="transparent"
+                  borderWidth={0}
+                  hoverStyle={{ bg: '$backgroundHover' }}
+                />
+                
                 <Input
                   flex={1}
                   placeholder="Buscar por nombre"
@@ -133,50 +148,43 @@ export default function LoteriasListScreen() {
                   onChangeText={setSearchInput}
                   inputMode="search"
                   enterKeyHint="search"
-                  pr="$8"
+                  pl="$10"
+                  pr="$10"
                   onSubmitEditing={handleSearch}
                   returnKeyType="search"
-                  aria-label='Buscar ventanas'
+                  aria-label='Buscar loterías'
                   focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
                 />
+                
+                {/* X para limpiar a la derecha */}
                 {searchInput.length > 0 && (
                   <Button
                     size="$2"
                     circular
-                    icon={(p:any)=> <X {...p} color={iconColor} />}
+                    icon={(p:any)=> <X {...p} size={16} color={iconColor} />}
                     position="absolute"
                     right="$2"
                     onPress={() => setSearchInput('')}
                     aria-label='Limpiar búsqueda'
-                    // alignSelf='center'
                     hoverStyle={{ bg: '$backgroundHover' }}
+                    backgroundColor="transparent"
+                    borderWidth={0}
                   />
                 )}
               </XStack>
-
-              <Button icon={(p:any)=> <Search {...p} color={iconColor} />} onPress={handleSearch}
-                pressStyle={{ scale: 0.98 }}>
-                <Text>Buscar</Text>
-              </Button>
-
-              <Separator vertical />
-
-              {/* Empuja el switch a la derecha */}
-              {/* <XStack flex={1} /> */}
-
-              {/* Front-only: Activas (default true) */}
-              {/* <XStack ai="center" gap="$2" minWidth={220} ml="$2"> */}
+            </XStack>
+          }
+          filtersContent={
+            <XStack gap="$3" ai="center" flexWrap="wrap">
               <FilterSwitch
                 label="Activas:"
                 checked={activeOnly}
                 onCheckedChange={(v) => { setActiveOnly(!!v); setPage(1) }}
               />
-              {/* <Text color="$textSecondary" fontSize="$2">
-                </Text> */}
-              {/* </XStack> */}
-
-              <Separator vertical />
-
+            </XStack>
+          }
+          actionsContent={
+            <XStack gap="$2" ai="center" flexWrap="wrap">
               <Button
                 icon={(p:any)=> <RefreshCw {...p} color={iconColor} />}
                 onPress={() => { setPage(1); refetch() }}
@@ -198,8 +206,8 @@ export default function LoteriasListScreen() {
                 Limpiar
               </Button>
             </XStack>
-          </YStack>
-        </Toolbar>
+          }
+        />
 
         {isLoading ? (
           <Card padding="$4"><Text>Cargando loterías…</Text></Card>
