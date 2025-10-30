@@ -10,6 +10,7 @@ import type { Loteria } from '@/types/models.types'
 import type { LoteriaMultiplier } from '@/types/api.types'
 import { MultipliersApi } from '@/lib/api.multipliers'
 import { useToast } from '@/hooks/useToast'
+import { useConfirm } from '@/components/ui/Confirm'
 import { useQueryClient } from '@tanstack/react-query'
 import FilterSwitch from '@/components/ui/FilterSwitch'
 
@@ -19,6 +20,7 @@ export default function MultipliersListScreen() {
   const router = useRouter()
   const { success, error } = useToast()
   const queryClient = useQueryClient()
+  const { confirm, ConfirmRoot } = useConfirm()
 
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
@@ -74,7 +76,13 @@ export default function MultipliersListScreen() {
   const handleToggle = async (m: any) => {
     const targetActive = !activeOnly ? true : false // si estoy viendo inactivos => restaurar (true), si activos => eliminar (false)
     const label = targetActive ? 'restaurar' : 'eliminar'
-    const ok = await confirm(`¿Deseas ${label} "${m.name}"?`)
+    const ok = await confirm({
+      title: `Confirmar ${label}`,
+      description: `¿Deseas ${label} "${m.name}"?`,
+      okText: label === 'eliminar' ? 'Eliminar' : 'Restaurar',
+      cancelText: 'Cancelar',
+      theme: label === 'eliminar' ? 'danger' : 'default',
+    })
     if (!ok) return
     try {
       await MultipliersApi.toggleActive(m.id, targetActive)
@@ -368,14 +376,9 @@ export default function MultipliersListScreen() {
             })}
           </YStack>
         )}
+        <ConfirmRoot />
       </YStack>
     </ScrollView>
   )
 }
-
-async function confirm(message: string) {
-  // placeholder simple; si hay dialog UI utilízalo
-  return window.confirm ? window.confirm(message) : true
-}
-
 
