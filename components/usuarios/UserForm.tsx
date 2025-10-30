@@ -1,5 +1,6 @@
 // components/usuarios/UserForm.tsx
 import React, { useEffect, useMemo, useState } from 'react'
+import { Pressable } from 'react-native'
 import { YStack, XStack, Text, Switch, Spinner, Sheet, Adapt } from 'tamagui'
 import { Button, Input, Card, Select } from '@/components/ui'
 import { z } from 'zod'
@@ -442,20 +443,16 @@ const UserForm: React.FC<Props> = ({
                   pr="$8"
                   focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
                 />
-                <YStack
-                  position="absolute"
-                  right="$3"
-                  cursor="pointer"
+                <Pressable
+                  style={{ position: 'absolute', right: 12, top: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' }}
                   onPress={() => setShowPassword(!showPassword)}
-                  ai="center"
-                  jc="center"
                 >
                   {showPassword ? (
-                    <EyeOff size={18} color="$color10" />
+                    <EyeOff size={18} color="#000" />
                   ) : (
-                    <Eye size={18} color="$color10" />
+                    <Eye size={18} color="#000" />
                   )}
-                </YStack>
+                </Pressable>
               </XStack>
               <FieldError message={errors.password} />
             </FieldGroup>
@@ -474,20 +471,16 @@ const UserForm: React.FC<Props> = ({
                     pr="$8"
                     focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
                   />
-                  <YStack
-                    position="absolute"
-                    right="$3"
-                    cursor="pointer"
+                  <Pressable
+                    style={{ position: 'absolute', right: 12, top: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' }}
                     onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                    ai="center"
-                    jc="center"
                   >
                     {showConfirmPassword ? (
-                      <EyeOff size={18} color="$color10" />
+                      <EyeOff size={18} color="#000" />
                     ) : (
-                      <Eye size={18} color="$color10" />
+                      <Eye size={18} color="#000" />
                     )}
-                  </YStack>
+                  </Pressable>
                 </XStack>
                 <FieldError message={errors.confirmPassword} />
               </FieldGroup>
