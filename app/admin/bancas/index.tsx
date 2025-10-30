@@ -237,18 +237,26 @@ export default function BancasListScreen() {
                   backgroundColor="$backgroundHover"
                   borderColor="$borderColor"
                   borderWidth={1}
-                  pressStyle={{ scale: 0.98, backgroundColor: '$backgroundPress', borderColor: '$borderColorHover' }}
-                  onPress={() => router.push(`/admin/bancas/${banca.id}` as any)}
                 >
                   <XStack justifyContent="space-between" alignItems="center" gap="$3" flexWrap="wrap">
                     {/* Título + badge juntos */}
-                    <YStack flex={1} gap="$1">
-                      <XStack ai="center" gap="$2" flexWrap="wrap">
-                        <Text fontSize="$5" fontWeight="600" color="$color">{banca.name}</Text>
-                        <ActiveBadge active={active} />
-                      </XStack>
-                      <Text fontSize="$3" color="$textSecondary">{banca.code}</Text>
-                    </YStack>
+                    <Button
+                      unstyled
+                      backgroundColor="transparent"
+                      borderWidth={0}
+                      padding={0}
+                      hoverStyle={{ backgroundColor: 'transparent' }}
+                      pressStyle={{ scale: 0.98 }}
+                      onPress={() => router.push(`/admin/bancas/${banca.id}` as any)}
+                    >
+                      <YStack flex={1} gap="$1">
+                        <XStack ai="center" gap="$2" flexWrap="wrap">
+                          <Text fontSize="$5" fontWeight="600" color="$color">{banca.name}</Text>
+                          <ActiveBadge active={active} />
+                        </XStack>
+                        <Text fontSize="$3" color="$textSecondary">{banca.code}</Text>
+                      </YStack>
+                    </Button>
 
                     {/* Acciones (no navegan) */}
                     <XStack gap="$2">
@@ -259,14 +267,14 @@ export default function BancasListScreen() {
                           borderColor="$red8"
                           hoverStyle={{ backgroundColor: '$red5' }}
                           pressStyle={{ bg: '$red5', scale: 0.98 }}
-                          onPress={(e: any) => { e?.stopPropagation?.(); askDelete(banca); }}
+                          onPress={(e: any) => { e?.preventDefault?.(); e?.stopPropagation?.(); askDelete(banca); }}
                         >
                           <Text>Eliminar</Text>
                         </Button>
                       ) : (
                         <Button
                           icon={(p:any)=> <RefreshCw {...p} color={iconColor} />}
-                          onPress={(e: any) => { e?.stopPropagation?.(); askRestore(banca); }}
+                          onPress={(e: any) => { e?.preventDefault?.(); e?.stopPropagation?.(); askRestore(banca); }}
                           disabled={restore.isPending}
                         >
                           {restore.isPending ? <Spinner size="small" /> : <Text>Restaurar</Text>}
