@@ -298,7 +298,7 @@ const UserForm: React.FC<Props> = ({
           </XStack>
 
           <XStack gap="$2" flexWrap="wrap" ai="center">
-            <FieldGroup flex={1} minWidth={260}>
+            <FieldGroup minWidth={200} maxWidth={320}>
               <FieldLabel>Correo (opcional)</FieldLabel>
               <Input
                 value={values.email}
