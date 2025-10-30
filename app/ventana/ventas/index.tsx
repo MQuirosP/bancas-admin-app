@@ -25,7 +25,6 @@ export default function MisVentasScreen() {
     queryKey: ['ventas', params],
     queryFn: async () => {
       const result = await apiClient.get('/ventas/summary', params)
-      console.log('📊 RESPUESTA ACTUALIZADA de /ventas/summary:', result)
       return result
     },
     staleTime: 60_000,
@@ -47,9 +46,6 @@ export default function MisVentasScreen() {
     paidTicketsCount: payload?.paidTicketsCount ?? 0,
     unpaidTicketsCount: payload?.unpaidTicketsCount ?? 0,
   }
-
-  console.log('💰 Totales extraídos:', totals)
-  console.log('🏆 Premios - Total:', totals.payout, 'Pagado:', totals.totalPaid, 'Pendiente:', totals.remainingAmount)
 
   return (
     <ScrollView flex={1} backgroundColor={'$background'}>

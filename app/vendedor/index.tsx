@@ -29,29 +29,6 @@ export default function VendedorDashboard() {
   const ticketsChange = calculateChange(summary?.ticketsCount ?? 0, yesterday?.ticketsCount ?? 0)
   const ventasChange = calculateChange(summary?.ventasTotal ?? 0, yesterday?.ventasTotal ?? 0)
 
-  // Debug: Verificar datos del vendedor
-  React.useEffect(() => {
-    if (user) {
-      console.log('👤 Usuario vendedor:', {
-        id: user.id,
-        name: user.name,
-        role: user.role,
-      })
-    }
-  }, [user])
-
-  // Debug: Verificar respuesta del summary
-  React.useEffect(() => {
-    if (summary) {
-      console.log('📊 Resumen de ventas del vendedor (hoy):', summary)
-    }
-    if (yesterday) {
-      console.log('📊 Resumen de ventas del vendedor (ayer):', yesterday)
-    }
-    if (error) {
-      console.error('❌ Error al cargar resumen:', error)
-    }
-  }, [summary, yesterday, error])
 
   return (
     <ScrollView flex={1} backgroundColor="$background">
