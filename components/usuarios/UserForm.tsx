@@ -27,13 +27,6 @@ const createSchema = z
       .optional()
       .or(z.literal(''))
       .transform((v) => (v?.trim() ? v : undefined)),
-    code: z
-      .string()
-      .trim()
-      .max(20, 'Máximo 20 caracteres')
-      .optional()
-      .or(z.literal(''))
-      .transform((v) => (v?.trim() ? v : undefined)),
     role: z.enum(['ADMIN', 'VENTANA', 'VENDEDOR']),
     ventanaId: z.string().trim().optional(),
     isActive: z.boolean().default(true),
@@ -95,7 +88,6 @@ type UserFormUI = {
   name: string
   username: string
   email: string
-  code: string
   role: 'ADMIN' | 'VENTANA' | 'VENDEDOR'
   ventanaId: string
   isActive: boolean
@@ -124,7 +116,6 @@ const normalizeUser = (v: UserFormUI) => ({
   name: (v.name ?? '').trim(),
   username: (v.username ?? '').trim(),
   email: (v.email ?? '').trim().toLowerCase(),
-  code: (v.code ?? '').trim(),
   role: v.role,
   ventanaId: v.role !== 'ADMIN' ? (v.ventanaId ?? '').trim() : '',
   isActive: !!v.isActive,
@@ -153,7 +144,6 @@ const UserForm: React.FC<Props> = ({
       name: initial?.name ?? '',
       username: initial?.username ?? '',
       email: (initial?.email as string) ?? '',
-      code: (initial?.code as string) ?? '',
       role: (initial?.role as any) ?? 'VENDEDOR',
       ventanaId: (initial?.ventanaId as string) ?? '',
       isActive: initial?.isActive ?? true,
