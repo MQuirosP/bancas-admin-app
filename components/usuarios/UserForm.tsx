@@ -100,6 +100,7 @@ type UserFormUI = {
   ventanaId: string
   isActive: boolean
   password: string
+  confirmPassword?: string
 }
 
 type VentanaLite = { id: string; name: string }
@@ -157,6 +158,7 @@ const UserForm: React.FC<Props> = ({
       ventanaId: (initial?.ventanaId as string) ?? '',
       isActive: initial?.isActive ?? true,
       password: '',
+      confirmPassword: '',
     }),
     [initial],
   )
@@ -189,6 +191,8 @@ const UserForm: React.FC<Props> = ({
 
     if (mode === 'create') {
       if (!values.password || values.password.trim().length < 8) return false
+      if ((values.confirmPassword ?? '').trim().length < 8) return false
+      if (values.password.trim() !== (values.confirmPassword ?? '').trim()) return false
     }
     return true
   }, [values, mode])
@@ -208,6 +212,12 @@ const UserForm: React.FC<Props> = ({
         password: values.password || '',
       }
 
+      if (values.password.trim() !== (values.confirmPassword ?? '').trim()) {
+        setErrors((e) => ({ ...e, confirmPassword: 'Las contraseñas no coinciden' }))
+        toast.error('Las contraseñas no coinciden')
+        return
+      }
+
       const parsed = createSchema.safeParse(raw)
       if (!parsed.success) {
         const fieldErrors: Record<string, string> = {}
@@ -221,7 +231,7 @@ const UserForm: React.FC<Props> = ({
       }
 
       await onSubmit(parsed.data)
-      setValues((s) => ({ ...s, password: '' })) // limpia contraseña tras submit
+      setValues((s) => ({ ...s, password: '', confirmPassword: '' })) // limpia contraseña tras submit
       return
     }
 
@@ -434,7 +444,7 @@ const UserForm: React.FC<Props> = ({
             </XStack>
           </XStack>
 
-          <XStack gap="$2">
+          <XStack gap="$2" flexWrap="wrap">
             <FieldGroup flex={1} minWidth={260}>
               <FieldLabel hint={mode === 'edit' ? 'Deja en blanco para no cambiar' : undefined}>
                 Contraseña
@@ -449,6 +459,21 @@ const UserForm: React.FC<Props> = ({
               />
               <FieldError message={errors.password} />
             </FieldGroup>
+
+            {mode === 'create' && (
+              <FieldGroup flex={1} minWidth={260}>
+                <FieldLabel>Confirmar contraseña</FieldLabel>
+                <Input
+                  value={values.confirmPassword}
+                  onChangeText={(v) => setField('confirmPassword', v)}
+                  placeholder="******"
+                  secureTextEntry
+                  autoCapitalize="none"
+                  focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
+                />
+                <FieldError message={errors.confirmPassword} />
+              </FieldGroup>
+            )}
           </XStack>
         </YStack>
       </Card>
