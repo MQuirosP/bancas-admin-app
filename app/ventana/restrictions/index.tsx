@@ -49,7 +49,7 @@ export default function VentanaRestrictionsScreen() {
               pressStyle={{ scale: 0.98 }}
             />
             <Text fontSize="$8" fontWeight="bold" color="$color">
-              Restricciones (Ventana)
+              Restricciones (Listero)
             </Text>
           </XStack>
         </XStack>

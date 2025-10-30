@@ -38,7 +38,7 @@ const dashboardCards: DashboardCard[] = [
     color: '$cyan10',
   },
   {
-    title: 'Ventanas',
+    title: 'Listeros',
     description: 'Administrar puntos de venta',
     icon: Users,
     href: '/admin/ventanas',
@@ -151,7 +151,7 @@ export default function AdminDashboard() {
       { key: 'ventas', title: 'Ventas (hoy)', value: formatCurrency(vt), delta: delta(vt, vy), detail: { hoy: vt, ayer: vy } },
       { key: 'neto', title: 'Neto (hoy)', value: formatCurrency(nt), delta: delta(nt, ny), detail: { hoy: nt, ayer: ny } },
       { key: 'payout', title: 'Payout Ratio (hoy)', value: `${prt.toFixed(1)}%`, delta: prt - pry, detail: { hoy: prt, ayer: pry } },
-      { key: 'ventanas', title: 'Ventanas Activas', value: String(wt), delta: delta(wt, wy), detail: { hoy: wt, ayer: wy } },
+      { key: 'ventanas', title: 'Listeros Activos', value: String(wt), delta: delta(wt, wy), detail: { hoy: wt, ayer: wy } },
       { key: 'trend', title: 'Tendencia (7d)', value: `${trendDelta >= 0 ? '↑' : '↓'} ${Math.abs(trendDelta).toFixed(1)}%`, delta: trendDelta, detail: { hoy: last, ayer: first }, serie: serieVals },
     ]
   }, [today, prev, ventanasToday, ventanasYesterday, series7d])

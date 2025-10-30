@@ -16,7 +16,7 @@ const getTitleByRole = (role: UserRole | undefined): string => {
     case 'ADMIN':
       return 'Administración de Bancas';
     case 'VENTANA':
-      return 'Administración de Ventana';
+      return 'Administración de Listero';
     case 'VENDEDOR':
       return 'Administración de Vendedor';
     default:
@@ -49,7 +49,7 @@ export const Header: React.FC = () => {
       height={64}
     >
       {/* Left: Menu button */}
-      <XStack alignItems="center" minWidth={72}>
+      <XStack alignItems="center" minWidth={isMobile ? 40 : 72}>
         <Button
           variant="ghost"
           size={isMobile ? "$4" : "$5"}
@@ -65,19 +65,33 @@ export const Header: React.FC = () => {
       </XStack>
 
       {/* Center: Logo + Title */}
-      <XStack flex={1} alignItems="center" justifyContent="center" gap="$3">
+      <XStack 
+        flex={1} 
+        alignItems="center" 
+        justifyContent={isMobile ? "flex-start" : "center"} 
+        gap={isMobile ? "$2" : "$3"}
+        flexShrink={1}
+        overflow="hidden"
+      >
         <Image
           source={require('../../assets/logo.png')}
-          style={{ width: 120, height: 120 }}
+          style={{ width: isMobile ? 60 : 120, height: isMobile ? 60 : 120 }}
           resizeMode="contain"
         />
-        <Text fontSize={isMobile ? "$5" : "$6"} fontWeight="600" color="$headerTitle">
+        <Text 
+          fontSize={isMobile ? "$4" : "$6"} 
+          fontWeight="600" 
+          color="$headerTitle"
+          flexShrink={1}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
           {pageTitle}
         </Text>
       </XStack>
 
       {/* Right: Theme toggle + Logout */}
-      <XStack alignItems="center" gap={isMobile ? "$1" : "$2"} minWidth={72} justifyContent="flex-end">
+      <XStack alignItems="center" gap={isMobile ? "$1" : "$2"} minWidth={isMobile ? 80 : 72} justifyContent="flex-end" flexShrink={0}>
         {/* Theme Toggle */}
         <Button
           variant="ghost"

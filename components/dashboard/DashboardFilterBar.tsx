@@ -5,7 +5,7 @@
  */
 
 import React, { useCallback, useEffect, useState } from 'react'
-import { YStack, XStack, Text, styled } from 'tamagui'
+import { YStack, XStack, Text, styled, useTheme } from 'tamagui'
 import { Button, Select, DatePicker } from '@/components/ui'
 import { RefreshCw, Download, Check, ChevronDown } from '@tamagui/lucide-icons'
 import { useRouter, useLocalSearchParams } from 'expo-router'
@@ -67,6 +67,10 @@ export function DashboardFilterBar({ onExport, exportLoading }: DashboardFilterB
   const queryClient = useQueryClient()
   const { user } = useAuth()
   const { loadFromURL, getURLParams } = useSyncFiltersWithURL()
+  
+  // Obtener el color del tema para los íconos
+  const theme = useTheme()
+  const iconColor = (theme?.color as any)?.get?.() ?? '#000'
   
   // Estado para controlar si está expandido o colapsado
   const [isExpanded, setIsExpanded] = useState(false)
@@ -213,7 +217,7 @@ export function DashboardFilterBar({ onExport, exportLoading }: DashboardFilterB
           {user?.role === UserRole.ADMIN && (
             <YStack gap="$1" minWidth={180}>
               <Text fontSize="$2" fontWeight="600" color="$textSecondary">
-                Ventana
+                Listero
               </Text>
               <Select
                 value={ventanaId || 'all'}
@@ -231,7 +235,7 @@ export function DashboardFilterBar({ onExport, exportLoading }: DashboardFilterB
                   iconAfter={ChevronDown}
                 >
                   <Select.Value>
-                    {ventanaId || 'Todas las Ventanas'}
+                    {ventanaId || 'Todos los Listeros'}
                   </Select.Value>
                 </Select.Trigger>
 
@@ -239,7 +243,7 @@ export function DashboardFilterBar({ onExport, exportLoading }: DashboardFilterB
                   <YStack br="$3" bw={1} bc="$borderColor" backgroundColor="$background">
                     <Select.Viewport>
                       <Select.Item value="all" index={0} pressStyle={{ bg: '$backgroundHover' }} bw={0} px="$3">
-                        <Select.ItemText>Todas las Ventanas</Select.ItemText>
+                        <Select.ItemText>Todos los Listeros</Select.ItemText>
                         {!ventanaId && <Select.ItemIndicator ml="auto"><Check size={16} /></Select.ItemIndicator>}
                       </Select.Item>
                       {/* TODO: Cargar ventanas dinámicamente */}
@@ -295,7 +299,7 @@ export function DashboardFilterBar({ onExport, exportLoading }: DashboardFilterB
         <XStack gap="$2" flexWrap="wrap">
           <Button
             size="$3"
-            icon={RefreshCw}
+            icon={(p: any) => <RefreshCw {...p} color={iconColor} />}
             onPress={handleRefresh}
             backgroundColor="$green4"
             borderColor="$green8"
@@ -320,7 +324,7 @@ export function DashboardFilterBar({ onExport, exportLoading }: DashboardFilterB
 
           <Button
             size="$3"
-            icon={Download}
+            icon={(p: any) => <Download {...p} color={iconColor} />}
             onPress={onExport}
             loading={exportLoading}
             backgroundColor="$blue4"

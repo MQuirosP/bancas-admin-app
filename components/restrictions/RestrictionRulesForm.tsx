@@ -477,7 +477,7 @@ export default function RestrictionRulesForm({
               </YStack>
 
               <YStack gap="$1" minWidth={220} maxWidth={240} width="100%">
-                <Text fontWeight="500">Ventana</Text>
+                <Text fontWeight="500">Listero</Text>
                 <Select value={ventanaId} onValueChange={setVentanaId}>
                   <Select.Trigger iconAfter={ChevronDown} width="100%" height={34} br="$3" bw={1} bc="$borderColor" backgroundColor="$background">
                     <Select.Value placeholder="(Ninguna)" />
@@ -527,7 +527,7 @@ export default function RestrictionRulesForm({
                           if (u.role === 'VENDEDOR' && u.ventanaId) {
                             const ventana = ventanas.find(v => v.id === u.ventanaId)
                             if (ventana?.code) {
-                              label += ` - Ventana: ${ventana.code}`
+                              label += ` - Listero: ${ventana.code}`
                             }
                           }
                           

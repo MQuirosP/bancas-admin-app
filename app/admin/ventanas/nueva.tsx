@@ -23,13 +23,13 @@ export default function NuevaVentanaScreen() {
     mutationFn: (payload: any) => apiClient.post('/ventanas', payload),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['ventanas'] })
-      toast.success('Ventana creada correctamente')
+      toast.success('Listero creado correctamente')
       // Navegación estandarizada al listado (mismo patrón que Bancas)
       goToList('/admin/ventanas')
     },
     onError: (error: ApiErrorClass) => {
       if (!error?.details?.length) {
-        toast.error(error?.message || 'No fue posible crear la ventana')
+        toast.error(error?.message || 'No fue posible crear el listero')
       }
     },
   })
@@ -53,7 +53,7 @@ export default function NuevaVentanaScreen() {
   return (
     <ScrollView flex={1} backgroundColor="$background">
       <YStack padding="$4" gap="$4" maxWidth={600} alignSelf="center" width="100%">
-        <Text fontSize="$8" fontWeight="bold" color="$color">Nueva Ventana</Text>
+        <Text fontSize="$8" fontWeight="bold" color="$color">Nuevo Listero</Text>
         <VentanaForm
           // Estándar: el form se encarga de inputs y botones (Submit/Cancel)
           onSubmit={handleSubmit}

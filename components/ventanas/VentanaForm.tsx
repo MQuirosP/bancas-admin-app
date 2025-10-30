@@ -262,7 +262,7 @@ export default function VentanaForm({
           <YStack gap="$1">
             <Text fontWeight="600">Nombre *</Text>
             <Input
-              placeholder="Nombre de la ventana"
+              placeholder="Nombre del listero"
               value={values.name}
               onChangeText={(t) => setField('name', t)}
               editable={!submitting}

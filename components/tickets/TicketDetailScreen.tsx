@@ -74,7 +74,7 @@ export default function TicketDetailScreen({ scope, ticketId, buildBackPath }: P
   const totals = calculatePaymentTotals(ticket)
   const hasPayments = ticket.paymentHistory && ticket.paymentHistory.length > 0
 
-  const title = scope === 'admin' ? 'Detalle del Ticket (Admin)' : 'Detalle del Ticket (Ventana)'
+  const title = scope === 'admin' ? 'Detalle del Ticket (Admin)' : 'Detalle del Ticket (Listero)'
 
   return (
     <ScrollView flex={1} backgroundColor="$background">
@@ -108,7 +108,7 @@ export default function TicketDetailScreen({ scope, ticketId, buildBackPath }: P
                 <Text fontSize="$4" color="$textSecondary"><Text fontWeight="600">Lotería:</Text> {loteriaName}</Text>
                 <Text fontSize="$4" color="$textSecondary"><Text fontWeight="600">Sorteo:</Text> {sorteoName}</Text>
                 <Text fontSize="$4" color="$textSecondary"><Text fontWeight="600">Vendedor:</Text> {vendorName}</Text>
-                <Text fontSize="$4" color="$textSecondary"><Text fontWeight="600">Ventana:</Text> {ventanaName}</Text>
+                <Text fontSize="$4" color="$textSecondary"><Text fontWeight="600">Listero:</Text> {ventanaName}</Text>
                 <Text fontSize="$4" color="$textSecondary"><Text fontWeight="600">Creado:</Text> {createdAt}</Text>
               </YStack>
 

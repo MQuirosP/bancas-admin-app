@@ -30,7 +30,7 @@ export default function PagosScreen() {
           Acceso Denegado
         </Text>
         <Text color="$gray10" ta="center">
-          Solo administradores y operadores de ventana pueden acceder a la gestión de pagos
+          Solo administradores y operadores de listero pueden acceder a la gestión de pagos
         </Text>
       </YStack>
     )

@@ -157,7 +157,7 @@ const TicketPreviewModalComponent = ({ isOpen, ticket, onClose }: TicketPreviewM
                     </YStack>
                     <YStack gap="$1">
                       <Text fontSize="$2" color="$textSecondary" fontWeight="600" textTransform="uppercase">
-                        Ventana
+                        Listero
                       </Text>
                       <Text fontSize="$4" fontWeight="600">
                         {ticket.ventana?.name ?? ticket.ventana?.code ?? 'N/A'}

@@ -26,7 +26,7 @@ export default function VentanaDashboard() {
             ¡Bienvenido, {user?.name}!
           </Text>
           <Text fontSize="$5" color="$textSecondary">
-            Panel de Gestión de Ventana
+            Panel de Gestión de Listero
           </Text>
         </YStack>
 

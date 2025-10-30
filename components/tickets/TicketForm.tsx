@@ -60,10 +60,13 @@ export default function TicketForm({ sorteos, restrictions, user, restrictionsLo
 
   useEffect(() => {
     if (!sorteoId) return
+    // Usar setTimeout para evitar actualizar estado durante render
     const stillThere = availableSorteos.some((s) => s.id === sorteoId)
     if (!stillThere) {
-      setSorteoId('')
-      setCutoffError('')
+      setTimeout(() => {
+        setSorteoId('')
+        setCutoffError('')
+      }, 0)
     }
   }, [availableSorteos, sorteoId])
 
@@ -134,19 +137,12 @@ export default function TicketForm({ sorteos, restrictions, user, restrictionsLo
       try {
         rulesJson = JSON.parse(rulesJson)
       } catch (e) {
-        console.error('Error parsing rulesJson:', e)
         return false
       }
     }
     
     // Verificar si el reventado está habilitado
     const enabled = rulesJson?.reventadoConfig?.enabled === true
-    console.log('🔍 Reventado check:', { 
-      loteriaId: selectedSorteo.loteria.id,
-      loteriaName: selectedSorteo.loteria.name,
-      rulesJson, 
-      enabled 
-    })
     
     return enabled
   }, [selectedSorteo])
@@ -199,7 +195,7 @@ export default function TicketForm({ sorteos, restrictions, user, restrictionsLo
     setLoadingVendedores(true)
     setVendorsPage(1)
     fetchVendorsPage(1)
-      .catch((e) => { console.error('Error loading vendedores:', e); setVendedoresRaw([]); setVendorsHasNext(false) })
+      .catch(() => { setVendedoresRaw([]); setVendorsHasNext(false) })
       .finally(() => setLoadingVendedores(false))
   }, [vendorMode, user?.ventanaId])
 
@@ -211,7 +207,7 @@ export default function TicketForm({ sorteos, restrictions, user, restrictionsLo
       await fetchVendorsPage(next)
       setVendorsPage(next)
     } catch (e) {
-      console.error('Error loading more vendedores:', e)
+      // Error silenciado
     } finally {
       setVendorsFetchingMore(false)
     }
@@ -352,7 +348,11 @@ export default function TicketForm({ sorteos, restrictions, user, restrictionsLo
             ) : availableSorteos.length === 0 ? (
               <Text color="$textSecondary" fontSize="$3">No hay sorteos disponibles para vender</Text>
             ) : (
-              <Select value={sorteoId} onValueChange={setSorteoId}>
+              <Select 
+                key={`sorteo-${availableSorteos.length}`}
+                value={sorteoId} 
+                onValueChange={setSorteoId}
+              >
                 <Select.Trigger width="100%" iconAfter={ChevronDown} br="$4" bw={1} bc="$borderColor" backgroundColor="$background">
                   <Select.Value placeholder="Seleccionar sorteo" />
                 </Select.Trigger>
@@ -382,7 +382,11 @@ export default function TicketForm({ sorteos, restrictions, user, restrictionsLo
               ) : vendedores.length === 0 ? (
                 <Text color="$textSecondary" fontSize="$3">No hay vendedores disponibles</Text>
               ) : (
-                <Select value={vendedorId} onValueChange={setVendedorId}>
+                <Select 
+                  key={`vendedor-${vendedores.length}`}
+                  value={vendedorId} 
+                  onValueChange={setVendedorId}
+                >
                   <Select.Trigger width="100%" iconAfter={ChevronDown} br="$4" bw={1} bc="$borderColor" backgroundColor="$background">
                     <Select.Value placeholder="Seleccionar vendedor" />
                   </Select.Trigger>

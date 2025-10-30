@@ -22,9 +22,12 @@ export function RoleBadge({ role }: { role: 'ADMIN' | 'VENTANA' | 'VENDEDOR' }) 
       : role === 'VENDEDOR' ? { bg: '$orange3',   bc: '$orange10',   color: '$orange10' }
       : { bg: '$backgroundStrong', bc: '$textSecondary', color: '$textSecondary' }
 
+  const roleLabels = { ADMIN: 'ADMIN', VENTANA: 'LISTERO', VENDEDOR: 'VENDEDOR' }
+  const displayRole = roleLabels[role] || role
+
   return (
     <Badge bg={palette.bg} borderColor={palette.bc}>
-      <Text fontSize="$2" color={palette.color} fontWeight="700">{role}</Text>
+      <Text fontSize="$2" color={palette.color} fontWeight="700">{displayRole}</Text>
     </Badge>
   )
 }

@@ -12,7 +12,7 @@ const reports: ReportCard[] = [
   { title: 'Ventas (KPI y Serie)', description: 'Resumen ejecutivo y series', icon: TrendingUp, href: '/admin/reportes/ventas', color: '$purple10' },
   { title: 'Tickets (Próx.)', description: 'Volumen y estados', icon: FileText, href: '/admin/reportes/tickets', color: '$cyan10' },
   { title: 'Loterías (Próx.)', description: 'Rendimiento por lotería', icon: Trophy, href: '/admin/reportes/loterias', color: '$yellow10' },
-  { title: 'Ventanas (Próx.)', description: 'Top ventanas y márgenes', icon: Store, href: '/admin/reportes/ventanas', color: '$green10' },
+  { title: 'Listeros (Próx.)', description: 'Top listeros y márgenes', icon: Store, href: '/admin/reportes/ventanas', color: '$green10' },
   { title: 'Vendedores (Próx.)', description: 'Productividad y ventas', icon: Users, href: '/admin/reportes/vendedores', color: '$indigo10' },
 ]
 

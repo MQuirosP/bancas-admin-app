@@ -465,7 +465,7 @@ export default function LoteriaRulesInline({
         <YStack gap="$2">
           <Text fontWeight="700">Multiplicador Base (fallback)</Text>
           <Text color="$gray10" fontSize="$2">
-            Se usa solo si no hay override de vendedor, ni override de ventana, ni setting de banca.
+            Se usa solo si no hay override de vendedor, ni override de listero, ni setting de banca.
           </Text>
           <Controller
             control={control}

@@ -83,7 +83,7 @@ export default function Drawer({ isOpen, onClose }: DrawerProps) {
         },
         {
           id: 'ventanas',
-          label: 'Ventanas',
+          label: 'Listeros',
           icon: Store,
           roles: ['ADMIN'],
           route: '/admin/ventanas',

@@ -45,7 +45,7 @@ const createSchema = z
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ['ventanaId'],
-          message: 'Selecciona una ventana',
+          message: 'Selecciona un listero',
         })
       }
     }
@@ -81,7 +81,7 @@ const editSchema = z
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ['ventanaId'],
-          message: 'Selecciona una ventana',
+          message: 'Selecciona un listero',
         })
       }
     }
@@ -340,11 +340,14 @@ const UserForm: React.FC<Props> = ({
                 <Select.Content zIndex={1_000_000}>
                   <Select.ScrollUpButton />
                   <Select.Viewport>
-                    {(['ADMIN', 'VENTANA', 'VENDEDOR'] as const).map((r, i) => (
-                      <Select.Item key={r} index={i} value={r}>
-                        <Select.ItemText>{r}</Select.ItemText>
-                      </Select.Item>
-                    ))}
+                    {(['ADMIN', 'VENTANA', 'VENDEDOR'] as const).map((r, i) => {
+                      const roleLabels = { ADMIN: 'ADMIN', VENTANA: 'LISTERO', VENDEDOR: 'VENDEDOR' }
+                      return (
+                        <Select.Item key={r} index={i} value={r}>
+                          <Select.ItemText>{roleLabels[r]}</Select.ItemText>
+                        </Select.Item>
+                      )
+                    })}
                   </Select.Viewport>
                   <Select.ScrollDownButton />
                 </Select.Content>
@@ -354,7 +357,7 @@ const UserForm: React.FC<Props> = ({
 
             {values.role !== 'ADMIN' && (
               <YStack minWidth={240}>
-                <FieldLabel>Ventana</FieldLabel>
+                <FieldLabel>Listero</FieldLabel>
                 <Select
                   value={values.ventanaId || ''}
                   onValueChange={(val) => setField('ventanaId', val)}
@@ -369,7 +372,7 @@ const UserForm: React.FC<Props> = ({
                   >
                     <Select.Value
                       placeholder={
-                        loadingVentanas ? 'Cargando…' : errorVentanas ? 'Error' : 'Selecciona ventana'
+                        loadingVentanas ? 'Cargando…' : errorVentanas ? 'Error' : 'Selecciona listero'
                       }
                     />
                   </Select.Trigger>

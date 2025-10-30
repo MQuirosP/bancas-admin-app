@@ -259,7 +259,7 @@ export default function TicketsListScreen({
                   ? 'Tiquetes Ganadores Pendientes'
                   : scope === 'admin' ? 'Tickets (Admin)' 
                   : scope === 'vendedor' ? 'Mis Tickets'
-                  : 'Tickets de la Ventana'
+                  : 'Tickets del Listero'
                 }
               </Text>
               {isFetching && <Spinner size="small" />}
@@ -299,7 +299,7 @@ export default function TicketsListScreen({
                 
                 <Input
                   flex={1}
-                  placeholder={variant === 'pending-payments' ? "Buscar por # ticket..." : "Buscar por ID, vendedor, ventana, lotería..."}
+                  placeholder={variant === 'pending-payments' ? "Buscar por # ticket..." : "Buscar por ID, vendedor, listero, lotería..."}
                   value={searchInput}
                   onChangeText={setSearchInput}
                   onSubmitEditing={handleSearch}
@@ -549,7 +549,7 @@ export default function TicketsListScreen({
                         {loteriaName} • {sorteoName}
                       </Text>
                       <Text fontSize="$3" color="$textSecondary">
-                        Vendedor: {vendorName} • Ventana: {ventanaName}
+                        Vendedor: {vendorName} • Listero: {ventanaName}
                       </Text>
                       <Text fontSize="$2" color="$gray10">
                         Creado: {createdAt} • {jugadas.length} jugada(s)

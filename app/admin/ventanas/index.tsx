@@ -47,14 +47,14 @@ export default function VentanasListScreen() {
 
   const mDelete = useMutation({
     mutationFn: (id: string) => softDeleteVentana(id),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: queryKeys.ventanas.all }); toast.success('Ventana eliminada') },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: queryKeys.ventanas.all }); toast.success('Listero eliminado') },
     onError: (e: any) => toast.error(e?.message || 'No fue posible eliminar'),
   })
 
   // ✅ Restaurar inactivas => set isActive = true vía update
   const mRestoreInactive = useMutation({
     mutationFn: (id: string) => restoreVentana(id),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: queryKeys.ventanas.all }); toast.success('Ventana restaurada') },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: queryKeys.ventanas.all }); toast.success('Listero restaurado') },
     onError: (e: any) => toast.error(e?.message || 'No fue posible restaurar'),
   })
 
@@ -91,7 +91,7 @@ export default function VentanasListScreen() {
               hoverStyle={{ backgroundColor: 'transparent' }}
               pressStyle={{ scale: 0.98 }}
             />
-            <Text fontSize="$8" fontWeight="bold">Ventanas</Text>
+            <Text fontSize="$8" fontWeight="bold">Listeros</Text>
             {isFetching && <Spinner size="small" />}
           </XStack>
           <Button
@@ -135,7 +135,7 @@ export default function VentanasListScreen() {
                   pr="$10"
                   onSubmitEditing={handleSearch}
                   returnKeyType="search"
-                  aria-label="Buscar ventanas"
+                  aria-label="Buscar listeros"
                   focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
                 />
                 
@@ -193,7 +193,7 @@ export default function VentanasListScreen() {
 
         {/* Lista */}
         {isLoading ? (
-          <Card padding="$4" elevate><Text>Cargando ventanas…</Text></Card>
+          <Card padding="$4" elevate><Text>Cargando listeros…</Text></Card>
         ) : isError ? (
           <Card padding="$4" elevate bg="$backgroundHover" borderColor="$error" borderWidth={1}>
             <Text color="$error">No fue posible cargar.</Text>
@@ -201,7 +201,7 @@ export default function VentanasListScreen() {
         ) : (rows?.length ?? 0) === 0 ? (
           <Card padding="$6" ai="center" jc="center" elevate borderColor="$borderColor" borderWidth={1}>
             <Text fontSize="$5" fontWeight="600">Sin resultados</Text>
-            <Text color="$textSecondary">Ajusta filtros o crea una ventana.</Text>
+            <Text color="$textSecondary">Ajusta filtros o crea un listero.</Text>
           </Card>
         ) : (
           <YStack gap="$2">

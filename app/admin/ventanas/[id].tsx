@@ -34,11 +34,11 @@ export default function EditVentanaScreen() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['ventanas'] })
       qc.invalidateQueries({ queryKey: ['ventanas', id] })
-      toast.success('Ventana actualizada')
+      toast.success('Listero actualizado')
       safeBack('/admin/ventanas')
     },
     onError: (e: ApiErrorClass) => {
-      if (!e?.details?.length) toast.error(e?.message || 'No fue posible actualizar la ventana')
+      if (!e?.details?.length) toast.error(e?.message || 'No fue posible actualizar el listero')
     },
   })
 
@@ -90,7 +90,7 @@ export default function EditVentanaScreen() {
   return (
     <ScrollView flex={1} backgroundColor="$background">
       <YStack padding="$4" gap="$4" maxWidth={1200} alignSelf="center" width="100%">
-        <Text fontSize="$8" fontWeight="bold">Editar Ventana</Text>
+        <Text fontSize="$8" fontWeight="bold">Editar Listero</Text>
 
         {!ventana || loadingVentana ? (
           <Text>Cargando…</Text>

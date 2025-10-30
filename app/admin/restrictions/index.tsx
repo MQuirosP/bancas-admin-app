@@ -259,7 +259,7 @@ export default function RestrictionsListScreen() {
 
                       <XStack gap="$4" fw="wrap">
                         {labelIf('Banca:', banca)}
-                        {labelIf('Ventana:', ventana)}
+                        {labelIf('Listero:', ventana)}
                         {labelIf('Usuario:', usuario)}
                       </XStack>
                     </YStack>

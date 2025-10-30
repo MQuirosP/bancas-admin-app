@@ -187,7 +187,7 @@ export default function VendedoresScreen() {
             <Text fontSize="$6" fontWeight="bold" color="$red11">⚠️ Error de Configuración</Text>
             <Text color="$red11" fontSize="$4" ta="center">
               {(error as any)?.code === 'RBAC_003' 
-                ? 'Tu cuenta de ventana no tiene asignada una ventana válida. Por favor contacta al administrador del sistema para que configure tu cuenta correctamente.'
+                ? 'Tu cuenta de listero no tiene asignado un listero válido. Por favor contacta al administrador del sistema para que configure tu cuenta correctamente.'
                 : 'No se pudieron cargar los vendedores. Por favor intenta de nuevo o contacta al administrador.'}
             </Text>
           </Card>
