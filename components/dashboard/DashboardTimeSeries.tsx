@@ -24,24 +24,28 @@ export function DashboardTimeSeries({
 }: DashboardTimeSeriesProps) {
   const [showComparison, setShowComparison] = useState(false)
   const [animatedComparison, setAnimatedComparison] = useState(false)
-  const [barsAnimated, setBarsAnimated] = useState(false)
+  const [barsAnimated, setBarsAnimated] = useState(false) // Para barras actuales
+  const [comparisonBarsAnimated, setComparisonBarsAnimated] = useState(false) // Para barras de comparación
   
   // Animar la aparición de comparación con delay
   useEffect(() => {
     if (showComparison) {
       setAnimatedComparison(true)
-      // Delay para animar las barras después de que aparezca
-      const timer = setTimeout(() => setBarsAnimated(true), 50)
+      // Delay para animar las barras de comparación después de que aparezcan
+      const timer = setTimeout(() => setComparisonBarsAnimated(true), 50)
       return () => clearTimeout(timer)
     } else {
-      setBarsAnimated(false)
-      // Delay para animación de salida
-      const timer = setTimeout(() => setAnimatedComparison(false), 400)
+      // Primero animar hacia altura 0, luego eliminar del DOM
+      setComparisonBarsAnimated(false)
+      // Delay para animación de salida (tiempo suficiente para la animación spring)
+      const timer = setTimeout(() => {
+        setAnimatedComparison(false)
+      }, 500) // Aumentado para dar tiempo a la animación spring
       return () => clearTimeout(timer)
     }
   }, [showComparison])
   
-  // Animar barras iniciales al montar
+  // Animar barras iniciales al montar (solo las actuales)
   useEffect(() => {
     const timer = setTimeout(() => setBarsAnimated(true), 100)
     return () => clearTimeout(timer)
@@ -145,7 +149,7 @@ export function DashboardTimeSeries({
                 animation="quick"
               >
                 <XStack width="100%" ai="flex-end" jc="center" gap="$1">
-                  {/* Barra período actual */}
+                  {/* Barra período actual - siempre visible */}
                   <YStack
                     flex={1}
                     height={barsAnimated ? barHeight : 0}
@@ -154,7 +158,7 @@ export function DashboardTimeSeries({
                     ai="center"
                     jc="flex-end"
                     paddingBottom="$1"
-                    minHeight={10}
+                    minHeight={barsAnimated ? 10 : 0}
                     overflow="hidden"
                     animation="bouncy"
                     transition={{
@@ -183,13 +187,14 @@ export function DashboardTimeSeries({
                   {animatedComparison && comparisonPoint && (
                     <YStack
                       flex={1}
-                      height={showComparison && barsAnimated ? comparisonBarHeight : 0}
+                      height={showComparison && comparisonBarsAnimated ? comparisonBarHeight : 0}
                       backgroundColor="$orange10"
                       br="$2"
                       ai="center"
                       jc="flex-end"
                       paddingBottom="$1"
-                      minHeight={10}
+                      minHeight={0}
+                      maxHeight={showComparison ? comparisonBarHeight : 0}
                       overflow="hidden"
                       animation="bouncy"
                       opacity={showComparison ? 1 : 0}
@@ -198,17 +203,20 @@ export function DashboardTimeSeries({
                         damping: 20,
                         stiffness: 400,
                         mass: 0.5,
-                        delay: idx * 15 + 50,
+                        delay: showComparison ? idx * 15 + 50 : 0, // Sin delay al ocultar
                       }}
                     >
-                      {comparisonBarHeight > 40 && showComparison && barsAnimated && (
+                      {comparisonBarHeight > 40 && showComparison && comparisonBarsAnimated && (
                         <Text 
                           fontSize="$1" 
                           color="white" 
                           fontWeight="600"
                           animation="quick"
                           opacity={showComparison ? 1 : 0}
-                          transition={{ delay: idx * 15 + 250 }}
+                          transition={{ 
+                            delay: showComparison ? idx * 15 + 250 : 0,
+                            duration: 200 
+                          }}
                         >
                           {formatCurrency(comparisonPoint.sales).replace(/\s/g, '')}
                         </Text>
