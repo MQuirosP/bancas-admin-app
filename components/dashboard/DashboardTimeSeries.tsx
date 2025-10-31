@@ -3,7 +3,7 @@
  * Nota: Implementación placeholder - requiere librería de charts (recharts/victory-native)
  */
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { YStack, XStack, Text, Switch } from 'tamagui'
 import { Card, SkeletonChart } from '@/components/ui'
 import { formatCurrency } from '@/utils/formatters'
@@ -23,6 +23,29 @@ export function DashboardTimeSeries({
   isLoading 
 }: DashboardTimeSeriesProps) {
   const [showComparison, setShowComparison] = useState(false)
+  const [animatedComparison, setAnimatedComparison] = useState(false)
+  const [barsAnimated, setBarsAnimated] = useState(false)
+  
+  // Animar la aparición de comparación con delay
+  useEffect(() => {
+    if (showComparison) {
+      setAnimatedComparison(true)
+      // Delay para animar las barras después de que aparezca
+      const timer = setTimeout(() => setBarsAnimated(true), 50)
+      return () => clearTimeout(timer)
+    } else {
+      setBarsAnimated(false)
+      // Delay para animación de salida
+      const timer = setTimeout(() => setAnimatedComparison(false), 400)
+      return () => clearTimeout(timer)
+    }
+  }, [showComparison])
+  
+  // Animar barras iniciales al montar
+  useEffect(() => {
+    const timer = setTimeout(() => setBarsAnimated(true), 100)
+    return () => clearTimeout(timer)
+  }, [])
 
   if (isLoading) {
     return <SkeletonChart height={300} />
@@ -74,6 +97,7 @@ export function DashboardTimeSeries({
         backgroundColor="$backgroundHover"
         padding="$4"
         gap="$2"
+        animation="quick"
       >
         <XStack
           height="100%"
@@ -111,40 +135,81 @@ export function DashboardTimeSeries({
               : 0
             
             return (
-              <YStack key={idx} flex={1} ai="center" gap="$1" minWidth={showComparison ? 40 : 30} height={chartHeight + 30}>
+              <YStack 
+                key={idx} 
+                flex={1} 
+                ai="center" 
+                gap="$1" 
+                minWidth={showComparison ? 40 : 30} 
+                height={chartHeight + 30}
+                animation="quick"
+              >
                 <XStack width="100%" ai="flex-end" jc="center" gap="$1">
                   {/* Barra período actual */}
                   <YStack
                     flex={1}
-                    height={barHeight}
+                    height={barsAnimated ? barHeight : 0}
                     backgroundColor="$blue10"
                     br="$2"
                     ai="center"
                     jc="flex-end"
                     paddingBottom="$1"
                     minHeight={10}
+                    overflow="hidden"
+                    animation="bouncy"
+                    transition={{
+                      type: 'spring',
+                      damping: 20,
+                      stiffness: 400,
+                      mass: 0.5,
+                      delay: idx * 15,
+                    }}
                   >
-                    {barHeight > 40 && (
-                      <Text fontSize="$1" color="white" fontWeight="600">
+                    {barHeight > 40 && barsAnimated && (
+                      <Text 
+                        fontSize="$1" 
+                        color="white" 
+                        fontWeight="600"
+                        animation="quick"
+                        opacity={barsAnimated ? 1 : 0}
+                        transition={{ delay: idx * 15 + 200 }}
+                      >
                         {formatCurrency(point.sales).replace(/\s/g, '')}
                       </Text>
                     )}
                   </YStack>
                   
                   {/* Barra período anterior */}
-                  {showComparison && comparisonPoint && (
+                  {animatedComparison && comparisonPoint && (
                     <YStack
                       flex={1}
-                      height={comparisonBarHeight}
+                      height={showComparison && barsAnimated ? comparisonBarHeight : 0}
                       backgroundColor="$orange10"
                       br="$2"
                       ai="center"
                       jc="flex-end"
                       paddingBottom="$1"
                       minHeight={10}
+                      overflow="hidden"
+                      animation="bouncy"
+                      opacity={showComparison ? 1 : 0}
+                      transition={{
+                        type: 'spring',
+                        damping: 20,
+                        stiffness: 400,
+                        mass: 0.5,
+                        delay: idx * 15 + 50,
+                      }}
                     >
-                      {comparisonBarHeight > 40 && (
-                        <Text fontSize="$1" color="white" fontWeight="600">
+                      {comparisonBarHeight > 40 && showComparison && barsAnimated && (
+                        <Text 
+                          fontSize="$1" 
+                          color="white" 
+                          fontWeight="600"
+                          animation="quick"
+                          opacity={showComparison ? 1 : 0}
+                          transition={{ delay: idx * 15 + 250 }}
+                        >
                           {formatCurrency(comparisonPoint.sales).replace(/\s/g, '')}
                         </Text>
                       )}
@@ -159,7 +224,23 @@ export function DashboardTimeSeries({
           })}
         </XStack>
         {showComparison && comparison && (
-          <XStack gap="$2" ai="center" mt="$2">
+          <XStack 
+            gap="$2" 
+            ai="center" 
+            mt="$2"
+            animation="quick"
+            enterStyle={{
+              opacity: 0,
+              y: -10,
+            }}
+            opacity={1}
+            y={0}
+            transition={{
+              type: 'spring',
+              damping: 20,
+              stiffness: 300,
+            }}
+          >
             <YStack width={12} height={12} backgroundColor="$blue10" br="$1" />
             <Text fontSize="$2" color="$textSecondary">Período actual</Text>
             <YStack width={12} height={12} backgroundColor="$orange10" br="$1" ml="$3" />
