@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.0] - 2025-10-30 (pre-release)
+
+### Added
+- **Dashboard Admin Completo**: Dashboard administrativo completamente funcional con todas las secciones implementadas
+- **Modo Mock**: Switch en toolbar para alternar entre datos mock y datos reales del backend
+- **Gráfico de Series Temporales**: Visualización de ventas con barras animadas, comparación de períodos y animación "grow up"
+- **Desgloses por Dimensión**: Componente con tabs para Ventanas, Loterías y Vendedores con métricas detalladas
+- **Análisis de Riesgo y Finanzas**: Secciones para Exposición por número, CxC, CxP y Ganancia con visualizaciones
+- **Datos Mock Generados**: Funciones para generar datos mock realistas de KPIs, TimeSeries, Alertas y desgloses
+
+### Changed
+- **Dashboard Components**: Mejoras en visualización de KPIs, gráficos y alertas
+- **Formularios Estandarizados**: Todos los formularios "nuevo" en app/admin tienen ancho máximo de 720px
+- **Switch de Comparación**: Mismo estilo que FilterSwitch en admin/ventana/index
+
+### Fixed
+- **Animación de Barras**: Corregida animación cuando se desactiva switch de comparación, barras actuales mantienen estado
+- **Switch de Comparación**: Estados separados para barras actuales vs barras de comparación
+
+### Technical
+- Animaciones spring con damping y stiffness optimizados
+- Delay escalonado para efecto cascada en gráficos
+- Estructura lista para datos reales del backend sin cambios de código
+
 ## [1.1.0] - 2025-10-30
 
 ### Added

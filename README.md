@@ -135,16 +135,15 @@ Admin dashboard for lottery “bancas”, built with Expo Router, Tamagui, React
   - The API client refreshes tokens on 401; ensure refresh endpoint is reachable
   - Rate limits (429): the client now retries briefly (respecting `Retry-After` if present). Hooks for ventas increase `staleTime` and reduce refetches.
 
-## Recent Changes (v1.1.0 - highlights)
+## Recent Changes (v1.2.0 - highlights)
 
-- **Skeleton Loading States**: Beautiful animated loading placeholders for dashboard metrics and charts
-- **Collapsible UI**: Dashboard filters and admin toolbars now collapse/expand with smooth 200ms animations
-- **Integrated Search**: Search icon and clear button (X) now integrated inside input fields across all admin modules
-- **RBAC Security Fixed**: Multiple critical security bugs resolved - users now only see their authorized data
-- **Responsive Improvements**: Mobile-optimized layouts with adaptive grids, no horizontal overflow
-- **Vendedor Dashboard Enhanced**: New "Pagado Hoy" metric with trend indicators (↗️/↘️) and comparisons vs yesterday
-- **UX Polish**: Conditional validations with toasts, no more inline legends, smoother form interactions
-- **Code Cleanup**: All debug console.logs removed, production-ready codebase
+- **Dashboard Completo con Modo Mock**: Dashboard administrativo completamente funcional con datos mock para desarrollo
+- **Gráfico de Series Temporales**: Visualización de ventas con barras animadas y comparación de períodos
+- **Desgloses por Dimensión**: Tabs interactivos para Ventanas, Loterías y Vendedores con datos detallados
+- **Análisis de Riesgo y Finanzas**: Secciones para Exposición, CxC, CxP y Ganancia con visualizaciones
+- **Animaciones Suaves**: Transiciones fluidas y animación "grow up" para barras del gráfico
+- **Switch Modo Mock**: Toggle en toolbar para alternar entre datos mock y datos reales del backend
+- **UX Polish**: Validaciones discretas, componentes estandarizados, mejoras en formularios
 
 ## Contributing
 
