@@ -83,7 +83,12 @@ export function DashboardTimeSeries({
           flexWrap="wrap"
         >
           {data.map((point, idx) => {
-            const maxSales = Math.max(...data.map(d => d.sales), 1)
+            // Calcular máximo considerando ambos períodos si están disponibles
+            const allSales = [...data.map(d => d.sales)]
+            if (showComparison && comparison) {
+              allSales.push(...comparison.map(d => d.sales))
+            }
+            const maxSales = Math.max(...allSales, 1)
             const chartHeight = 220 // Altura fija del área del gráfico
             const barHeight = Math.max((point.sales / maxSales) * chartHeight, 10)
             const date = new Date(point.timestamp)
@@ -95,24 +100,57 @@ export function DashboardTimeSeries({
               ? `S${Math.ceil(date.getDate() / 7)}`
               : date.getMonth() + 1
             
+            // Obtener punto de comparación si está disponible
+            // Los datos de comparación están alineados por índice (mismo orden)
+            const comparisonPoint = showComparison && comparison && comparison[idx]
+              ? comparison[idx]
+              : null
+            
+            const comparisonBarHeight = comparisonPoint 
+              ? Math.max((comparisonPoint.sales / maxSales) * chartHeight, 10)
+              : 0
+            
             return (
-              <YStack key={idx} flex={1} ai="center" gap="$1" minWidth={30} height={chartHeight + 30}>
-                <YStack
-                  width="100%"
-                  height={barHeight}
-                  backgroundColor="$blue10"
-                  br="$2"
-                  ai="center"
-                  jc="flex-end"
-                  paddingBottom="$1"
-                  minHeight={10}
-                >
-                  {barHeight > 40 && (
-                    <Text fontSize="$1" color="white" fontWeight="600">
-                      {formatCurrency(point.sales).replace(/\s/g, '')}
-                    </Text>
+              <YStack key={idx} flex={1} ai="center" gap="$1" minWidth={showComparison ? 40 : 30} height={chartHeight + 30}>
+                <XStack width="100%" ai="flex-end" jc="center" gap="$1">
+                  {/* Barra período actual */}
+                  <YStack
+                    flex={1}
+                    height={barHeight}
+                    backgroundColor="$blue10"
+                    br="$2"
+                    ai="center"
+                    jc="flex-end"
+                    paddingBottom="$1"
+                    minHeight={10}
+                  >
+                    {barHeight > 40 && (
+                      <Text fontSize="$1" color="white" fontWeight="600">
+                        {formatCurrency(point.sales).replace(/\s/g, '')}
+                      </Text>
+                    )}
+                  </YStack>
+                  
+                  {/* Barra período anterior */}
+                  {showComparison && comparisonPoint && (
+                    <YStack
+                      flex={1}
+                      height={comparisonBarHeight}
+                      backgroundColor="$orange10"
+                      br="$2"
+                      ai="center"
+                      jc="flex-end"
+                      paddingBottom="$1"
+                      minHeight={10}
+                    >
+                      {comparisonBarHeight > 40 && (
+                        <Text fontSize="$1" color="white" fontWeight="600">
+                          {formatCurrency(comparisonPoint.sales).replace(/\s/g, '')}
+                        </Text>
+                      )}
+                    </YStack>
                   )}
-                </YStack>
+                </XStack>
                 <Text fontSize="$1" color="$textSecondary">
                   {label}
                 </Text>

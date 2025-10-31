@@ -146,11 +146,55 @@ function generateMockDashboard(): DashboardResponse {
   }
 }
 
+function generateMockTimeSeriesComparison(granularity: 'hour' | 'day' | 'week' | 'month' = 'day'): TimeSeriesDataPoint[] {
+  const points: TimeSeriesDataPoint[] = []
+  const now = new Date()
+  
+  let count = 7
+  let periodOffset = 7 // Período anterior: 7 días atrás
+  if (granularity === 'hour') {
+    count = 24
+    periodOffset = 24 // 24 horas atrás
+  } else if (granularity === 'week') {
+    count = 14
+    periodOffset = 14 * 7 // 14 semanas atrás
+  } else if (granularity === 'month') {
+    count = 12
+    periodOffset = 365 // ~12 meses atrás
+  }
+  
+  for (let i = count - 1; i >= 0; i--) {
+    const date = new Date(now)
+    // Retroceder el período completo y luego avanzar según el índice
+    if (granularity === 'hour') {
+      date.setHours(date.getHours() - periodOffset - (count - 1 - i))
+    } else if (granularity === 'day') {
+      date.setDate(date.getDate() - periodOffset - (count - 1 - i))
+    } else if (granularity === 'week') {
+      date.setDate(date.getDate() - periodOffset - (count - 1 - i) * 7)
+    } else if (granularity === 'month') {
+      date.setMonth(date.getMonth() - 12 - (count - 1 - i))
+    }
+    
+    // Valores ligeramente menores para el período anterior
+    points.push({
+      timestamp: date.toISOString(),
+      sales: 12000 + Math.floor(Math.random() * 4000), // ~20% menos
+      commissions: 1200 + Math.floor(Math.random() * 400),
+      tickets: 500 + Math.floor(Math.random() * 150),
+      winners: 28 + Math.floor(Math.random() * 12),
+      payout: 6500 + Math.floor(Math.random() * 2500),
+    })
+  }
+  
+  return points
+}
+
 function generateMockTimeSeriesResponse(granularity: 'hour' | 'day' | 'week' | 'month' = 'day'): TimeSeriesResponse {
   return {
     data: generateMockTimeSeries(granularity),
     granularity,
-    comparison: granularity === 'day' ? generateMockTimeSeries('day') : undefined,
+    comparison: generateMockTimeSeriesComparison(granularity), // Siempre generar comparación
     meta: generateMockMeta(),
   }
 }
