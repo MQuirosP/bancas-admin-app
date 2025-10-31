@@ -1,5 +1,5 @@
 // app/admin/multipliers/nuevo.tsx
-import React from 'react'
+import React, { useMemo } from 'react'
 import { YStack, XStack, Text, ScrollView, useTheme } from 'tamagui'
 import { Button } from '@/components/ui'
 import { ArrowLeft } from '@tamagui/lucide-icons'
@@ -20,7 +20,10 @@ export default function NuevoMultiplierScreen() {
     queryKey: ['loterias', 'select'],
     queryFn: () => apiClient.get<{ data: Loteria[] }>('/loterias'),
   })
-  const loterias = lotData?.data ?? []
+  const loterias = useMemo(() => {
+    const all = lotData?.data ?? []
+    return all.filter((l) => ((l as any).isActive ?? true) === true)
+  }, [lotData])
   const create = useCreateMultiplier()
 
   return (
