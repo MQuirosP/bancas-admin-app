@@ -221,6 +221,12 @@ export default function SorteosListScreen() {
     staleTime: 300_000,
   })
 
+  // Filtrar solo las loterías activas para el selector
+  const activeLoterias = useMemo(() => {
+    const all = loteriasData ?? []
+    return all.filter((l: any) => ((l as any).isActive ?? true) === true)
+  }, [loteriasData])
+
   const baseRows = useMemo(() => data?.data ?? [], [data])
 
   // Helper para saber si un sorteo está "activo" a efectos de UI
@@ -391,7 +397,7 @@ export default function SorteosListScreen() {
                   if (v === 'none') {
                     setSelectedLoteriaForPreview(null)
                   } else {
-                    const lot = (loteriasData ?? []).find((l: any) => l.id === v)
+                    const lot = activeLoterias.find((l: any) => l.id === v)
                     if (lot) {
                       setSelectedLoteriaForPreview({ id: lot.id, name: lot.name })
                     }
@@ -431,7 +437,7 @@ export default function SorteosListScreen() {
                       <Select.Item value="none" index={0} pressStyle={{ bg: '$backgroundHover' }} bw={0} px="$3">
                         <Select.ItemText>Seleccionar lotería</Select.ItemText>
                       </Select.Item>
-                      {(loteriasData ?? []).map((lot: any, idx: number) => (
+                      {activeLoterias.map((lot: any, idx: number) => (
                         <Select.Item
                           key={lot.id}
                           value={lot.id}
