@@ -9,11 +9,13 @@ import { apiClient } from '@/lib/api.client'
 import type { Loteria } from '@/types/models.types'
 import MultiplierForm from '@/components/multipliers/MultiplierForm'
 import { useCreateMultiplier } from '@/hooks/useMultipliersCrud'
+import { useToast } from '@/hooks/useToast'
 
 export default function NuevoMultiplierScreen() {
   const router = useRouter()
   const theme = useTheme()
   const iconColor = (theme?.color as any)?.get?.() ?? '#000'
+  const toast = useToast()
   const { data: lotData } = useQuery({
     queryKey: ['loterias', 'select'],
     queryFn: () => apiClient.get<{ data: Loteria[] }>('/loterias'),
@@ -46,7 +48,12 @@ export default function NuevoMultiplierScreen() {
             valueX: parseFloat(v.valueX),
             kind: v.kind,
             isActive: v.isActive,
-          }, { onSuccess: () => router.back() })}
+          }, { 
+            onSuccess: () => {
+              toast.success('Multiplicador creado exitosamente')
+              router.back()
+            }
+          })}
           onCancel={() => router.back()}
         />
       </YStack>
