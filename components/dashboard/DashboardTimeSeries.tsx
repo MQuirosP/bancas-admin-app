@@ -62,25 +62,66 @@ export function DashboardTimeSeries({
         )}
       </XStack>
 
-      {/* Chart Placeholder */}
+      {/* Chart con barras */}
       <YStack
         height={300}
         br="$3"
         backgroundColor="$backgroundHover"
-        ai="center"
-        jc="center"
         padding="$4"
+        gap="$2"
       >
-        <Text color="$textSecondary" ta="center">
-          📊 Gráfico de Series Temporales
-        </Text>
-        <Text color="$textSecondary" ta="center" fontSize="$2" mt="$2">
-          {data.length} puntos de datos ({granularity})
-        </Text>
+        <XStack
+          height="100%"
+          ai="flex-end"
+          jc="space-around"
+          gap="$1"
+          flexWrap="wrap"
+        >
+          {data.map((point, idx) => {
+            const maxSales = Math.max(...data.map(d => d.sales), 1)
+            const chartHeight = 220 // Altura fija del área del gráfico
+            const barHeight = Math.max((point.sales / maxSales) * chartHeight, 10)
+            const date = new Date(point.timestamp)
+            const label = granularity === 'hour' 
+              ? date.getHours().toString().padStart(2, '0')
+              : granularity === 'day'
+              ? date.getDate().toString()
+              : granularity === 'week'
+              ? `S${Math.ceil(date.getDate() / 7)}`
+              : date.getMonth() + 1
+            
+            return (
+              <YStack key={idx} flex={1} ai="center" gap="$1" minWidth={30} height={chartHeight + 30}>
+                <YStack
+                  width="100%"
+                  height={barHeight}
+                  backgroundColor="$blue10"
+                  br="$2"
+                  ai="center"
+                  jc="flex-end"
+                  paddingBottom="$1"
+                  minHeight={10}
+                >
+                  {barHeight > 40 && (
+                    <Text fontSize="$1" color="white" fontWeight="600">
+                      {formatCurrency(point.sales).replace(/\s/g, '')}
+                    </Text>
+                  )}
+                </YStack>
+                <Text fontSize="$1" color="$textSecondary">
+                  {label}
+                </Text>
+              </YStack>
+            )
+          })}
+        </XStack>
         {showComparison && comparison && (
-          <Text color="$blue10" ta="center" fontSize="$2" mt="$1">
-            + {comparison.length} puntos de comparación
-          </Text>
+          <XStack gap="$2" ai="center" mt="$2">
+            <YStack width={12} height={12} backgroundColor="$blue10" br="$1" />
+            <Text fontSize="$2" color="$textSecondary">Período actual</Text>
+            <YStack width={12} height={12} backgroundColor="$orange10" br="$1" ml="$3" />
+            <Text fontSize="$2" color="$textSecondary">Período anterior</Text>
+          </XStack>
         )}
       </YStack>
 

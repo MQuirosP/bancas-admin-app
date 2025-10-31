@@ -15,6 +15,8 @@ import { DashboardKPIsGrid } from '@/components/dashboard/DashboardKPIs'
 import { DashboardTimeSeries } from '@/components/dashboard/DashboardTimeSeries'
 import { AlertsPanel } from '@/components/dashboard/AlertsPanel'
 import { ExportDialog } from '@/components/dashboard/ExportDialog'
+import { BreakdownTabs } from '@/components/dashboard/BreakdownTabs'
+import { FinanceAnalysis } from '@/components/dashboard/FinanceAnalysis'
 import { useToast } from '@/hooks/useToast'
 import { useLocalSearchParams } from 'expo-router'
 import { Card, Button } from '@/components/ui'
@@ -170,26 +172,12 @@ export default function DashboardScreen() {
 
           {/* Grid de 2 columnas: Tabs de Desgloses | Alertas */}
           <XStack gap="$4" flexWrap="wrap" ai="flex-start">
-            {/* Tabs de Desgloses (Placeholder) */}
+            {/* Tabs de Desgloses */}
             <YStack flex={2} minWidth={600} gap="$3">
               <Text fontSize="$6" fontWeight="600">
                 Desgloses por Dimensión
               </Text>
-              <YStack
-                br="$3"
-                backgroundColor="$backgroundHover"
-                padding="$6"
-                ai="center"
-                jc="center"
-                minHeight={400}
-              >
-                <Text color="$textSecondary" ta="center">
-                  📊 Tabs: Ventanas | Loterías | Vendedores
-                </Text>
-                <Text color="$textSecondary" ta="center" fontSize="$2" mt="$2">
-                  (Componente en desarrollo)
-                </Text>
-              </YStack>
+              <BreakdownTabs />
             </YStack>
 
             {/* Alertas */}
@@ -201,26 +189,12 @@ export default function DashboardScreen() {
             </YStack>
           </XStack>
 
-          {/* Secciones adicionales (Placeholders) */}
+          {/* Análisis de Riesgo y Finanzas */}
           <YStack gap="$3">
             <Text fontSize="$6" fontWeight="600">
               Análisis de Riesgo y Finanzas
             </Text>
-            <YStack
-              br="$3"
-              backgroundColor="$backgroundHover"
-              padding="$6"
-              ai="center"
-              jc="center"
-              minHeight={300}
-            >
-              <Text color="$textSecondary" ta="center">
-                🎯 Exposición por Número | 💰 CxC/CxP | 📈 Ganancia
-              </Text>
-              <Text color="$textSecondary" ta="center" fontSize="$2" mt="$2">
-                (Componentes en desarrollo)
-              </Text>
-            </YStack>
+            <FinanceAnalysis />
           </YStack>
         </YStack>
 
