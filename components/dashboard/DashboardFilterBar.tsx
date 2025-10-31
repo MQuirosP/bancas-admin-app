@@ -5,7 +5,7 @@
  */
 
 import React, { useCallback, useEffect, useState } from 'react'
-import { YStack, XStack, Text, styled, useTheme } from 'tamagui'
+import { YStack, XStack, Text, styled, useTheme, Switch } from 'tamagui'
 import { Button, Select, DatePicker } from '@/components/ui'
 import { RefreshCw, Download, Check, ChevronDown } from '@tamagui/lucide-icons'
 import { useRouter, useLocalSearchParams } from 'expo-router'
@@ -82,12 +82,14 @@ export function DashboardFilterBar({ onExport, exportLoading }: DashboardFilterB
     ventanaId,
     loteriaId,
     betType,
+    mockMode,
     setDatePreset,
     setDateRange,
     setVentanaId,
     setLoteriaIds,
     setBetType,
     resetFilters,
+    setMockMode,
   } = useDashboardFiltersStore()
 
   // Cargar filtros desde URL al montar
@@ -295,7 +297,30 @@ export function DashboardFilterBar({ onExport, exportLoading }: DashboardFilterB
           </YStack>
         </XStack>
 
-        {/* Fila 2: Acciones */}
+        {/* Fila 2: Switch Mock Mode */}
+        <XStack gap="$2" ai="center" flexWrap="wrap">
+          <Text fontSize="$3" fontWeight="600">
+            Modo Mock:
+          </Text>
+          <XStack ai="center" gap="$2">
+            <Switch
+              size="$2"
+              checked={mockMode}
+              onCheckedChange={setMockMode}
+              bw={1}
+              bc="$borderColor"
+              bg={mockMode ? '$blue10' : '$background'}
+              hoverStyle={{ bg: mockMode ? '$blue10' : '$backgroundHover' }}
+            >
+              <Switch.Thumb animation="quick" bg="$color12" />
+            </Switch>
+            <Text fontSize="$2" color="$textSecondary">
+              {mockMode ? 'Activo (datos mock)' : 'Inactivo (datos reales)'}
+            </Text>
+          </XStack>
+        </XStack>
+
+        {/* Fila 3: Acciones */}
         <XStack gap="$2" flexWrap="wrap">
           <Button
             size="$3"

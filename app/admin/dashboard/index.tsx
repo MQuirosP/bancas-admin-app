@@ -41,6 +41,7 @@ export default function DashboardScreen() {
     loteriaId: state.loteriaId,
     betType: state.betType,
   }))
+  const mockMode = useDashboardFiltersStore((state) => state.mockMode)
 
   // Cargar filtros desde URL al montar
   useEffect(() => {
@@ -117,47 +118,15 @@ export default function DashboardScreen() {
             </Text>
           </XStack>
 
-          {/* Error State */}
-          {dashboardError && (
-            <YStack
-              padding="$4"
-              br="$3"
-              backgroundColor="$red2"
-              borderWidth={1}
-              borderColor="$red8"
-            >
-              <Text color="$red10" fontWeight="600">
-                Error al cargar dashboard
-              </Text>
-              <Text color="$red9" fontSize="$2" mt="$1">
-                {(dashboardErrorObj as any)?.message || 'Error desconocido'}
-              </Text>
-            </YStack>
-          )}
-
-          {/* Loading State */}
-          {dashboardLoading && !dashboardError && (
-            <XStack ai="center" jc="center" padding="$8">
-              <Spinner size="large" />
-              <Text ml="$3" color="$textSecondary">
-                Cargando dashboard...
-              </Text>
-            </XStack>
-          )}
-
-          {/* Error State - Backend SQL Error */}
-          {dashboardError && (
+          {/* Error State - Solo si no está en modo mock */}
+          {dashboardError && !mockMode && (
             <Card padding="$4" backgroundColor="$red2" borderColor="$red8" borderWidth={1}>
               <YStack gap="$2">
                 <Text fontSize="$6" fontWeight="600" color="$red11">
                   ⚠️ Error al cargar el dashboard
                 </Text>
                 <Text color="$red10">
-                  Error del backend: La consulta SQL tiene un problema con la columna "betType".
-                </Text>
-                <Text fontSize="$2" color="$textSecondary" mt="$2">
-                  El backend está intentando acceder a "j.betType" pero esa columna no existe en la base de datos.
-                  Por favor, contacta al equipo de backend para que corrijan el query SQL.
+                  {(dashboardErrorObj as any)?.message || 'Error desconocido'}
                 </Text>
                 <Button
                   size="$3"
@@ -172,6 +141,16 @@ export default function DashboardScreen() {
                 </Button>
               </YStack>
             </Card>
+          )}
+
+          {/* Loading State */}
+          {dashboardLoading && !dashboardError && (
+            <XStack ai="center" jc="center" padding="$8">
+              <Spinner size="large" />
+              <Text ml="$3" color="$textSecondary">
+                Cargando dashboard...
+              </Text>
+            </XStack>
           )}
 
           {/* KPIs */}

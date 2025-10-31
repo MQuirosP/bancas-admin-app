@@ -8,6 +8,9 @@ import { persist } from 'zustand/middleware'
 import type { DashboardFilters, DatePreset, BetType } from '@/types/dashboard.types'
 
 interface DashboardFiltersState extends DashboardFilters {
+  // Mock mode flag
+  mockMode: boolean
+  setMockMode: (enabled: boolean) => void
   // Actions
   setDatePreset: (preset: DatePreset) => void
   setDateRange: (from: string, to: string) => void
@@ -34,6 +37,9 @@ export const useDashboardFiltersStore = create<DashboardFiltersState>()(
   persist(
     (set, get) => ({
       ...initialState,
+      mockMode: true, // Por defecto activado para usar datos mock
+
+      setMockMode: (enabled) => set({ mockMode: enabled }),
 
       setDatePreset: (preset) => 
         set({ 
@@ -123,6 +129,7 @@ export const useDashboardFiltersStore = create<DashboardFiltersState>()(
         ventanaId: state.ventanaId,
         loteriaId: state.loteriaId,
         betType: state.betType,
+        mockMode: state.mockMode,
       }),
     }
   )
