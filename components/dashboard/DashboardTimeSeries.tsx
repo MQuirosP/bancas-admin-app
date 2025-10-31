@@ -55,8 +55,13 @@ export function DashboardTimeSeries({
               size="$2"
               checked={showComparison}
               onCheckedChange={setShowComparison}
+              bw={1}
+              bc="$borderColor"
+              bg={showComparison ? '$color10' : '$background'}
+              hoverStyle={{ bg: showComparison ? '$color10' : '$backgroundHover' }}
+              focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: 'var(--color10)' }}
             >
-              <Switch.Thumb animation="quick" />
+              <Switch.Thumb animation="quick" bg="$color12" />
             </Switch>
           </XStack>
         )}
