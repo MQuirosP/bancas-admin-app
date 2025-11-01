@@ -29,6 +29,7 @@ export function useMultipliersQuery(params?: MultipliersQueryParams) {
 
 /**
  * Hook para obtener multiplicadores activos
+ * Si kind es undefined, se obtienen todos los multiplicadores de la lotería (sin filtrar por tipo)
  */
 export function useActiveMultipliersQuery(loteriaId?: string, kind?: 'NUMERO' | 'REVENTADO') {
   return useQuery({
@@ -46,7 +47,7 @@ export function useActiveMultipliersQuery(loteriaId?: string, kind?: 'NUMERO' | 
       return [] as LoteriaMultiplier[];
     },
     placeholderData: [] as LoteriaMultiplier[],
-    enabled: !!loteriaId && !!kind,
+    enabled: !!loteriaId, // Solo requiere loteriaId, kind es opcional
   });
 }
 

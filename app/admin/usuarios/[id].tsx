@@ -80,8 +80,8 @@ export default function UsuarioDetailScreen() {
   }
 
   return (
-    <ScrollView flex={1} backgroundColor={'$background'}>
-      <YStack padding="$4" gap="$4" maxWidth={1200} alignSelf="center" width="100%">
+    <ScrollView flex={1} backgroundColor="$background">
+      <YStack padding="$4" gap="$4" maxWidth={720} alignSelf="center" width="100%">
         <XStack ai="center" gap="$2">
           <Button
             size="$3"
@@ -92,7 +92,7 @@ export default function UsuarioDetailScreen() {
             hoverStyle={{ backgroundColor: 'transparent' }}
             pressStyle={{ scale: 0.98 }}
           />
-          <Text fontSize="$8" fontWeight="bold">Editar Usuario</Text>
+          <Text fontSize="$8" fontWeight="bold" color="$color">Editar Usuario</Text>
         </XStack>
 
         <UserForm

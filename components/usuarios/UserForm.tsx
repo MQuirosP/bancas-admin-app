@@ -185,6 +185,13 @@ const UserForm: React.FC<Props> = ({
       if (!values.password || values.password.trim().length < 8) return false
       if ((values.confirmPassword ?? '').trim().length < 8) return false
       if (values.password.trim() !== (values.confirmPassword ?? '').trim()) return false
+    } else {
+      // En modo edición: si hay contraseña, debe haber confirmación y coincidir
+      if (values.password && values.password.trim().length > 0) {
+        if (values.password.trim().length < 8) return false
+        if ((values.confirmPassword ?? '').trim().length < 8) return false
+        if (values.password.trim() !== (values.confirmPassword ?? '').trim()) return false
+      }
     }
     return true
   }, [values, mode])
@@ -227,6 +234,15 @@ const UserForm: React.FC<Props> = ({
     }
 
     // EDIT
+    // Validar confirmación de contraseña si hay contraseña ingresada
+    if (values.password && values.password.trim().length > 0) {
+      if (values.password.trim() !== (values.confirmPassword ?? '').trim()) {
+        setErrors((e) => ({ ...e, confirmPassword: 'Las contraseñas no coinciden' }))
+        toast.error('Las contraseñas no coinciden')
+        return
+      }
+    }
+
     const raw = {
       name: values.name || undefined,
       username: values.username || undefined,
@@ -257,6 +273,10 @@ const UserForm: React.FC<Props> = ({
     }
 
     await onSubmit(parsed.data)
+    // Si se cambió la contraseña, limpiar ambos campos tras submit
+    if (values.password && values.password.trim().length > 0) {
+      setValues((s) => ({ ...s, password: '', confirmPassword: '' }))
+    }
   }
 
   return (
@@ -428,25 +448,32 @@ const UserForm: React.FC<Props> = ({
 
           <XStack gap="$2" flexWrap="wrap">
             <FieldGroup flex={1} minWidth={260}>
-              <FieldLabel hint={mode === 'edit' ? 'Deja en blanco para no cambiar' : undefined}>
-                Contraseña
-              </FieldLabel>
+              <FieldLabel>Contraseña</FieldLabel>
               <Input
                 value={values.password}
-                onChangeText={(v) => setField('password', v)}
+                onChangeText={(v) => {
+                  setField('password', v)
+                  // Si se limpia la contraseña en modo edición, también limpiar confirmación
+                  if (mode === 'edit' && !v.trim()) {
+                    setField('confirmPassword', '')
+                  }
+                }}
                 placeholder="******"
                 secureTextEntry={!showPassword}
                 autoCapitalize="none"
                 focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: '$outlineColor' }}
               />
+              {mode === 'edit' && (
+                <Text fontSize="$2" color="$textSecondary">Deja en blanco para no cambiar</Text>
+              )}
               <FieldError message={errors.password} />
             </FieldGroup>
 
-            {mode === 'create' && (
+            {(mode === 'create' || (mode === 'edit' && values.password.trim().length > 0)) && (
               <FieldGroup flex={1} minWidth={260}>
                 <FieldLabel>Confirmar contraseña</FieldLabel>
                 <Input
-                  value={values.confirmPassword}
+                  value={values.confirmPassword ?? ''}
                   onChangeText={(v) => setField('confirmPassword', v)}
                   placeholder="******"
                   secureTextEntry={!showConfirmPassword}

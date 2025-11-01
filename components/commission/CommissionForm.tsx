@@ -118,6 +118,30 @@ export const CommissionForm: React.FC<Props> = ({ value, readOnly, loading, onSa
     })),
   })
 
+  const handleCancel = () => {
+    // Resetear el formulario al estado inicial
+    setDefaultPercent(String(initial.defaultPercent ?? 0))
+    setFrom(initial.effectiveFrom ? new Date(initial.effectiveFrom) : null)
+    setTo(initial.effectiveTo ? new Date(initial.effectiveTo) : null)
+    setRules((initial.rules ?? []).map<RuleUI>((r) => ({
+      id: r.id,
+      loteriaId: r.loteriaId ?? '',
+      betType: (r.betType ?? '') as any,
+      multiplierX: String(
+        r?.multiplierRange?.min != null && r?.multiplierRange?.max != null && r.multiplierRange.min === r.multiplierRange.max
+          ? r.multiplierRange.min
+          : (r?.multiplierRange?.min ?? r?.multiplierRange?.max ?? '')
+      ),
+      percent: String(r.percent ?? ''),
+    })))
+    setErrors([])
+    setRuleErrors({})
+    setDefaultPercentError(null)
+    setDateRangeError(null)
+    // También notificar al callback si existe
+    onCancel?.()
+  }
+
   const handleSave = () => {
     // Revalida reglas campo a campo
     const perRule: Record<number, RuleFieldErrors> = {}
@@ -196,8 +220,8 @@ export const CommissionForm: React.FC<Props> = ({ value, readOnly, loading, onSa
         )}
 
         {/* Encabezado */}
-        <XStack gap="$3" flexWrap="wrap" ai="flex-end">
-          <YStack minWidth={160} gap="$1">
+        <XStack gap="$2" flexWrap="wrap" ai="flex-end" $sm={{ flexDirection: 'column', ai: 'stretch' }}>
+          <YStack minWidth={80} flex={0} gap="$1" $sm={{ minWidth: 'auto', width: '100%' }}>
             <Text fontSize="$3">Default %</Text>
             <Input
               disabled={!!readOnly}
@@ -206,18 +230,33 @@ export const CommissionForm: React.FC<Props> = ({ value, readOnly, loading, onSa
               keyboardType="number-pad"
               placeholder="0..100"
               height={40}
+              width={80}
+              maxLength={3}
+              textAlign="center"
               borderColor={defaultPercentError ? '$red8' : '$borderColor'}
             />
             <Text color="$red10" fontSize="$2" minHeight={14}>{defaultPercentError ?? ''}</Text>
           </YStack>
-          <YStack minWidth={220} gap="$1">
+          <YStack minWidth={140} flex={0} gap="$1" $sm={{ minWidth: 'auto', width: '100%' }}>
             <Text fontSize="$3">Vigencia desde</Text>
-            <DatePicker value={from} onChange={(d) => !readOnly && setFrom(d)} placeholder="yyyy-mm-dd" style={{ height: 40 }} />
+            <DatePicker 
+              value={from} 
+              onChange={(d) => !readOnly && setFrom(d)} 
+              placeholder="dd/mm/yyyy" 
+              mode="date"
+              style={{ height: 40, width: 140 }}
+            />
             <Text color="$red10" fontSize="$2" minHeight={14}>{dateRangeError ? ' ' : ''}</Text>
           </YStack>
-          <YStack minWidth={220} gap="$1">
+          <YStack minWidth={140} flex={0} gap="$1" $sm={{ minWidth: 'auto', width: '100%' }}>
             <Text fontSize="$3">Vigencia hasta</Text>
-            <DatePicker value={to} onChange={(d) => !readOnly && setTo(d)} placeholder="yyyy-mm-dd" style={{ height: 40 }} />
+            <DatePicker 
+              value={to} 
+              onChange={(d) => !readOnly && setTo(d)} 
+              placeholder="dd/mm/yyyy" 
+              mode="date"
+              style={{ height: 40, width: 140 }}
+            />
             <Text color="$red10" fontSize="$2" minHeight={14}>{dateRangeError ?? ''}</Text>
           </YStack>
         </XStack>
@@ -248,8 +287,8 @@ export const CommissionForm: React.FC<Props> = ({ value, readOnly, loading, onSa
         </YStack>
 
         <XStack gap="$2" jc="flex-end" flexWrap="wrap">
-          <Button variant="secondary" onPress={onCancel} disabled={loading || !dirty}>Cancelar</Button>
-          <Button variant="danger" onPress={onReset} disabled={loading}>Restablecer</Button>
+          <Button variant="secondary" onPress={handleCancel} disabled={loading || !dirty}>Cancelar</Button>
+          <Button variant="danger" onPress={onReset} disabled={loading || readOnly}>Restablecer</Button>
           <Button variant="primary" onPress={handleSave} disabled={!!readOnly || loading || !dirty} loading={!!loading}>Guardar</Button>
         </XStack>
       </YStack>
@@ -279,16 +318,46 @@ function RuleRow({
 }) {
   const theme = useTheme()
   const iconColor = (theme?.color as any)?.get?.() ?? '#000'
-  const loteriaId = row.loteriaId || undefined
-  const kind = (row.betType || undefined) as any
-  const { data: avail } = useActiveMultipliersQuery(loteriaId, kind)
-  const items: Array<{ id: string; label: string; value: string }> = (avail ?? []).map((m: any) => ({ id: m.id, label: `${m.name} (${m.valueX}x)`, value: String(m.valueX) }))
-  const hasMultiplier = items.some(i => i.value === row.multiplierX)
+  const loteriaId = row.loteriaId?.trim() || undefined
+  // Si betType es '' (Cualquiera), pasar undefined para obtener todos los tipos
+  // Si es 'NUMERO' o 'REVENTADO', pasar ese valor
+  const kind = row.betType === '' ? undefined : (row.betType || undefined) as 'NUMERO' | 'REVENTADO' | undefined
+  
+  const { data: avail, isLoading: isLoadingMultipliers } = useActiveMultipliersQuery(loteriaId, kind)
+  const items: Array<{ id: string; label: string; value: string }> = useMemo(() => {
+    if (!avail || !Array.isArray(avail)) return []
+    return avail.map((m: any) => ({ 
+      id: m.id, 
+      label: `${m.name} (${m.valueX}x)`, 
+      value: String(m.valueX) 
+    }))
+  }, [avail])
+  
+  const hasMultiplier = useMemo(() => {
+    return items.some(i => i.value === row.multiplierX)
+  }, [items, row.multiplierX])
+  
+  // Si el multiplicador seleccionado ya no está disponible, limpiarlo
+  useEffect(() => {
+    if (row.multiplierX && items.length > 0 && !hasMultiplier) {
+      requestAnimationFrame(() => {
+        onChange(idx, { multiplierX: '' })
+      })
+    }
+  }, [items.length, hasMultiplier, row.multiplierX, idx, onChange])
+  
+  // Deshabilitar el select si no hay lotería, o si no hay multiplicadores disponibles (y no está cargando)
+  const isMultiplierSelectDisabled = !loteriaId || readOnly || (items.length === 0 && !isLoadingMultipliers)
 
   return (
     <Card p="$2" bw={1} bc="$borderColor" backgroundColor="$background">
-      <XStack gap="$2" flexWrap="wrap" ai="flex-end">
-        <YStack minWidth={200} gap="$1">
+      <XStack 
+        gap="$2" 
+        flexWrap="wrap" 
+        ai="flex-end"
+        $sm={{ flexDirection: 'column', ai: 'stretch' }}
+      >
+        <YStack minWidth={180} flex={1} maxWidth={240} gap="$1" $sm={{ minWidth: 'auto', maxWidth: 'none', width: '100%' }}>
           <Text fontSize="$3">Lotería</Text>
           <Select value={row.loteriaId} onValueChange={(v)=> onChange(idx, { loteriaId: v, multiplierX: '' })}>
             <Select.Trigger bw={1} bc={errors?.loteriaId ? '$red8' : '$borderColor'} backgroundColor="$background" px="$3">
@@ -304,10 +373,10 @@ function RuleRow({
           </Select>
           <Text color="$red10" fontSize="$2" minHeight={14}>{errors?.loteriaId ?? ''}</Text>
         </YStack>
-        <YStack minWidth={160} gap="$1">
+        <YStack minWidth={130} flex={0} gap="$1" $sm={{ minWidth: 'auto', width: '100%' }}>
           <Text fontSize="$3">Tipo</Text>
           <Select value={row.betType || ''} onValueChange={(v:any)=> onChange(idx, { betType: v, multiplierX: '' })}>
-            <Select.Trigger bw={1} bc="$borderColor" backgroundColor="$background" px="$3">
+            <Select.Trigger bw={1} bc="$borderColor" backgroundColor="$background" px="$3" width={130}>
               <Select.Value />
             </Select.Trigger>
             <Select.Content>
@@ -320,28 +389,70 @@ function RuleRow({
           </Select>
           <Text color="$red10" fontSize="$2" minHeight={14}>{errors?.betType ?? ''}</Text>
         </YStack>
-        <YStack minWidth={220} gap="$1">
+        <YStack minWidth={160} flex={1} maxWidth={200} gap="$1" $sm={{ minWidth: 'auto', maxWidth: 'none', width: '100%' }}>
           <Text fontSize="$3">Multiplicador X</Text>
-          <Select value={hasMultiplier ? row.multiplierX : ''} onValueChange={(v:any)=> onChange(idx, { multiplierX: v })}>
-            <Select.Trigger bw={1} bc={errors?.multiplierX ? '$red8' : '$borderColor'} backgroundColor="$background" px="$3">
-              <Select.Value />
+          <Select 
+            value={hasMultiplier ? row.multiplierX : ''} 
+            onValueChange={(v:any)=> onChange(idx, { multiplierX: v })}
+            disabled={isMultiplierSelectDisabled}
+          >
+            <Select.Trigger 
+              bw={1} 
+              bc={errors?.multiplierX ? '$red8' : '$borderColor'} 
+              backgroundColor="$background" 
+              px="$3"
+              disabled={isMultiplierSelectDisabled}
+            >
+              <Select.Value 
+                placeholder={
+                  isLoadingMultipliers 
+                    ? 'Cargando...' 
+                    : !loteriaId 
+                    ? 'Selecciona lotería primero' 
+                    : items.length === 0 
+                    ? 'No hay multiplicadores disponibles' 
+                    : hasMultiplier && row.multiplierX
+                    ? items.find(i => i.value === row.multiplierX)?.label
+                    : 'Selecciona multiplicador'
+                } 
+              />
             </Select.Trigger>
             <Select.Content>
               <Select.Viewport>
-                {items.map((it, i) => (
-                  <Select.Item key={it.id} value={it.value} index={i}><Select.ItemText>{it.label}</Select.ItemText></Select.Item>
-                ))}
+                {isLoadingMultipliers ? (
+                  <Select.Item value="" index={0} disabled>
+                    <Select.ItemText>Cargando multiplicadores...</Select.ItemText>
+                  </Select.Item>
+                ) : items.length === 0 ? (
+                  <Select.Item value="" index={0} disabled>
+                    <Select.ItemText>No hay multiplicadores disponibles</Select.ItemText>
+                  </Select.Item>
+                ) : (
+                  items.map((it, i) => (
+                    <Select.Item key={it.id} value={it.value} index={i}>
+                      <Select.ItemText>{it.label}</Select.ItemText>
+                    </Select.Item>
+                  ))
+                )}
               </Select.Viewport>
             </Select.Content>
           </Select>
           <Text color="$red10" fontSize="$2" minHeight={14}>{errors?.multiplierX ?? ''}</Text>
         </YStack>
-        <YStack minWidth={140} gap="$1">
+        <YStack minWidth={80} flex={0} gap="$1" $sm={{ minWidth: 'auto', width: '100%' }}>
           <Text fontSize="$3">%</Text>
-          <Input value={row.percent} onChangeText={(t)=> onChange(idx, { percent: t })} keyboardType="number-pad" borderColor={errors?.percent ? '$red8' : '$borderColor'} />
+          <Input 
+            value={row.percent} 
+            onChangeText={(t)=> onChange(idx, { percent: t })} 
+            keyboardType="number-pad" 
+            borderColor={errors?.percent ? '$red8' : '$borderColor'}
+            width={80}
+            maxLength={3}
+            textAlign="center"
+          />
           <Text color="$red10" fontSize="$2" minHeight={14}>{errors?.percent ?? ''}</Text>
         </YStack>
-        <YStack>
+        <YStack flex={0} ai="flex-end" $sm={{ width: '100%', ai: 'center' }}>
           <Button
             circular
             onPress={()=> onRemove(idx)}
@@ -351,6 +462,7 @@ function RuleRow({
             hoverStyle={{ backgroundColor: '$red5' }}
             pressStyle={{ backgroundColor: '$red6', scale: 0.98 }}
             aria-label="Eliminar regla"
+            disabled={readOnly}
           >
             <Trash2 size={16} color={iconColor} />
           </Button>
