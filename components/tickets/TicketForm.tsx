@@ -315,18 +315,21 @@ export default function TicketForm({ sorteos, restrictions, user, restrictionsLo
 
   return (
     <YStack gap="$4" width="100%" maxWidth={1200} alignSelf="center">
-      <XStack ai="center" gap="$2">
-        <Button
-          size="$3"
-          icon={(p: any) => <ArrowLeft {...p} size={24} color={iconColor} />}
-          onPress={() => safeBack('/ventana/tickets')}
-          backgroundColor="transparent"
-          borderWidth={0}
-          hoverStyle={{ backgroundColor: 'transparent' }}
-          pressStyle={{ scale: 0.98 }}
-        />
-        <Text fontSize="$8" fontWeight="bold" color="$color">Crear Nuevo Tiquete</Text>
-      </XStack>
+      {/* Solo mostrar título y botón de volver si no es modo admin (admin ya tiene su propio título) */}
+      {vendorMode !== 'admin' && (
+        <XStack ai="center" gap="$2">
+          <Button
+            size="$3"
+            icon={(p: any) => <ArrowLeft {...p} size={24} color={iconColor} />}
+            onPress={() => safeBack('/ventana/tickets')}
+            backgroundColor="transparent"
+            borderWidth={0}
+            hoverStyle={{ backgroundColor: 'transparent' }}
+            pressStyle={{ scale: 0.98 }}
+          />
+          <Text fontSize="$8" fontWeight="bold" color="$color">Crear Nuevo Tiquete</Text>
+        </XStack>
+      )}
 
       {cutoffMsg ? (
         <Card padding="$3" backgroundColor="$red2" borderWidth={1} borderColor="$red8">

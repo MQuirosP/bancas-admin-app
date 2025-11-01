@@ -328,33 +328,23 @@ export default function MultipliersListScreen() {
                   bg="$backgroundHover"
                   borderColor="$borderColor"
                   borderWidth={1}
-                  // Quitar onPress del contenedor para permitir clicks en botones internos
+                  pressStyle={{ bg: '$backgroundPress', borderColor: '$borderColorHover', scale: 0.98 }}
+                  onPress={() => router.push(`/admin/multipliers/${m.id}` as any)}
                 >
                   <XStack jc="space-between" ai="center" gap="$3" fw="wrap">
-                    {/* Zona clickeable para ir al detalle */}
-                    <Button
-                      unstyled
-                      backgroundColor="transparent"
-                      borderWidth={0}
-                      padding={0}
-                      hoverStyle={{ backgroundColor: 'transparent' }}
-                      pressStyle={{ scale: 0.98 }}
-                      onPress={() => router.push(`/admin/multipliers/${m.id}` as any)}
-                    >
-                      <YStack gap="$1" minWidth={260}>
-                        <XStack ai="center" gap="$2" fw="wrap">
-                          <Text fontSize="$5" fontWeight="600">{m.name}</Text>
-                          <ActiveBadge active={active} />
-                        </XStack>
-                        <Text color="$textSecondary">
-                          Lotería: {m.loteria?.name ?? m.loteriaId} • Tipo: {m.kind} • X: {m.valueX}
-                        </Text>
-                      </YStack>
-                    </Button>
+                    <YStack gap="$1" minWidth={260} flex={1}>
+                      <XStack ai="center" gap="$2" fw="wrap">
+                        <Text fontSize="$5" fontWeight="600">{m.name}</Text>
+                        <ActiveBadge active={active} />
+                      </XStack>
+                      <Text color="$textSecondary">
+                        Lotería: {m.loteria?.name ?? m.loteriaId} • Tipo: {m.kind} • X: {m.valueX}
+                      </Text>
+                    </YStack>
 
                     <XStack gap="$2">
                       {/* Eliminar (rojo) - placeholder de acción */}
-                  <Button
+                      <Button
                         // size="$2"
                         icon={(p:any)=> <Trash2 {...p} color={iconColor} />}
                         backgroundColor={'$red4'}

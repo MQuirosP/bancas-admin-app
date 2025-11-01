@@ -284,7 +284,7 @@ export function PaymentModal({
                 
                 {/* Validación - altura fija para no redimensionar */}
                 <YStack height={24} jc="center" ov="hidden">
-                  {!validation.valid && validation.error && amount && (
+                  {!validation.valid && validation.error && amount && validation.error.trim() ? (
                     <Text 
                       fontSize="$2" 
                       color="$red11" 
@@ -294,8 +294,7 @@ export function PaymentModal({
                     >
                       {validation.error}
                     </Text>
-                  )}
-                  {!totals.hasWinner && (
+                  ) : !totals.hasWinner ? (
                     <Text 
                       fontSize="$2" 
                       color="$gray10" 
@@ -305,8 +304,7 @@ export function PaymentModal({
                     >
                       Este ticket no es ganador
                     </Text>
-                  )}
-                  {totals.hasWinner && totals.isFullyPaid && (
+                  ) : totals.hasWinner && totals.isFullyPaid ? (
                     <Text 
                       fontSize="$2" 
                       color="$green10" 
@@ -316,7 +314,7 @@ export function PaymentModal({
                     >
                       Este ticket ya está completamente pagado
                     </Text>
-                  )}
+                  ) : null}
                 </YStack>
               </YStack>
 
@@ -344,7 +342,7 @@ export function PaymentModal({
                     opacity={loading ? 0.5 : 1}
                   >
                     <Select.Value>
-                      {PAYMENT_METHODS.find((m) => m.value === method)?.label}
+                      {PAYMENT_METHODS.find((m) => m.value === method)?.label || 'Efectivo'}
                     </Select.Value>
                   </Select.Trigger>
 

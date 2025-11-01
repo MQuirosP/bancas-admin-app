@@ -43,7 +43,7 @@ export const TICKET_STATUSES = [
   { value: 'ACTIVE', label: 'Activos' },
   { value: 'EVALUATED', label: 'Evaluados' },
   { value: 'PAID', label: 'Pagados' },
-  { value: 'CANCELED', label: 'Cancelados' },
+  { value: 'CANCELLED', label: 'Cancelados' },
 ] as const
 
 /**
@@ -97,11 +97,6 @@ export const STATUS_BADGE_STYLES = {
     bc: '$purple8' 
   },
   CANCELLED: { 
-    bg: '$red4', 
-    color: '$red11', 
-    bc: '$red8' 
-  },
-  CANCELED: { 
     bg: '$red4', 
     color: '$red11', 
     bc: '$red8' 

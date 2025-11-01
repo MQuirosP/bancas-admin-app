@@ -1,6 +1,6 @@
 // app/admin/bancas/[id].tsx
 import React from 'react'
-import { ScrollView, Text, YStack, XStack } from 'tamagui'
+import { ScrollView, Text, YStack, XStack, useTheme } from 'tamagui'
 import { Button } from '@/components/ui'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -8,6 +8,8 @@ import { apiClient, ApiErrorClass } from '@/lib/api.client'
 import type { Banca } from '@/types/models.types'
 import { useToast } from '@/hooks/useToast'
 import { BancaForm, type BancaFormValues } from '../../../components/bancas/BancaForm'
+import { ArrowLeft } from '@tamagui/lucide-icons'
+import { safeBack } from '@/lib/navigation'
 
 export default function BancaDetailScreen() {
   const { id: rawId } = useLocalSearchParams<{ id?: string | string[] }>()
@@ -15,6 +17,8 @@ export default function BancaDetailScreen() {
   const router = useRouter()
   const qc = useQueryClient()
   const toast = useToast()
+  const theme = useTheme()
+  const iconColor = (theme?.color as any)?.get?.() ?? '#000'
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['bancas', 'detail', id],
@@ -31,7 +35,7 @@ export default function BancaDetailScreen() {
       qc.invalidateQueries({ queryKey: ['bancas'] })
       qc.invalidateQueries({ queryKey: ['bancas', 'detail', id] })
       toast.success('Cambios guardados')
-      router.back()
+      safeBack('/admin/bancas')
     },
     onError: (error: ApiErrorClass) => {
       if (!error?.details?.length) {
@@ -86,14 +90,25 @@ export default function BancaDetailScreen() {
   }
 
   return (
-    <ScrollView flex={1} backgroundColor={'$background'}>
-      <YStack padding="$4" gap="$4" maxWidth={1200} alignSelf="center" width="100%">
-        <Text fontSize="$8" fontWeight="bold">Editar Banca</Text>
+    <ScrollView flex={1} backgroundColor="$background">
+      <YStack padding="$4" gap="$4" maxWidth={720} alignSelf="center" width="100%">
+        <XStack ai="center" gap="$2">
+          <Button
+            size="$3"
+            icon={(p:any)=> <ArrowLeft {...p} size={24} color={iconColor} />}
+            onPress={() => router.push('/admin/bancas')}
+            backgroundColor="transparent"
+            borderWidth={0}
+            hoverStyle={{ backgroundColor: 'transparent' }}
+            pressStyle={{ scale: 0.98 }}
+          />
+          <Text fontSize="$8" fontWeight="bold" color="$color">Editar Banca</Text>
+        </XStack>
         <BancaForm
           initial={data}
           onSubmit={handleSubmit}
           submitting={updateMutation.isPending}
-          onCancel={() => router.back()}
+          onCancel={() => safeBack('/admin/bancas')}
         />
       </YStack>
     </ScrollView>

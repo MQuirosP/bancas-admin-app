@@ -1,11 +1,12 @@
 import React, { useCallback, useMemo } from 'react'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useQuery } from '@tanstack/react-query'
-import { YStack, XStack, Text, ScrollView } from 'tamagui'
+import { YStack, XStack, Text, ScrollView, useTheme } from 'tamagui'
 import { Button } from '@/components/ui'
 import { apiClient } from '@/lib/api.client'
 import TicketReceipt from '@/components/tickets/TicketReceipt'
 import { Share } from 'react-native'
+import { ArrowLeft } from '@tamagui/lucide-icons'
 
 async function fetchTicketDetail(id: string) {
   const res = await apiClient.get<any>(`/tickets/${id}`)
@@ -16,6 +17,8 @@ export default function AdminTicketPreview() {
   const { id: raw } = useLocalSearchParams()
   const id = Array.isArray(raw) ? raw[0] : (raw ?? '')
   const router = useRouter()
+  const theme = useTheme()
+  const iconColor = (theme?.color as any)?.get?.() ?? '#000'
   if (!id) return null
 
   const { data: ticket, isLoading, isError, refetch } = useQuery({
@@ -71,13 +74,28 @@ export default function AdminTicketPreview() {
 
   return (
     <ScrollView flex={1} backgroundColor="$background">
-      <YStack p="$4" gap="$4" ai="center">
-        <XStack gap="$2">
-          <Button variant="ghost" onPress={() => router.replace('/admin/tickets')}>Cerrar</Button>
-          <Button onPress={onShare}>Compartir</Button>
-          <Button variant="outlined" onPress={onPrint}>Imprimir</Button>
+      <YStack p="$4" gap="$4" maxWidth={1200} alignSelf="center" width="100%">
+        <XStack ai="center" gap="$2" jc="space-between" flexWrap="wrap">
+          <XStack ai="center" gap="$2">
+            <Button
+              size="$3"
+              icon={(p:any)=> <ArrowLeft {...p} size={24} color={iconColor} />}
+              onPress={() => router.push('/admin/tickets')}
+              backgroundColor="transparent"
+              borderWidth={0}
+              hoverStyle={{ backgroundColor: 'transparent' }}
+              pressStyle={{ scale: 0.98 }}
+            />
+            <Text fontSize="$8" fontWeight="bold">Detalle del Ticket</Text>
+          </XStack>
+          <XStack gap="$2">
+            <Button variant="ghost" onPress={onShare}>Compartir</Button>
+            <Button variant="outlined" onPress={onPrint}>Imprimir</Button>
+          </XStack>
         </XStack>
-        <TicketReceipt ticket={ticket} />
+        <YStack ai="center" gap="$4">
+          <TicketReceipt ticket={ticket} />
+        </YStack>
       </YStack>
     </ScrollView>
   )

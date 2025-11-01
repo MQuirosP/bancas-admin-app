@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/useToast'
 // CollapsibleToolbar/ActiveBadge desde components/ui
 import { useConfirm } from '@/components/ui/Confirm'
 import FilterSwitch from '@/components/ui/FilterSwitch'
+import { DEFAULT_PAGE_SIZE } from '@/lib/constants'
 
 type ListParams = { page: number; pageSize: number; search?: string } // ← sin isActive ni isDeleted
 
@@ -19,7 +20,7 @@ async function fetchLoterias(params: ListParams): Promise<{ data: Loteria[]; met
   const res = await apiClient.get<any>('/loterias', params)
   return {
     data: Array.isArray(res) ? res : res?.data ?? [],
-    meta: res?.meta ?? { page: 1, pageSize: 20, total: 0, totalPages: 1 },
+    meta: res?.meta ?? { page: 1, pageSize: DEFAULT_PAGE_SIZE, total: 0, totalPages: 1 },
   }
 }
 
@@ -32,7 +33,7 @@ export default function LoteriasListScreen() {
   const { confirm, ConfirmRoot } = useConfirm()
 
   const [page, setPage] = useState(1)
-  const [pageSize] = useState(20)
+  const [pageSize] = useState(DEFAULT_PAGE_SIZE)
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
 
@@ -44,7 +45,7 @@ export default function LoteriasListScreen() {
   const { data, isLoading, isFetching, isError, refetch } = useQuery({
     queryKey: ['loterias', 'list', params],
     queryFn: () => fetchLoterias(params),
-    placeholderData: { data: [], meta: { page: 1, pageSize: 20, total: 0, totalPages: 1 } },
+    placeholderData: { data: [], meta: { page: 1, pageSize: DEFAULT_PAGE_SIZE, total: 0, totalPages: 1 } },
     staleTime: 60_000,
   })
 

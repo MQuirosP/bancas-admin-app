@@ -24,7 +24,7 @@ export default function TicketActionButtons({ ticket, onView, onPayment, onCance
   // ✅ Solo mostrar botón de pago si el ticket es ganador
   const isWinner = ticket.isWinner === true
   const canPay = isWinner && (ticket.status === 'EVALUATED' || ticket.status === 'PAID')
-  const canCancel = ticket.status !== 'CANCELED' && ticket.status !== 'PAID'
+  const canCancel = ticket.status !== 'CANCELLED' && ticket.status !== 'PAID'
   
   return (
     <XStack gap="$2" flexWrap="nowrap">

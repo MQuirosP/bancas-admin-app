@@ -12,17 +12,18 @@ import { apiClient, ApiErrorClass } from '@/lib/api.client';
 import { useToast } from '@/hooks/useToast';
 import { useConfirm } from '@/components/ui/Confirm';
 import type { PaginatedResponse, Banca } from '@/types/models.types';
+import { DEFAULT_PAGE_SIZE } from '@/lib/constants';
 
 async function fetchBancas(page: number, search: string): Promise<PaginatedResponse<Banca>> {
   const res = await apiClient.get('/bancas', {
     page,
-    pageSize: 20,
+    pageSize: DEFAULT_PAGE_SIZE,
     search: search.trim() || undefined,
   });
 
   const payload: any = res ?? {};
   let items: Banca[] = [];
-  let meta = { page: 1, pageSize: 20, total: 0, totalPages: 1 };
+  let meta = { page: 1, pageSize: DEFAULT_PAGE_SIZE, total: 0, totalPages: 1 };
 
   if (Array.isArray(payload)) {
     items = payload as Banca[];
@@ -31,7 +32,7 @@ async function fetchBancas(page: number, search: string): Promise<PaginatedRespo
     const m = payload.meta ?? payload.pagination ?? {};
     meta = {
       page: Number(m.page ?? 1),
-      pageSize: Number(m.pageSize ?? 20),
+      pageSize: Number(m.pageSize ?? DEFAULT_PAGE_SIZE),
       total: Number(m.total ?? 0),
       totalPages: Number(m.totalPages ?? 1),
     };
@@ -58,7 +59,7 @@ export default function BancasListScreen() {
     queryFn: () => fetchBancas(page, searchTerm),
     placeholderData: {
       data: [],
-      pagination: { page: 1, pageSize: 20, total: 0, totalPages: 1 },
+      pagination: { page: 1, pageSize: DEFAULT_PAGE_SIZE, total: 0, totalPages: 1 },
     },
     staleTime: 30_000,
     retry: 1,
@@ -269,26 +270,18 @@ export default function BancasListScreen() {
                   backgroundColor="$backgroundHover"
                   borderColor="$borderColor"
                   borderWidth={1}
+                  pressStyle={{ scale: 0.98, backgroundColor: '$backgroundPress', borderColor: '$borderColorHover' }}
+                  onPress={() => router.push(`/admin/bancas/${banca.id}` as any)}
                 >
                   <XStack justifyContent="space-between" alignItems="center" gap="$3" flexWrap="wrap">
                     {/* Título + badge juntos */}
-                    <Button
-                      unstyled
-                      backgroundColor="transparent"
-                      borderWidth={0}
-                      padding={0}
-                      hoverStyle={{ backgroundColor: 'transparent' }}
-                      pressStyle={{ scale: 0.98 }}
-                      onPress={() => router.push(`/admin/bancas/${banca.id}` as any)}
-                    >
-                      <YStack flex={1} gap="$1">
-                        <XStack ai="center" gap="$2" flexWrap="wrap">
-                          <Text fontSize="$5" fontWeight="600" color="$color">{banca.name}</Text>
-                          <ActiveBadge active={active} />
-                        </XStack>
-                        <Text fontSize="$3" color="$textSecondary">{banca.code}</Text>
-                      </YStack>
-                    </Button>
+                    <YStack flex={1} gap="$1">
+                      <XStack ai="center" gap="$2" flexWrap="wrap">
+                        <Text fontSize="$5" fontWeight="600" color="$color">{banca.name}</Text>
+                        <ActiveBadge active={active} />
+                      </XStack>
+                      <Text fontSize="$3" color="$textSecondary">{banca.code}</Text>
+                    </YStack>
 
                     {/* Acciones (no navegan) */}
                     <XStack gap="$2">

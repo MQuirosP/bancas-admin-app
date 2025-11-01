@@ -4,7 +4,7 @@ import { YStack, XStack, Text, Spinner, Select, Sheet, Adapt, ScrollView, Separa
 import { Card, Input, Button } from '@/components/ui'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'expo-router'
-import { ChevronDown } from '@tamagui/lucide-icons'
+import { ChevronDown, ArrowLeft } from '@tamagui/lucide-icons'
 import { useToast } from '@/hooks/useToast'
 import { SorteosApi } from '@/lib/api.sorteos'
 import { LoteriasApi } from '@/lib/api.loterias'

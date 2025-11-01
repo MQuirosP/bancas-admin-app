@@ -10,6 +10,7 @@ import type { RestrictionRule } from '@/types/models.types'
 import { useToast } from '@/hooks/useToast'
 import { ActiveBadge } from '@/components/ui'
 import { formatCurrency } from '@/utils/formatters'
+import { DEFAULT_PAGE_SIZE } from '@/lib/constants'
 
 // preferir nombre, luego código; jamás mostrar ID
 const pickNameOrCode = (name?: string | null, code?: string | null) =>
@@ -61,7 +62,7 @@ export default function RestrictionsListScreen() {
     queryFn: () =>
       listRestrictions({
         page,
-        pageSize: 20,
+        pageSize: DEFAULT_PAGE_SIZE,
         number: searchNumber || undefined,
         hasCutoff: scope === 'cutoff' ? true : undefined,
         hasAmount: scope === 'amount' ? true : undefined,

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useState, useCallback, useEffect } from 'react'
 import { YStack, XStack, Text, ScrollView, Spinner, Separator } from 'tamagui'
 import { Button, Input, Card, Select, DatePicker, CollapsibleToolbar } from '@/components/ui'
 import { useQuery } from '@tanstack/react-query'
@@ -12,7 +12,7 @@ import { apiClient } from '@/lib/api.client'
 import { formatCurrency } from '@/utils/formatters'
 import FilterSwitch from '@/components/ui/FilterSwitch'
 import type { Scope } from '@/types/scope'
-import { getDateParam, type DateTokenBasic, formatDateYYYYMMDD } from '@/lib/dateFormat'
+import { getDateParam, type DateToken, formatDateYYYYMMDD } from '@/lib/dateFormat'
 import { object } from 'zod'
 import TicketActionButtons from './TicketActionButtons'
 import { useConfirm } from '@/components/ui/Confirm'
@@ -59,16 +59,15 @@ type Props = {
   hideHeader?: boolean
 }
 
-// ✅ Tickets endpoint only supports: today, yesterday, range
-// (No week/month/year - use range with custom dates if needed)
-type DateFilter = 'today' | 'yesterday' | 'range'
+// ✅ Tickets endpoint supports: today, yesterday, week, month, year, range
+type DateFilter = 'today' | 'yesterday' | 'week' | 'month' | 'year' | 'range'
 
 const TICKET_STATUSES = [
   { value: 'ALL', label: 'Todos los estados' },
   { value: 'ACTIVE', label: 'Activos' },
   { value: 'EVALUATED', label: 'Evaluados' },
   { value: 'PAID', label: 'Pagados' },
-  { value: 'CANCELED', label: 'Cancelados' },
+  { value: 'CANCELLED', label: 'Cancelados' },
 ]
 
 const STATUS_LABEL_MAP = Object.fromEntries(TICKET_STATUSES.map(s => [s.value, s.label]))
@@ -76,6 +75,9 @@ const STATUS_LABEL_MAP = Object.fromEntries(TICKET_STATUSES.map(s => [s.value, s
 const DATE_FILTER_LABELS = {
   today: 'Hoy',
   yesterday: 'Ayer',
+  week: 'Esta semana',
+  month: 'Este mes',
+  year: 'Este año',
   range: 'Rango personalizado',
 } as const
 
@@ -125,6 +127,27 @@ export default function TicketsListScreen({
   const [paymentTicket, setPaymentTicket] = useState<Ticket | null>(null)
   const [paymentLoading, setPaymentLoading] = useState(false)
 
+  // Handler para cambio de filtro de fecha - usar callback directo para evitar warnings
+  const handleDateFilterChange = useCallback((v: string) => {
+    requestAnimationFrame(() => {
+      const newFilter = v as DateFilter
+      setDateFilter(newFilter)
+      if (newFilter !== 'range') {
+        setDateFrom(null)
+        setDateTo(null)
+      }
+      setPage(1)
+    })
+  }, [])
+
+  // Handler para cambio de filtro de estado - usar callback directo para evitar warnings
+  const handleStatusFilterChange = useCallback((v: string) => {
+    requestAnimationFrame(() => {
+      setStatusFilter(v)
+      setPage(1)
+    })
+  }, [])
+
   const backendParams = useMemo(() => {
     const params: any = {
       page,
@@ -134,12 +157,14 @@ export default function TicketsListScreen({
     }
 
     // ✅ Backend authority: use tokens, not Date calculations
-    // Tickets endpoint only supports: today, yesterday, range
+    // Tickets endpoint supports: today, yesterday, week, month, year, range
     if (dateFilter === 'range' && dateFrom && dateTo) {
       Object.assign(params, getDateParam('range', formatDateYYYYMMDD(dateFrom), formatDateYYYYMMDD(dateTo)))
-    } else {
-      Object.assign(params, getDateParam(dateFilter as DateTokenBasic))
+    } else if (dateFilter !== 'range') {
+      Object.assign(params, getDateParam(dateFilter as DateToken))
     }
+    // Si dateFilter === 'range' pero no hay fechas, no agregar parámetro de fecha
+    // La query estará deshabilitada en ese caso
 
     // Add status filter if not 'ALL'
     if (statusFilter !== 'ALL') {
@@ -155,9 +180,13 @@ export default function TicketsListScreen({
     return params
   }, [page, pageSize, dateFilter, dateFrom, dateTo, statusFilter, scope, variant])
 
+  // Deshabilitar query si está en modo 'range' pero no hay fechas seleccionadas
+  const shouldFetch = !(dateFilter === 'range' && (!dateFrom || !dateTo))
+
   const { data, isLoading, isFetching, isError, error: queryError, refetch } = useQuery({
     queryKey: ['tickets', 'list', scope, backendParams],
     queryFn: () => fetchTickets(backendParams),
+    enabled: shouldFetch,
     placeholderData: { data: [], meta: { page: 1, pageSize: 20, total: 0, totalPages: 1 } },
     staleTime: 30_000,
     onError: (err: any) => {
@@ -359,7 +388,7 @@ export default function TicketsListScreen({
                     <Select
                       size="$3"
                       value={dateFilter}
-                      onValueChange={(v: any) => setDateFilter(v)}
+                      onValueChange={handleDateFilterChange}
                     >
                       <Select.Trigger
                         width={180}
@@ -379,11 +408,14 @@ export default function TicketsListScreen({
                       <Select.Content zIndex={1000}>
                         <YStack br="$3" bw={1} bc="$borderColor" backgroundColor="$background">
                           <Select.Viewport>
-                            {[
+                            {([
                               { value: 'today', label: 'Hoy' },
                               { value: 'yesterday', label: 'Ayer' },
+                              { value: 'week', label: 'Esta semana' },
+                              { value: 'month', label: 'Este mes' },
+                              { value: 'year', label: 'Este año' },
                               { value: 'range', label: 'Rango personalizado' },
-                            ].map((it, idx) => (
+                            ] as const).map((it, idx) => (
                               <Select.Item key={it.value} value={it.value} index={idx} pressStyle={{ bg: '$backgroundHover' }} bw={0} px="$3">
                                 <Select.ItemText>{it.label}</Select.ItemText>
                                 <Select.ItemIndicator ml="auto"><Check size={16} /></Select.ItemIndicator>
@@ -402,7 +434,7 @@ export default function TicketsListScreen({
                     <Select
                       size="$3"
                       value={statusFilter}
-                      onValueChange={(v: any) => setStatusFilter(v)}
+                      onValueChange={handleStatusFilterChange}
                     >
                       <Select.Trigger
                         width={200}

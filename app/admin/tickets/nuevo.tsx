@@ -1,6 +1,7 @@
 // app/admin/tickets/nuevo.tsx
 import React, { useMemo } from 'react'
-import { YStack, ScrollView } from 'tamagui'
+import { YStack, ScrollView, XStack, Text, useTheme } from 'tamagui'
+import { Button } from '@/components/ui'
 import { useRouter } from 'expo-router'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { apiClient, ApiErrorClass } from '@/lib/api.client'
@@ -9,6 +10,7 @@ import { Sorteo, SorteoStatus, CreateTicketRequest, RestrictionRule } from '@/ty
 import { useToast } from '@/hooks/useToast'
 import TicketForm from '@/components/tickets/TicketForm'
 import { LoteriasApi } from '@/lib/api.loterias'
+import { ArrowLeft } from '@tamagui/lucide-icons'
 
 type ListResp<T> = T[] | { data: T[]; meta?: any }
 function toArray<T>(payload: ListResp<T> | undefined | null): T[] {
@@ -20,6 +22,8 @@ export default function AdminNuevoTicket() {
   const router = useRouter()
   const { success, error } = useToast()
   const { user } = useAuthStore()
+  const theme = useTheme()
+  const iconColor = (theme?.color as any)?.get?.() ?? '#000'
 
   const safeBack = () => {
     try {
@@ -94,6 +98,18 @@ export default function AdminNuevoTicket() {
   return (
     <ScrollView flex={1} backgroundColor={'$background'}>
       <YStack padding="$4" gap="$4" maxWidth={720} alignSelf="center" width="100%">
+        <XStack ai="center" gap="$2">
+          <Button
+            size="$3"
+            icon={(p:any)=> <ArrowLeft {...p} size={24} color={iconColor} />}
+            onPress={() => router.push('/admin/tickets')}
+            backgroundColor="transparent"
+            borderWidth={0}
+            hoverStyle={{ backgroundColor: 'transparent' }}
+            pressStyle={{ scale: 0.98 }}
+          />
+          <Text fontSize="$8" fontWeight="bold">Nuevo Ticket</Text>
+        </XStack>
         <TicketForm
           sorteos={sorteos}
           restrictions={restrictions}

@@ -13,9 +13,14 @@ export type DatePickerProps = {
   style?: ViewStyle
 }
 
+/**
+ * Formatea una fecha para el input web en zona horaria local
+ * Esto asegura que la fecha se muestre correctamente sin problemas de conversión UTC
+ */
 function formatForWeb(value?: Date | null, mode: Mode = 'date') {
   if (!value) return ''
   const pad = (n: number) => String(n).padStart(2, '0')
+  // Usar métodos locales para evitar problemas de zona horaria
   const yyyy = value.getFullYear()
   const mm = pad(value.getMonth() + 1)
   const dd = pad(value.getDate())
@@ -55,7 +60,26 @@ export const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, mode = 
           onChange={(e) => {
             const v = e.currentTarget.value
             if (!v) return
-            const d = new Date(v)
+            
+            let d: Date
+            if (mode === 'date') {
+              // Crear la fecha como medianoche en zona horaria local para evitar problemas de conversión
+              // El input type="date" devuelve formato YYYY-MM-DD
+              const [year, month, day] = v.split('-').map(Number)
+              d = new Date(year, month - 1, day, 0, 0, 0, 0) // month es 0-indexed
+            } else if (mode === 'datetime') {
+              // El input type="datetime-local" devuelve formato YYYY-MM-DDTHH:mm
+              const [datePart, timePart] = v.split('T')
+              const [year, month, day] = datePart.split('-').map(Number)
+              const [hours, minutes] = timePart ? timePart.split(':').map(Number) : [0, 0]
+              d = new Date(year, month - 1, day, hours, minutes, 0, 0) // month es 0-indexed
+            } else {
+              // mode === 'time' - formato HH:mm
+              const [hours, minutes] = v.split(':').map(Number)
+              d = new Date()
+              d.setHours(hours, minutes, 0, 0)
+            }
+            
             if (!isNaN(d.getTime())) onChange(d)
           }}
           style={{

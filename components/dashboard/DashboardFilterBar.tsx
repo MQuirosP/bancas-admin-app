@@ -197,8 +197,20 @@ export function DashboardFilterBar({ onExport, exportLoading }: DashboardFilterB
                   Desde
                 </Text>
                 <DatePicker
-                  value={fromDate ? new Date(fromDate) : null}
-                  onChange={(d) => setDateRange(d?.toISOString() || '', toDate || '')}
+                  value={fromDate ? (() => {
+                    // Parsear ISO string a fecha local para evitar problemas de zona horaria
+                    const d = new Date(fromDate)
+                    // Extraer componentes en UTC pero crear fecha en zona local
+                    return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 0, 0, 0, 0)
+                  })() : null}
+                  onChange={(d) => {
+                    // Crear ISO string en medianoche UTC del día seleccionado
+                    const year = d.getFullYear()
+                    const month = d.getMonth()
+                    const day = d.getDate()
+                    const utcDate = new Date(Date.UTC(year, month, day, 0, 0, 0, 0))
+                    setDateRange(utcDate.toISOString(), toDate || '')
+                  }}
                   placeholder="Desde"
                 />
               </YStack>
@@ -207,8 +219,20 @@ export function DashboardFilterBar({ onExport, exportLoading }: DashboardFilterB
                   Hasta
                 </Text>
                 <DatePicker
-                  value={toDate ? new Date(toDate) : null}
-                  onChange={(d) => setDateRange(fromDate || '', d?.toISOString() || '')}
+                  value={toDate ? (() => {
+                    // Parsear ISO string a fecha local para evitar problemas de zona horaria
+                    const d = new Date(toDate)
+                    // Extraer componentes en UTC pero crear fecha en zona local
+                    return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 0, 0, 0, 0)
+                  })() : null}
+                  onChange={(d) => {
+                    // Crear ISO string en medianoche UTC del día seleccionado (al final del día)
+                    const year = d.getFullYear()
+                    const month = d.getMonth()
+                    const day = d.getDate()
+                    const utcDate = new Date(Date.UTC(year, month, day, 23, 59, 59, 999))
+                    setDateRange(fromDate || '', utcDate.toISOString())
+                  }}
                   placeholder="Hasta"
                 />
               </YStack>

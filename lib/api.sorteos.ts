@@ -2,6 +2,7 @@
 import { apiClient } from '@/lib/api.client'
 import type { ApiListResponse, Sorteo } from '@/types/models.types'
 import { compact } from '@/utils/object'
+import { getDateParam, formatDateYYYYMMDD, type DateToken } from '@/lib/dateFormat'
 
 export type ListSorteosParams = {
   page?: number
@@ -9,6 +10,10 @@ export type ListSorteosParams = {
   loteriaId?: string
   search?: string
   status?: 'SCHEDULED' | 'OPEN' | 'EVALUATED' | 'CLOSED'
+  // Parámetros de fecha (tokens que el backend procesará)
+  date?: DateToken
+  fromDate?: string // YYYY-MM-DD para 'range'
+  toDate?: string // YYYY-MM-DD para 'range'
 }
 
 export type CreateSorteoBody = {
@@ -25,13 +30,23 @@ export type EvaluateBody = {
 
 export const SorteosApi = {
   list: (p: ListSorteosParams = {}): Promise<ApiListResponse<Sorteo>> => {
-    const query = compact({
+    const query: any = compact({
       page: p.page,
       pageSize: p.pageSize,
       loteriaId: p.loteriaId,
       status: p.status,
       search: p.search?.trim() || undefined,
     })
+
+    // Agregar parámetros de fecha si se proporcionan
+    if (p.date) {
+      if (p.date === 'range' && p.fromDate && p.toDate) {
+        Object.assign(query, getDateParam('range', p.fromDate, p.toDate))
+      } else {
+        Object.assign(query, getDateParam(p.date))
+      }
+    }
+
     return apiClient.get('/sorteos', query)
   },
 

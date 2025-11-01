@@ -16,6 +16,7 @@ import { useConfirm } from '@/components/ui/Confirm'
 import FilterSwitch from '@/components/ui/FilterSwitch'
 import { useVentanasInfinite } from '@/hooks/useVentanasInfinite'
 import { set } from 'date-fns'
+import { DEFAULT_PAGE_SIZE } from '@/lib/constants'
 
 
 async function fetchUsers(
@@ -27,7 +28,7 @@ async function fetchUsers(
   const m = payload?.meta ?? payload?.pagination ?? {}
   const meta = {
     page: Number(m?.page ?? params.page ?? 1),
-    pageSize: Number(m?.pageSize ?? params.pageSize ?? 20),
+    pageSize: Number(m?.pageSize ?? params.pageSize ?? DEFAULT_PAGE_SIZE),
     total: Number(m?.total ?? (Array.isArray(items) ? items.length : 0)),
     totalPages: Number(m?.totalPages ?? 1),
   }
@@ -121,7 +122,7 @@ export default function UsuariosListScreen() {
   const { confirm, ConfirmRoot } = useConfirm()
 
   const [page, setPage] = useState(1)
-  const [pageSize] = useState(20)
+  const [pageSize] = useState(DEFAULT_PAGE_SIZE)
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
   const [role, setRole] = useState<UsersQueryParams['role'] | undefined>(undefined)
@@ -132,7 +133,7 @@ export default function UsuariosListScreen() {
   const { data, isLoading, isFetching, isError, refetch } = useQuery({
     queryKey: ['users', 'list', params],
     queryFn: () => fetchUsers(params),
-    placeholderData: { data: [], meta: { page: 1, pageSize: 20, total: 0, totalPages: 1 } },
+    placeholderData: { data: [], meta: { page: 1, pageSize: DEFAULT_PAGE_SIZE, total: 0, totalPages: 1 } },
     staleTime: 60_000,
   })
 

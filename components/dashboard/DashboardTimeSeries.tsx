@@ -3,11 +3,12 @@
  * Nota: Implementación placeholder - requiere librería de charts (recharts/victory-native)
  */
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { YStack, XStack, Text, Switch } from 'tamagui'
 import { Card, SkeletonChart } from '@/components/ui'
 import { formatCurrency } from '@/utils/formatters'
 import type { TimeSeriesDataPoint } from '@/types/dashboard.types'
+import { useDashboardFiltersStore } from '@/store/dashboardFilters.store'
 
 interface DashboardTimeSeriesProps {
   data: TimeSeriesDataPoint[]
@@ -51,6 +52,30 @@ export function DashboardTimeSeries({
     return () => clearTimeout(timer)
   }, [])
 
+  // Obtener filtro de fecha para mostrar un texto más descriptivo
+  const dateFilter = useDashboardFiltersStore((state) => state.date)
+  
+  // Texto descriptivo del período de comparación según el filtro seleccionado
+  const comparisonLabel = useMemo(() => {
+    if (!dateFilter || dateFilter === 'today') {
+      return 'Comparar con ayer'
+    }
+    if (dateFilter === 'yesterday') {
+      return 'Comparar con anteayer'
+    }
+    if (dateFilter === 'week') {
+      return 'Comparar con semana anterior'
+    }
+    if (dateFilter === 'month') {
+      return 'Comparar con mes anterior'
+    }
+    if (dateFilter === 'year') {
+      return 'Comparar con año anterior'
+    }
+    // Para rango personalizado, mostrar texto genérico
+    return 'Comparar período anterior'
+  }, [dateFilter])
+
   if (isLoading) {
     return <SkeletonChart height={300} />
   }
@@ -76,7 +101,7 @@ export function DashboardTimeSeries({
         {comparison && (
           <XStack ai="center" gap="$2">
             <Text fontSize="$3" color="$textSecondary">
-              Comparar período anterior
+              {comparisonLabel}
             </Text>
             <Switch
               size="$2"
@@ -143,12 +168,13 @@ export function DashboardTimeSeries({
                 key={idx} 
                 flex={1} 
                 ai="center" 
+                jc="space-between"
                 gap="$1" 
                 minWidth={showComparison ? 40 : 30} 
                 height={chartHeight + 30}
                 animation="quick"
               >
-                <XStack width="100%" ai="flex-end" jc="center" gap="$1">
+                <XStack width="100%" ai="flex-end" jc="center" gap="$1" flex={1}>
                   {/* Barra período actual - siempre visible */}
                   <YStack
                     flex={1}
@@ -224,7 +250,14 @@ export function DashboardTimeSeries({
                     </YStack>
                   )}
                 </XStack>
-                <Text fontSize="$1" color="$textSecondary">
+                <Text 
+                  fontSize="$1" 
+                  color="$textSecondary"
+                  height={20}
+                  lineHeight={20}
+                  textAlign="center"
+                  width="100%"
+                >
                   {label}
                 </Text>
               </YStack>

@@ -22,7 +22,7 @@ export default function VentanasListScreen() {
   const { confirm, ConfirmRoot } = useConfirm()
 
   const [page, setPage] = useState(1)
-  const [pageSize] = useState(20)
+  const [pageSize] = useState(DEFAULT_PAGE_SIZE)
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
 
@@ -33,7 +33,7 @@ export default function VentanasListScreen() {
   const { data, isLoading, isFetching, isError, refetch } = useQuery({
     queryKey: queryKeys.ventanas.list({ page, pageSize, search }), // ✅ Usar queryKeys centralizados
     queryFn: () => listVentanas({ page, pageSize, search }),
-    placeholderData: { data: [], meta: { page: 1, pageSize: 20, total: 0, totalPages: 1 } },
+    placeholderData: { data: [], meta: { page: 1, pageSize: DEFAULT_PAGE_SIZE, total: 0, totalPages: 1 } },
     staleTime: 60_000,
   })
 

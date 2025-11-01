@@ -1,5 +1,5 @@
 // app/admin/sorteos/index.tsx
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useState, useCallback } from 'react'
 import { YStack, XStack, Text, Spinner, Separator, Sheet, ScrollView } from 'tamagui'
 import { Button, Card, Input, Select, CollapsibleToolbar, ActiveBadge } from '@/components/ui'
 import { useRouter } from 'expo-router'
@@ -15,10 +15,14 @@ import { useAuth } from '@/hooks/useAuth'
 import { isAdmin } from '@/utils/role'
 import { apiClient } from '@/lib/api.client'
 import FilterSwitch from '@/components/ui/FilterSwitch'
+import { DEFAULT_PAGE_SIZE } from '@/lib/constants'
+import { getDateParam, formatDateYYYYMMDD } from '@/lib/dateFormat'
+import { DatePicker } from '@/components/ui'
 
 type Status = 'SCHEDULED' | 'OPEN' | 'EVALUATED' | 'CLOSED'
 type StatusOrAll = Status | 'ALL' | undefined
-type DateFilter = 'ALL' | 'TODAY' | 'TOMORROW' | 'THIS_WEEK' | 'NEXT_WEEK' | undefined
+// ✅ Backend soporta: today, yesterday, week, month, year, range (o sin filtro = ALL)
+type DateFilter = 'ALL' | 'today' | 'yesterday' | 'week' | 'month' | 'year' | 'range' | undefined
 
 function StatusSelect({
   value,
@@ -103,23 +107,31 @@ function DateFilterSelect({
   value: DateFilter
   onChange: (val: DateFilter) => void
 }) {
-  const internal: DateFilter = (value ?? 'ALL') as DateFilter
+  const internal: DateFilter = (value ?? 'today') as DateFilter
 
   const items: { value: DateFilter; label: string }[] = [
-    { value: 'ALL', label: 'Todas' },
-    { value: 'TODAY', label: 'Hoy' },
-    { value: 'TOMORROW', label: 'Mañana' },
-    { value: 'THIS_WEEK', label: 'Semana' },
-    { value: 'NEXT_WEEK', label: 'Próx.' },
+    { value: 'today', label: 'Hoy' },
+    { value: 'yesterday', label: 'Ayer' },
+    { value: 'week', label: 'Esta semana' },
+    { value: 'month', label: 'Este mes' },
+    { value: 'year', label: 'Este año' },
+    { value: 'range', label: 'Rango personalizado' },
+    { value: 'ALL', label: 'Todos' },
   ]
 
-  const labelOf = (v: DateFilter) => items.find(i => i.value === v)?.label ?? 'Todas'
+  const labelOf = (v: DateFilter) => items.find(i => i.value === v)?.label ?? 'Hoy'
+
+  const handleValueChange = useCallback((v: string) => {
+    requestAnimationFrame(() => {
+      onChange(v === 'ALL' ? 'ALL' : (v as DateFilter))
+    })
+  }, [onChange])
 
   return (
     <Select
       size="$3"
       value={String(internal)}
-      onValueChange={(v: string) => onChange(v === 'ALL' ? undefined : (v as DateFilter))}
+      onValueChange={handleValueChange}
     >
       <Select.Trigger
         px="$2"
@@ -183,11 +195,14 @@ export default function SorteosListScreen() {
   const admin = isAdmin(user?.role!)
 
   const [page, setPage] = useState(1)
-  const [pageSize] = useState(20)
+  const [pageSize] = useState(DEFAULT_PAGE_SIZE)
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState<Status | undefined>(undefined)
-  const [dateFilter, setDateFilter] = useState<DateFilter>('ALL')
+  // Por defecto usar 'today' para mostrar solo registros de hoy hacia el futuro
+  const [dateFilter, setDateFilter] = useState<DateFilter>('today')
+  const [dateFrom, setDateFrom] = useState<Date | null>(null)
+  const [dateTo, setDateTo] = useState<Date | null>(null)
 
   // 🔁 Filtro local de "Activos":
   // ON  -> muestra solo activos
@@ -197,20 +212,49 @@ export default function SorteosListScreen() {
   // Lotería seleccionada para preview
   const [selectedLoteriaForPreview, setSelectedLoteriaForPreview] = useState<{ id: string; name: string } | null>(null)
 
+  // Preparar parámetros para el backend
+  const backendParams = useMemo(() => {
+    const params: any = {
+      page,
+      pageSize,
+      search,
+      status,
+    }
+
+    // Enviar parámetro de fecha al backend
+    // Por defecto (today), el backend devuelve registros de hoy hacia el futuro
+    if (dateFilter === 'ALL') {
+      // No enviar parámetro de fecha, devolver todos (incluye pasado)
+    } else if (dateFilter === 'range' && dateFrom && dateTo) {
+      // Rango personalizado: enviar fromDate y toDate en formato YYYY-MM-DD
+      Object.assign(params, getDateParam('range', formatDateYYYYMMDD(dateFrom), formatDateYYYYMMDD(dateTo)))
+    } else if (dateFilter && dateFilter !== 'range') {
+      // Otros tokens: today, yesterday, week, month, year
+      Object.assign(params, getDateParam(dateFilter as 'today' | 'yesterday' | 'week' | 'month' | 'year'))
+    }
+    // Si dateFilter === 'range' pero no hay fechas, no agregar parámetro de fecha
+
+    return params
+  }, [page, pageSize, search, status, dateFilter, dateFrom, dateTo])
+
+  // Deshabilitar query si está en modo 'range' pero no hay fechas seleccionadas
+  const shouldFetch = !(dateFilter === 'range' && (!dateFrom || !dateTo))
+
   const { data, isLoading, isFetching, isError, refetch } = useQuery<ApiListResponse<Sorteo>>({
-    queryKey: ['sorteos', 'list', { page, pageSize, search, status }],
-    queryFn: () => SorteosApi.list({ page, pageSize, search, status }),
+    queryKey: ['sorteos', 'list', backendParams],
+    queryFn: () => SorteosApi.list(backendParams),
+    enabled: shouldFetch,
     placeholderData: {
       success: true,
       data: [],
-      meta: { page: 1, pageSize: 20, total: 0, totalPages: 1, hasNextPage: false, hasPrevPage: false },
+      meta: { page: 1, pageSize: DEFAULT_PAGE_SIZE, total: 0, totalPages: 1, hasNextPage: false, hasPrevPage: false },
     },
     staleTime: 60_000,
     refetchOnWindowFocus: true,
     refetchOnReconnect: true,
   })
 
-  // Cargar loterías para el selector
+  // Cargar loterías para el selector (usar un tamaño grande para obtener todas)
   const { data: loteriasData } = useQuery({
     queryKey: ['loterias', 'all'],
     queryFn: async () => {
@@ -223,7 +267,7 @@ export default function SorteosListScreen() {
 
   // Filtrar solo las loterías activas para el selector
   const activeLoterias = useMemo(() => {
-    const all = loteriasData ?? []
+    const all = Array.isArray(loteriasData) ? loteriasData : []
     return all.filter((l: any) => ((l as any).isActive ?? true) === true)
   }, [loteriasData])
 
@@ -237,52 +281,16 @@ export default function SorteosListScreen() {
     return flag === undefined ? inferred : flag === true
   }
 
-  // Helper para filtrar por fecha de programación
-  const filterByDate = (sorteo: Sorteo, filter: DateFilter): boolean => {
-    if (!filter || filter === 'ALL') return true
-    
-    const scheduled = new Date(sorteo.scheduledAt as any)
-    const now = new Date()
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-    const tomorrow = new Date(today)
-    tomorrow.setDate(tomorrow.getDate() + 1)
-    
-    switch (filter) {
-      case 'TODAY':
-        return scheduled >= today && scheduled < tomorrow
-      case 'TOMORROW':
-        const dayAfterTomorrow = new Date(tomorrow)
-        dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 1)
-        return scheduled >= tomorrow && scheduled < dayAfterTomorrow
-      case 'THIS_WEEK':
-        const endOfWeek = new Date(today)
-        endOfWeek.setDate(endOfWeek.getDate() + (7 - today.getDay()))
-        return scheduled >= today && scheduled <= endOfWeek
-      case 'NEXT_WEEK':
-        const startNextWeek = new Date(today)
-        startNextWeek.setDate(startNextWeek.getDate() + (7 - today.getDay() + 1))
-        const endNextWeek = new Date(startNextWeek)
-        endNextWeek.setDate(endNextWeek.getDate() + 6)
-        return scheduled >= startNextWeek && scheduled <= endNextWeek
-      default:
-        return true
-    }
-  }
-
-  // Filtro por estado (frontend) + activos/inactivos (frontend) + fecha + ordenamiento cronológico
+  // ✅ Backend filtra por fecha, así que solo aplicamos filtros de frontend (activos/inactivos y búsqueda)
   const rows = useMemo(() => {
-    const byStatus = status ? baseRows.filter(r => r.status === status) : baseRows
-    // Cuando activeOnly === true -> solo activos
-    // Cuando activeOnly === false -> solo inactivos
-    const byActiveFlag = byStatus.filter(s => activeOnly ? isRowActive(s) : !isRowActive(s))
+    // El status y la fecha ya se filtran en el backend
+    // Solo aplicamos el filtro de activos/inactivos y búsqueda localmente
+    const byActiveFlag = baseRows.filter(s => activeOnly ? isRowActive(s) : !isRowActive(s))
 
-    // Filtrar por fecha
-    const byDate = byActiveFlag.filter(s => filterByDate(s, dateFilter))
-
-    let filtered = byDate
+    let filtered = byActiveFlag
     if (search.trim()) {
       const q = search.trim().toLowerCase()
-      filtered = byDate.filter(s =>
+      filtered = byActiveFlag.filter(s =>
         (s.name ?? '').toLowerCase().includes(q) ||
         (s.loteria?.name ?? s.loteriaId ?? '').toLowerCase().includes(q)
       )
@@ -295,16 +303,41 @@ export default function SorteosListScreen() {
       const dateB = new Date(b.scheduledAt as any).getTime()
       return dateA - dateB
     })
-  }, [baseRows, status, activeOnly, dateFilter, search])
+  }, [baseRows, activeOnly, search])
 
-  const meta = data?.meta
+  // Usar meta del backend directamente (la paginación se maneja en el backend)
+  // Los filtros del frontend solo afectan qué registros se muestran en la página actual
+  const meta = data?.meta ?? {
+    page: 1,
+    pageSize: DEFAULT_PAGE_SIZE,
+    total: 0,
+    totalPages: 1,
+    hasNextPage: false,
+    hasPrevPage: false,
+  }
+
+  // Los resultados filtrados del frontend (sin paginación adicional del frontend)
+  const paginatedRows = rows
 
   const handleSearch = () => { setPage(1); setSearch(searchInput.trim()) }
+  
+  // Handler para cambio de filtro de fecha - usar requestAnimationFrame para evitar warnings
+  const handleDateFilterChange = useCallback((v: DateFilter) => {
+    requestAnimationFrame(() => {
+      setDateFilter(v)
+      setDateFrom(null)
+      setDateTo(null)
+      setPage(1)
+    })
+  }, [])
+
   const clearFilters = () => {
     setSearchInput('')
     setSearch('')
     setStatus(undefined)
-    setDateFilter('ALL')
+    setDateFilter('today') // Por defecto mostrar desde hoy
+    setDateFrom(null)
+    setDateTo(null)
     setActiveOnly(true) // vuelve a activos
     setPage(1)
   }
@@ -545,8 +578,24 @@ export default function SorteosListScreen() {
 
               <XStack ai="center" gap="$2" minWidth={140} flexShrink={0}>
                 <Text fontSize="$3" flexShrink={0}>Fecha:</Text>
-                <DateFilterSelect value={dateFilter} onChange={(v) => { setDateFilter(v); setPage(1) }} />
+                <DateFilterSelect value={dateFilter} onChange={handleDateFilterChange} />
               </XStack>
+
+              {/* Rango personalizado */}
+              {dateFilter === 'range' && (
+                <XStack ai="center" gap="$2" flexWrap="wrap">
+                  <DatePicker
+                    value={dateFrom}
+                    onChange={(d) => setDateFrom(d)}
+                    placeholder="Desde"
+                  />
+                  <DatePicker
+                    value={dateTo}
+                    onChange={(d) => setDateTo(d)}
+                    placeholder="Hasta"
+                  />
+                </XStack>
+              )}
 
               <XStack width={1} height={24} backgroundColor="$borderColor" marginHorizontal="$2" flexShrink={0} />
 
@@ -599,7 +648,7 @@ export default function SorteosListScreen() {
           </Card>
         ) : (
           <YStack gap="$2">
-            {rows.map((s) => {
+            {paginatedRows.map((s) => {
               const isActive = (s as any).isActive !== false
               const rowActive = isRowActive(s)
               const isFinal = s.status === 'EVALUATED' || s.status === 'CLOSED'
