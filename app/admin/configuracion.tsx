@@ -202,58 +202,58 @@ export default function ConfiguracionScreen() {
 
             <Card padding="$4">
               <YStack gap="$4">
-            <Text fontSize="$5" fontWeight="600">
-              Parámetros del Sistema
-            </Text>
-
-            <YStack gap="$2">
-              <Text fontSize="$4" fontWeight="500">
-                Cutoff Predeterminado (minutos)
-              </Text>
-              <Input
-                size="$4"
-                value={defaultCutoff}
-                onChangeText={setDefaultCutoff}
-                keyboardType="number-pad"
-              />
-              <Text fontSize="$2" color="$textSecondary">
-                Aplica cuando no hay reglas específicas
-              </Text>
-            </YStack>
-
-            <XStack gap="$3" alignItems="center" mt="$2">
-              <Switch
-                size="$2"
-                checked={enableDebug}
-                onCheckedChange={(v) => setEnableDebug(!!v)}
-                // visibles en web:
-                bw={1}
-                bc="$borderColor"
-                bg={enableDebug ? '$color10' : '$background'}
-                hoverStyle={{ bg: enableDebug ? '$color10' : '$backgroundHover' }}
-                // (opcional) accesibilidad
-                aria-label="Panel de Debug"
-                focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: 'var(--color10)' }}
-              >
-                <Switch.Thumb animation="quick" bg="$color12" />
-              </Switch>
-
-              <YStack flex={1} gap="$1">
-                <Text fontSize="$4">Panel de Debug</Text>
-                <Text fontSize="$2" color="$textSecondary">
-                  Mostrar información de depuración en errores
+                <Text fontSize="$5" fontWeight="600">
+                  Parámetros del Sistema
                 </Text>
+
+                <YStack gap="$2">
+                  <Text fontSize="$4" fontWeight="500">
+                    Cutoff Predeterminado (minutos)
+                  </Text>
+                  <Input
+                    size="$4"
+                    value={defaultCutoff}
+                    onChangeText={setDefaultCutoff}
+                    keyboardType="number-pad"
+                  />
+                  <Text fontSize="$2" color="$textSecondary">
+                    Aplica cuando no hay reglas específicas
+                  </Text>
+                </YStack>
+
+                <XStack gap="$3" alignItems="center" mt="$2">
+                  <Switch
+                    size="$2"
+                    checked={enableDebug}
+                    onCheckedChange={(v) => setEnableDebug(!!v)}
+                    // visibles en web:
+                    bw={1}
+                    bc="$borderColor"
+                    bg={enableDebug ? '$color10' : '$background'}
+                    hoverStyle={{ bg: enableDebug ? '$color10' : '$backgroundHover' }}
+                    // (opcional) accesibilidad
+                    aria-label="Panel de Debug"
+                    focusStyle={{ outlineWidth: 2, outlineStyle: 'solid', outlineColor: 'var(--color10)' }}
+                  >
+                    <Switch.Thumb animation="quick" bg="$color12" />
+                  </Switch>
+
+                  <YStack flex={1} gap="$1">
+                    <Text fontSize="$4">Panel de Debug</Text>
+                    <Text fontSize="$2" color="$textSecondary">
+                      Mostrar información de depuración en errores
+                    </Text>
+                  </YStack>
+                </XStack>
+
+                <Button variant="primary" marginTop="$3">
+                  Guardar Configuración
+                </Button>
               </YStack>
-            </XStack>
-
-
-            <Button variant="primary" marginTop="$3">
-              Guardar Configuración
-            </Button>
+            </Card>
           </YStack>
-        </Card>
-      </YStack>
-    </ScrollView>
+        </YStack>
+      </ScrollView>
 
       <ChangePasswordForm
         open={passwordOpen}

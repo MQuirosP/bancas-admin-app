@@ -22,12 +22,12 @@ export function SystemThemeSync() {
   const { setTheme, theme } = useThemeStore();
   const { user } = useAuthStore();
   
-  // Cargar el tema desde user.settings si existe
+  // Cargar el tema desde user.settings solo cuando el usuario cambia (no en cada render)
   useEffect(() => {
-    if (user?.settings?.theme && theme !== user.settings.theme) {
+    if (user?.settings?.theme) {
       setTheme(user.settings.theme);
     }
-  }, [user?.settings?.theme, theme, setTheme]);
+  }, [user?.id, user?.settings?.theme, setTheme]); // Solo depende del id del usuario, no del theme actual
   
   // Sincronizar con el esquema del sistema solo si no hay tema guardado en user.settings
   useEffect(() => {
