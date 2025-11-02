@@ -4,11 +4,13 @@ import { YStack, XStack, Text } from 'tamagui'
 import { Toolbar, Card, Button } from '@/components/ui'
 import { RefreshCw, HelpCircle } from '@tamagui/lucide-icons'
 import { useTheme } from 'tamagui'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api.client'
 import { useToast } from '@/hooks/useToast'
 import { getErrorMessage } from '@/lib/errors'
 import TicketPrintConfigForm, { TicketPrintConfigValues } from '@/components/tickets/TicketPrintConfigForm'
+import { useUserQuery } from '@/hooks/useUsers'
+import { queryKeys } from '@/hooks/useUsers'
 import type { Usuario } from '@/types/models.types'
 
 type Props = {
@@ -23,17 +25,13 @@ export default function PrintConfigTab({ userId, targetRole, viewerRole }: Props
   const theme = useTheme()
   const iconColor = (theme?.color as any)?.get?.() ?? '#000'
 
-  const { data: user, isFetching, refetch } = useQuery<Usuario>({
-    queryKey: ['users', userId],
-    queryFn: () => apiClient.get<Usuario>(`/users/${userId}`),
-    enabled: !!userId,
-  })
+  const { data: user, isFetching, refetch } = useUserQuery(userId)
 
   const updateMutation = useMutation({
     mutationFn: (payload: Partial<Usuario>) => apiClient.patch(`/users/${userId}`, payload),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['users', userId] })
-      qc.invalidateQueries({ queryKey: ['users'] })
+      qc.invalidateQueries({ queryKey: queryKeys.users.detail(userId) })
+      qc.invalidateQueries({ queryKey: queryKeys.users.root })
       toast.success('Configuración de impresión actualizada')
       refetch()
     },
