@@ -194,6 +194,13 @@ export default function Drawer({ isOpen, onClose }: DrawerProps) {
           roles: ['VENTANA'],
           route: '/ventana/restrictions',
         },
+        {
+          id: 'configuracion',
+          label: 'Configuración',
+          icon: Settings,
+          roles: ['VENTANA'],
+          route: '/ventana/configuracion',
+        },
       ];
     }
 
@@ -219,6 +226,14 @@ export default function Drawer({ isOpen, onClose }: DrawerProps) {
           icon: Ticket,
           roles: ['VENDEDOR'],
           route: '/vendedor/tickets',
+          dividerAfter: true,
+        },
+        {
+          id: 'configuracion',
+          label: 'Configuración',
+          icon: Settings,
+          roles: ['VENDEDOR'],
+          route: '/vendedor/configuracion',
         },
       ];
     }

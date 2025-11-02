@@ -82,7 +82,7 @@ export default function SorteoDetailScreen() {
 
   // Mutación actualizar sorteo
   const mUpdate = useMutation({
-    mutationFn: (body: SorteoFormValues) => apiClient.put(`/sorteos/${id}`, body),
+    mutationFn: (body: SorteoFormValues) => apiClient.patch(`/sorteos/${id}`, body),
     onSuccess: (updated: any) => {
       const s: Sorteo = Array.isArray(updated) ? (updated as any)[0] : (updated?.data ?? updated)
       qc.invalidateQueries({ queryKey: ['sorteos'] })

@@ -58,7 +58,7 @@ export const SorteosApi = {
   update: (
     id: string,
     body: Partial<Pick<Sorteo, 'name' | 'scheduledAt' | 'extraOutcomeCode' | 'extraMultiplierId'>>
-  ): Promise<Sorteo> => apiClient.put(`/sorteos/${id}`, compact(body)),
+  ): Promise<Sorteo> => apiClient.patch(`/sorteos/${id}`, compact(body)),
 
   open: (id: string): Promise<Sorteo> => apiClient.patch(`/sorteos/${id}/open`, {}),
 

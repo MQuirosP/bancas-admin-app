@@ -30,7 +30,7 @@ export default function BancaDetailScreen() {
   })
 
   const updateMutation = useMutation({
-    mutationFn: (payload: Partial<Banca>) => apiClient.put<Banca>(`/bancas/${id}`, payload),
+    mutationFn: (payload: Partial<Banca>) => apiClient.patch<Banca>(`/bancas/${id}`, payload),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['bancas'] })
       qc.invalidateQueries({ queryKey: ['bancas', 'detail', id] })

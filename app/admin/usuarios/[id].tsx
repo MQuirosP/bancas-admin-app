@@ -12,6 +12,7 @@ import { getErrorMessage } from '../../../lib/errors'
 import { safeBack } from '../../../lib/navigation'
 import { safe } from '../../../utils/safe'
 import CommissionTab from './CommissionTab'
+import PrintConfigTab from './PrintConfigTab'
 import { useAuthStore } from '@/store/auth.store'
 
 export default function UsuarioDetailScreen() {
@@ -111,6 +112,10 @@ export default function UsuarioDetailScreen() {
 
         {(data.role === 'VENTANA' || data.role === 'VENDEDOR') && (
           <CommissionTab userId={id} targetRole={data.role as any} viewerRole={(useAuthStore.getState().user?.role as any) ?? 'ADMIN'} />
+        )}
+
+        {data.role === 'VENDEDOR' && (
+          <PrintConfigTab userId={id} targetRole={data.role as any} viewerRole={(useAuthStore.getState().user?.role as any) ?? 'ADMIN'} />
         )}
 
         {hasNextPage && (

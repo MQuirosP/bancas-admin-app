@@ -42,6 +42,22 @@ export interface User {
   role: Role;
   isActive: boolean;
   ventana?: Ventana;
+  // Configuración de impresión de tiquetes (solo para VENDEDOR)
+  printName?: string | null;
+  printPhone?: string | null;
+  printWidth?: number | null;
+  printFooter?: string | null;
+  printBarcode?: boolean | null;
+  settings?: {
+    print?: {
+      name?: string | null;
+      phone?: string | null;
+      width?: number | null;
+      footer?: string | null;
+      barcode?: boolean | null;
+    };
+    theme?: 'light' | 'dark' | null;
+  };
   deletedAt?: string;
   createdAt: string;
   updatedAt: string;

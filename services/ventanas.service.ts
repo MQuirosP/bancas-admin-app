@@ -11,6 +11,16 @@ export type Ventana = {
   address?: string | null
   commissionMarginX?: number | null
   isActive?: boolean
+  settings?: {
+    print?: {
+      name?: string | null
+      phone?: string | null
+      width?: number | null
+      footer?: string | null
+      barcode?: boolean | null
+    }
+    theme?: 'light' | 'dark' | null
+  }
   // isDeleted?: boolean // <- planeas quitarlo del backend; lo dejamos fuera del flujo
 }
 
@@ -66,7 +76,7 @@ export async function createVentana(payload: VentanaCreateDTO) {
 }
 
 export async function updateVentana(id: string, payload: VentanaUpdateDTO) {
-  return apiClient.put(`/ventanas/${id}`, payload)
+  return apiClient.patch(`/ventanas/${id}`, payload)
 }
 
 export async function softDeleteVentana(id: string) {

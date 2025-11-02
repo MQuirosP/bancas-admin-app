@@ -188,7 +188,7 @@ function StatCard({ icon: Icon, title, value, change, positive, color }: StatCar
         >
           <Icon size={28} color={color} />
         </YStack>
-        {showChange && (
+        {showChange ? (
           <YStack alignItems="flex-end" gap="$1">
             <XStack ai="center" gap="$1" backgroundColor={positive ? '$green4' : '$red4'} paddingHorizontal="$2" paddingVertical="$1" borderRadius="$2">
               <TrendIcon size={14} color={trendColor} />
@@ -198,7 +198,7 @@ function StatCard({ icon: Icon, title, value, change, positive, color }: StatCar
             </XStack>
             <Text fontSize="$1" color="$textTertiary">vs ayer</Text>
           </YStack>
-        )}
+        ) : null}
       </XStack>
       <YStack gap="$1" mt="$2">
         <Text fontSize="$3" color="$textSecondary">

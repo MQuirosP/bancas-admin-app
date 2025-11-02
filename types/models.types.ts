@@ -27,6 +27,22 @@ export interface Ventana {
   isActive: boolean;
   salesCutoffMinutes?: number;
   commissionMarginX?: number | null;
+  // Configuración de impresión de tiquetes
+  printName?: string | null; // Nombre para mostrar en tiquete (Nombre Tiempos)
+  printPhone?: string | null; // Teléfono para mostrar en tiquete
+  printWidth?: number | null; // Ancho de papel (58mm o 88mm)
+  printFooter?: string | null; // Pie de ticket (texto adicional)
+  printBarcode?: boolean | null; // Imprimir código de barras
+  settings?: {
+    print?: {
+      name?: string | null;
+      phone?: string | null;
+      width?: number | null;
+      footer?: string | null;
+      barcode?: boolean | null;
+    };
+    theme?: 'light' | 'dark' | null;
+  };
   createdAt: string;
   updatedAt: string;
 }
@@ -44,6 +60,22 @@ export interface Usuario {
   role: UserRole;
   ventanaId?: string | null;   // solo para VENTANA / VENDEDOR
   isActive: boolean;
+  // Configuración de impresión de tiquetes (solo para VENDEDOR)
+  printName?: string | null; // Nombre para mostrar en tiquete (Nombre Tiempos)
+  printPhone?: string | null; // Teléfono para mostrar en tiquete
+  printWidth?: number | null; // Ancho de papel (58mm o 88mm)
+  printFooter?: string | null; // Pie de ticket (texto adicional)
+  printBarcode?: boolean | null; // Imprimir código de barras
+  settings?: {
+    print?: {
+      name?: string | null;
+      phone?: string | null;
+      width?: number | null;
+      footer?: string | null;
+      barcode?: boolean | null;
+    };
+    theme?: 'light' | 'dark' | null;
+  };
 
   // soft-delete flags (el backend los tiene)
   IsActive?: boolean;

@@ -38,7 +38,7 @@ export const MultipliersApi = {
 
   get: (id: string) => apiClient.get<LoteriaMultiplier>(`/multipliers/${id}`),
   create: (body: any) => apiClient.post<LoteriaMultiplier>('/multipliers', body),
-  update: (id: string, body: any) => apiClient.put<LoteriaMultiplier>(`/multipliers/${id}`, body),
+  update: (id: string, body: any) => apiClient.patch<LoteriaMultiplier>(`/multipliers/${id}`, body),
   toggleActive: (id: string, isActive: boolean) =>
     apiClient.deleteWithBody(`/multipliers/${id}`, { isActive }),
 }

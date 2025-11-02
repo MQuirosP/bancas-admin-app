@@ -33,6 +33,8 @@ export default function VentanaLayout() {
         <Stack.Screen name="tickets/nuevo" />
         <Stack.Screen name="tickets/[id]" />
         <Stack.Screen name="ventas/index" />
+        <Stack.Screen name="configuracion/index" />
+        <Stack.Screen name="configuracion/impresion" />
       </Stack>
     </YStack>
   );

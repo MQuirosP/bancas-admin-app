@@ -12,6 +12,8 @@ import { safeBack } from '@/lib/navigation'
 import { Ventana } from '../../../types/models.types'
 import { isDirty as isDirtyUtil } from '../../../utils/forms/dirty'
 import { ArrowLeft } from '@tamagui/lucide-icons'
+import PrintConfigTab from './PrintConfigTab'
+import { useAuthStore } from '@/store/auth.store'
 
 export default function EditVentanaScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
@@ -35,7 +37,7 @@ export default function EditVentanaScreen() {
 
   const updateMutation = useMutation({
     mutationFn: (payload: Partial<VentanaFormValues>) =>
-      apiClient.put(`/ventanas/${id}`, payload),
+      apiClient.patch(`/ventanas/${id}`, payload),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['ventanas'] })
       qc.invalidateQueries({ queryKey: ['ventanas', id] })
@@ -129,6 +131,13 @@ export default function EditVentanaScreen() {
             loadingBancas={loadingBancas}
             errorBancas={errorBancas}
             onRetryBancas={() => { void refetch() }}
+          />
+        )}
+
+        {ventana && (
+          <PrintConfigTab
+            ventanaId={id}
+            viewerRole={(useAuthStore.getState().user?.role as any) ?? 'ADMIN'}
           />
         )}
       </YStack>

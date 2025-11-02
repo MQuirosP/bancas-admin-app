@@ -29,6 +29,8 @@ export default function VendedorLayout() {
         <Stack.Screen name="index" />
         <Stack.Screen name="tickets/index" />
         <Stack.Screen name="tickets/nuevo" />
+        <Stack.Screen name="configuracion/index" />
+        <Stack.Screen name="configuracion/impresion" />
       </Stack>
     </YStack>
   );
