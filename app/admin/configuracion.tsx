@@ -3,7 +3,7 @@ import { YStack, Text, Switch, ScrollView, XStack } from 'tamagui';
 import { Button, Input, Card } from '@/components/ui';
 import { useRouter } from 'expo-router'
 import { useTheme } from 'tamagui'
-import { ArrowLeft, Lock, Palette, Settings } from '@tamagui/lucide-icons'
+import { ArrowLeft, Lock, Palette, Settings, Printer } from '@tamagui/lucide-icons'
 import { safeBack } from '@/lib/navigation'
 import ChangePasswordForm, { ChangePasswordValues } from '@/components/auth/ChangePasswordForm'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
@@ -192,6 +192,48 @@ export default function ConfiguracionScreen() {
                   loading={themeMutation.isPending}
                 >
                   Cambiar
+                </Button>
+              </XStack>
+            </Card>
+
+            <Text fontSize="$6" fontWeight="600" color="$textSecondary" mt="$4">
+              Configuración de Impresión
+            </Text>
+
+            {/* Statcard: Configuración de Impresión */}
+            <Card
+              padding="$4"
+              bg="$backgroundHover"
+              borderColor="$borderColor"
+              borderWidth={1}
+            >
+              <XStack ai="center" gap="$4" jc="space-between">
+                <XStack ai="center" gap="$3" flex={1}>
+                  <YStack
+                    ai="center"
+                    jc="center"
+                    width={48}
+                    height={48}
+                    borderRadius="$4"
+                    backgroundColor="$blue4"
+                  >
+                    <Printer size={24} color="$blue11" />
+                  </YStack>
+                  <YStack flex={1} gap="$1">
+                    <Text fontSize="$5" fontWeight="600">
+                      Configuración de Impresión
+                    </Text>
+                    <Text fontSize="$3" color="$textSecondary">
+                      Personaliza la apariencia de tus tiquetes impresos
+                    </Text>
+                  </YStack>
+                </XStack>
+                <Button
+                  size="$3"
+                  variant="outlined"
+                  onPress={() => router.push('/admin/usuarios')}
+                >
+                  Gestionar
                 </Button>
               </XStack>
             </Card>
