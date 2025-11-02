@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 import { useThemeStore } from '../../store/theme.store';
+import { useAuthStore } from '../../store/auth.store';
 
 function applyWebBackground() {
   if (typeof document === 'undefined') return
@@ -18,16 +19,24 @@ type ThemeMode = 'light' | 'dark';
 
 export function SystemThemeSync() {
   const colorScheme = useColorScheme() as ThemeMode;
-  const setTheme = useThemeStore((state) => state.setTheme);
+  const { setTheme, theme } = useThemeStore();
+  const { user } = useAuthStore();
   
+  // Cargar el tema desde user.settings si existe
   useEffect(() => {
-    if (colorScheme) {
+    if (user?.settings?.theme && theme !== user.settings.theme) {
+      setTheme(user.settings.theme);
+    }
+  }, [user?.settings?.theme, theme, setTheme]);
+  
+  // Sincronizar con el esquema del sistema solo si no hay tema guardado en user.settings
+  useEffect(() => {
+    if (colorScheme && !user?.settings?.theme) {
       setTheme(colorScheme);
     }
-  }, [colorScheme, setTheme]);
+  }, [colorScheme, setTheme, user?.settings?.theme]);
   
   // Asegura que el fondo de html/body se actualice con el tema activo en Web
-  const theme = useThemeStore((s) => s.theme)
   useEffect(() => {
     applyWebBackground()
   }, [theme])
